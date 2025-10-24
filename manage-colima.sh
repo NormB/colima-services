@@ -888,7 +888,8 @@ cmd_backup() {
         error "Colima is not running. Start it first with: ./manage-colima.sh start"
     fi
 
-    local backup_dir="backups/$(date +%Y%m%d_%H%M%S)"
+    local backup_dir
+    backup_dir="backups/$(date +%Y%m%d_%H%M%S)"
     mkdir -p "$backup_dir"
 
     info "Creating backup in: $backup_dir"
@@ -1007,7 +1008,8 @@ cmd_vault_unseal() {
     info "Unsealing Vault..."
 
     # Extract unseal keys (we need 3 out of 5)
-    local keys=($(cat "$vault_keys_file" | grep -o '"[^"]*"' | grep '^"[A-Za-z0-9+/=]\{44\}"$' | tr -d '"' | head -3))
+    local keys=()
+    mapfile -t keys < <(grep -o '"[^"]*"' "$vault_keys_file" | grep '^"[A-Za-z0-9+/=]\{44\}"$' | tr -d '"' | head -3)
 
     if [ ${#keys[@]} -lt 3 ]; then
         error "Could not extract enough unseal keys from $vault_keys_file"
@@ -1063,8 +1065,8 @@ cmd_vault_status() {
 
     echo
     if [ -f "${HOME}/.config/vault/root-token" ]; then
-        info "Root Token: $(cat ${HOME}/.config/vault/root-token)"
-        info "Set token: export VAULT_TOKEN=\$(cat ${HOME}/.config/vault/root-token)"
+        info "Root Token: $(cat "${HOME}/.config/vault/root-token")"
+        info "Set token: export VAULT_TOKEN=\$(cat \${HOME}/.config/vault/root-token)"
     fi
 }
 
@@ -1154,7 +1156,7 @@ cmd_vault_bootstrap() {
 
     # Set Vault environment variables
     export VAULT_ADDR="${VAULT_ADDR:-http://localhost:8200}"
-    export VAULT_TOKEN="${VAULT_TOKEN:-$(cat ${HOME}/.config/vault/root-token 2>/dev/null)}"
+    export VAULT_TOKEN="${VAULT_TOKEN:-$(cat "${HOME}/.config/vault/root-token" 2>/dev/null)}"
 
     if [ -z "$VAULT_TOKEN" ]; then
         error "VAULT_TOKEN not set and root token file not found. Run './manage-colima.sh vault-init' first"
@@ -1266,7 +1268,7 @@ cmd_vault_show_password() {
     fi
 
     export VAULT_ADDR="${VAULT_ADDR:-http://localhost:8200}"
-    export VAULT_TOKEN="${VAULT_TOKEN:-$(cat ${HOME}/.config/vault/root-token 2>/dev/null)}"
+    export VAULT_TOKEN="${VAULT_TOKEN:-$(cat "${HOME}/.config/vault/root-token" 2>/dev/null)}"
 
     if [ -z "$VAULT_TOKEN" ]; then
         error "VAULT_TOKEN not set. Run './manage-colima.sh vault-init' first"

@@ -54,7 +54,7 @@ services:
   # ===========================================================================
 
   postgres:
-    image: postgres:16-alpine
+    image: postgres:16.6-alpine3.21
     container_name: dev-postgres
     restart: unless-stopped
 
@@ -165,7 +165,7 @@ services:
   # ===========================================================================
 
   mysql:
-    image: mysql:8.0
+    image: mysql:8.0.40
     container_name: dev-mysql
     restart: unless-stopped
 
@@ -232,7 +232,7 @@ services:
   # ===========================================================================
 
   redis-1:
-    image: redis:7-alpine
+    image: redis:7.4-alpine3.21
     container_name: dev-redis-1
     restart: unless-stopped
 
@@ -296,7 +296,7 @@ services:
       - "com.voip.cluster.node=1"
 
   redis-2:
-    image: redis:7-alpine
+    image: redis:7.4-alpine3.21
     container_name: dev-redis-2
     restart: unless-stopped
 
@@ -360,7 +360,7 @@ services:
       - "com.voip.cluster.node=2"
 
   redis-3:
-    image: redis:7-alpine
+    image: redis:7.4-alpine3.21
     container_name: dev-redis-3
     restart: unless-stopped
 
@@ -433,7 +433,7 @@ services:
   # ===========================================================================
 
   rabbitmq:
-    image: rabbitmq:3-management-alpine
+    image: rabbitmq:3.13-management-alpine
     container_name: dev-rabbitmq
     restart: unless-stopped
 
@@ -485,7 +485,7 @@ services:
   # ===========================================================================
   
   mongodb:
-    image: mongo:7
+    image: mongo:7.0
     container_name: dev-mongodb
     restart: unless-stopped
 
@@ -533,7 +533,7 @@ services:
   # ===========================================================================
   
   forgejo:
-    image: codeberg.org/forgejo/forgejo:1.21
+    image: codeberg.org/forgejo/forgejo:1.21.11-0
     container_name: dev-forgejo
     restart: unless-stopped
     
@@ -588,7 +588,7 @@ services:
   # ===========================================================================
 
   vault:
-    image: hashicorp/vault:latest
+    image: hashicorp/vault:1.18
     container_name: dev-vault
     restart: unless-stopped
 
