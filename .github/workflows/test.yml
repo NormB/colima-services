@@ -114,7 +114,7 @@ jobs:
 
           for script in $scripts; do
             shebang=$(head -n 1 "$script")
-            if ! echo "$shebang" | grep -qE "^#!/bin/bash|^#!/usr/bin/env bash"; then
+            if [[ ! "$shebang" =~ ^#!/bin/bash$ ]] && [[ ! "$shebang" =~ ^#!/usr/bin/env\ bash$ ]]; then
               echo "✗ Missing or incorrect shebang in: $script"
               echo "  Found: $shebang"
               exit 1
