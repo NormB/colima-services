@@ -57,11 +57,16 @@ jobs:
       - name: Check for required variables
         run: |
           required_vars=(
+            "VAULT_ADDR"
+            "VAULT_TOKEN"
+            "POSTGRES_USER"
+            "POSTGRES_DB"
             "POSTGRES_PASSWORD"
-            "MYSQL_ROOT_PASSWORD"
-            "RABBITMQ_DEFAULT_PASS"
-            "MONGODB_ROOT_PASSWORD"
-            "VAULT_DEV_ROOT_TOKEN_ID"
+            "MYSQL_USER"
+            "MYSQL_DATABASE"
+            "RABBITMQ_VHOST"
+            "MONGODB_USER"
+            "MONGODB_DATABASE"
           )
 
           missing=0
@@ -76,7 +81,7 @@ jobs:
             exit 1
           fi
 
-          echo "✓ All required variables present"
+          echo "✓ All required variables present (Vault-managed credentials)"
 
   validate-scripts:
     name: Validate Shell Scripts
@@ -108,8 +113,10 @@ jobs:
           scripts=$(find . -name "*.sh" -type f)
 
           for script in $scripts; do
-            if ! head -n 1 "$script" | grep -q "^#!/bin/bash"; then
+            shebang=$(head -n 1 "$script")
+            if ! echo "$shebang" | grep -qE "^#!/bin/bash|^#!/usr/bin/env bash"; then
               echo "✗ Missing or incorrect shebang in: $script"
+              echo "  Found: $shebang"
               exit 1
             fi
           done
@@ -255,7 +262,7 @@ jobs:
           expected_services=(
             "postgres"
             "vault"
-            "redis-node-1"
+            "redis-1"
             "rabbitmq"
           )
 
