@@ -4,6 +4,14 @@ This directory contains comprehensive documentation for the Colima Services proj
 
 ## Documentation Index
 
+### Project Information
+
+- **[ACKNOWLEDGEMENTS.md](./ACKNOWLEDGEMENTS.md)** - Software acknowledgements and licenses
+  - Complete list of all open-source projects used
+  - License information for all dependencies
+  - Framework and library acknowledgements
+  - Special thanks to the open-source community
+
 ### Security Documentation
 
 - **[SECURITY_ASSESSMENT.md](./SECURITY_ASSESSMENT.md)** - Complete security audit and assessment
@@ -132,6 +140,7 @@ See [CONTRIBUTING.md](../CONTRIBUTING.md) for guidelines on:
 
 | Category | Files | Status |
 |----------|-------|--------|
+| Project Information | 1 | ✅ Complete |
 | Security | 3 | ✅ Complete |
 | Testing | 3 | ✅ Complete |
 | Architecture | 1 | ✅ Complete |
@@ -139,7 +148,7 @@ See [CONTRIBUTING.md](../CONTRIBUTING.md) for guidelines on:
 | API Patterns | 1 | ✅ Complete |
 | Reference Apps | 6 | ✅ Complete |
 | Infrastructure | 1 | ✅ Complete |
-| **Total** | **17** | **✅ Complete** |
+| **Total** | **18** | **✅ Complete** |
 
 ## Useful Resources
 

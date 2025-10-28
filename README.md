@@ -266,9 +266,8 @@ For detailed installation instructions, see [docs/INSTALLATION.md](./docs/INSTAL
 
 MIT License - see [LICENSE](./LICENSE) for details.
 
-## Acknowledgments
+## Acknowledgements
 
-- Built with [Colima](https://github.com/abiosoft/colima)
-- Powered by [Docker](https://www.docker.com/) and [Docker Compose](https://docs.docker.com/compose/)
-- Uses [HashiCorp Vault](https://www.vaultproject.io/) for secrets management
-- Observability via [Prometheus](https://prometheus.io/), [Grafana](https://grafana.com/), and [Loki](https://grafana.com/oss/loki/)
+This project is built on the shoulders of giants. We are grateful for the excellent open-source software and tools that make this project possible.
+
+See the complete list of [acknowledged projects and their licenses](./docs/ACKNOWLEDGEMENTS.md).
