@@ -1,5 +1,34 @@
 # Documentation
 
+## Table of Contents
+
+- [Documentation Index](#documentation-index)
+  - [Project Information](#project-information)
+  - [Security Documentation](#security-documentation)
+  - [Testing Documentation](#testing-documentation)
+  - [Architecture & Design](#architecture-design)
+  - [Operational Guides](#operational-guides)
+  - [API Development Patterns](#api-development-patterns)
+- [Quick Links](#quick-links)
+  - [Project-Level Documentation](#project-level-documentation)
+  - [Component Documentation](#component-documentation)
+- [Documentation Standards](#documentation-standards)
+  - [Writing Guidelines](#writing-guidelines)
+  - [File Naming](#file-naming)
+  - [Links and References](#links-and-references)
+- [Contributing to Documentation](#contributing-to-documentation)
+- [Documentation Coverage](#documentation-coverage)
+- [Useful Resources](#useful-resources)
+  - [External Documentation](#external-documentation)
+  - [Infrastructure Components](#infrastructure-components)
+  - [Observability Stack](#observability-stack)
+- [Documentation Maintenance](#documentation-maintenance)
+  - [When to Update Documentation](#when-to-update-documentation)
+  - [Review Schedule](#review-schedule)
+- [Need Help?](#need-help)
+
+---
+
 This directory contains comprehensive documentation for the Colima Services project.
 
 ## Documentation Index

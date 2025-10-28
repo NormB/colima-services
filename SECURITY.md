@@ -1,5 +1,27 @@
 # Security Policy
 
+## Table of Contents
+
+- [Supported Versions](#supported-versions)
+- [Reporting a Vulnerability](#reporting-a-vulnerability)
+  - [1. DO NOT Publicly Disclose](#1-do-not-publicly-disclose)
+  - [2. Report Privately](#2-report-privately)
+  - [3. What to Expect](#3-what-to-expect)
+  - [4. Response Timeline](#4-response-timeline)
+- [Security Best Practices](#security-best-practices)
+  - [For Users](#for-users)
+  - [For Contributors](#for-contributors)
+- [Known Security Considerations](#known-security-considerations)
+  - [Development Environment Only](#development-environment-only)
+  - [Service-Specific Considerations](#service-specific-considerations)
+- [Security Updates](#security-updates)
+- [Security Tools](#security-tools)
+- [Compliance](#compliance)
+- [Contact](#contact)
+- [Acknowledgments](#acknowledgments)
+
+---
+
 ## Supported Versions
 
 We release security updates for the following versions:

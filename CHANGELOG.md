@@ -1,5 +1,41 @@
 # Changelog
 
+## Table of Contents
+
+- [[Unreleased]](#unreleased)
+  - [Added](#added)
+  - [Changed](#changed)
+  - [Fixed](#fixed)
+  - [Security](#security)
+- [[1.0.0] - 2025-10-23](#100-2025-10-23)
+  - [Added](#added)
+  - [Security](#security)
+- [Version History Guidelines](#version-history-guidelines)
+  - [Version Format](#version-format)
+- [[X.Y.Z] - YYYY-MM-DD](#xyz-yyyy-mm-dd)
+  - [Change Categories](#change-categories)
+  - [Example Entry](#example-entry)
+- [[1.0.0] - 2025-01-15](#100-2025-01-15)
+  - [Added](#added)
+  - [Changed](#changed)
+  - [Fixed](#fixed)
+  - [Security](#security)
+  - [Semantic Versioning](#semantic-versioning)
+  - [When to Update](#when-to-update)
+  - [Best Practices](#best-practices)
+  - [Migration Notes](#migration-notes)
+  - [Migration from 0.x to 1.0](#migration-from-0x-to-10)
+- [Archive](#archive)
+- [[X.Y.Z] - YYYY-MM-DD](#xyz-yyyy-mm-dd)
+  - [Added](#added)
+  - [Changed](#changed)
+  - [Deprecated](#deprecated)
+  - [Removed](#removed)
+  - [Fixed](#fixed)
+  - [Security](#security)
+
+---
+
 All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),

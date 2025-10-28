@@ -1,5 +1,45 @@
 # Colima Services Test Suite
 
+## Table of Contents
+
+- [Quick Start](#quick-start)
+- [Test Suites](#test-suites)
+  - [Infrastructure Tests](#infrastructure-tests)
+  - [Database Tests](#database-tests)
+  - [Cache & Messaging Tests](#cache-messaging-tests)
+  - [Application Tests](#application-tests)
+- [New Features (Latest Update)](#new-features-latest-update)
+  - [1. Redis Cluster Testing (`test-redis-cluster.sh`)](#1-redis-cluster-testing-test-redis-clustersh)
+  - [2. FastAPI Application Testing (`test-fastapi.sh`)](#2-fastapi-application-testing-test-fastapish)
+  - [3. Enhanced Test Runner (`run-all-tests.sh`)](#3-enhanced-test-runner-run-all-testssh)
+- [Prerequisites](#prerequisites)
+  - [System Dependencies](#system-dependencies)
+  - [Python Dependencies](#python-dependencies)
+- [Test Output Example](#test-output-example)
+- [Running Individual Tests](#running-individual-tests)
+  - [Test FastAPI and Redis Cluster APIs](#test-fastapi-and-redis-cluster-apis)
+  - [Test Redis Cluster Configuration](#test-redis-cluster-configuration)
+  - [Test All Infrastructure](#test-all-infrastructure)
+- [Test Coverage Summary](#test-coverage-summary)
+- [What Gets Validated](#what-gets-validated)
+  - [✅ Infrastructure](#infrastructure)
+  - [✅ Data Layer](#data-layer)
+  - [✅ Cache Layer (New!)](#cache-layer-new)
+  - [✅ Application Layer (New!)](#application-layer-new)
+- [Continuous Testing](#continuous-testing)
+- [Test Philosophy](#test-philosophy)
+  - [External Client Testing](#external-client-testing)
+  - [Why This Matters](#why-this-matters)
+- [Troubleshooting](#troubleshooting)
+  - [Test Failures](#test-failures)
+  - [Dependencies Missing](#dependencies-missing)
+- [Contributing Tests](#contributing-tests)
+  - [Test Template](#test-template)
+- [Documentation](#documentation)
+- [Summary](#summary)
+
+---
+
 Comprehensive test coverage for all infrastructure components and applications.
 
 ## Quick Start

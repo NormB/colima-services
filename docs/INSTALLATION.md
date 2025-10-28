@@ -1,5 +1,28 @@
 # Complete Installation Guide
 
+## Table of Contents
+
+  - [Step 1: Pre-Flight Checks](#step-1-pre-flight-checks)
+  - [Step 2: Install Required Software](#step-2-install-required-software)
+  - [Step 3: Clone the Repository](#step-3-clone-the-repository)
+  - [Step 4: Configure Environment](#step-4-configure-environment)
+  - [Step 5: Start Colima and Services](#step-5-start-colima-and-services)
+  - [Step 6: Initialize Vault](#step-6-initialize-vault)
+  - [Step 7: Bootstrap Vault and Generate Credentials](#step-7-bootstrap-vault-and-generate-credentials)
+  - [Step 8: Verify Everything Works](#step-8-verify-everything-works)
+  - [Step 9: Access Your Services](#step-9-access-your-services)
+  - [What to Do If Something Goes Wrong](#what-to-do-if-something-goes-wrong)
+- [Prerequisites](#prerequisites)
+  - [System Requirements](#system-requirements)
+  - [Required Software](#required-software)
+  - [Understanding Colima](#understanding-colima)
+- [Installation](#installation)
+  - [First Time Setup](#first-time-setup)
+  - [Configuration](#configuration)
+  - [Starting Services](#starting-services)
+
+---
+
 > **For Complete Beginners**: This section walks you through the entire installation process from scratch, with detailed explanations, expected outputs, and troubleshooting tips. Estimated time: 30-45 minutes.
 
 **What You'll Accomplish:**

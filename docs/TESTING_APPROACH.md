@@ -1,5 +1,37 @@
 # Testing Approach - Best Practices
 
+## Table of Contents
+
+- [Overview](#overview)
+- [Test Architecture](#test-architecture)
+  - [Total Test Count: 431 Tests (355 run, 76 skipped)](#total-test-count-431-tests-355-run-76-skipped)
+- [Best Approach (Implemented in `run-all-tests.sh`)](#best-approach-implemented-in-run-all-testssh)
+  - [1. Bash Integration Tests](#1-bash-integration-tests)
+  - [2. Python Unit Tests (FastAPI)](#2-python-unit-tests-fastapi)
+  - [3. Python Parity Tests](#3-python-parity-tests)
+- [Running All Tests](#running-all-tests)
+  - [Simple (Recommended)](#simple-recommended)
+  - [Manual Container Startup (Faster)](#manual-container-startup-faster)
+- [Prerequisites](#prerequisites)
+  - [Required Tools](#required-tools)
+  - [Required Containers](#required-containers)
+- [Test Execution Details](#test-execution-details)
+  - [Unit Tests (Inside Container)](#unit-tests-inside-container)
+  - [Parity Tests (From Host with uv)](#parity-tests-from-host-with-uv)
+- [Troubleshooting](#troubleshooting)
+  - [Container Not Running](#container-not-running)
+  - [uv Not Found](#uv-not-found)
+  - [Tests Fail](#tests-fail)
+- [Why Not Other Approaches?](#why-not-other-approaches)
+  - [Why not run everything in containers?](#why-not-run-everything-in-containers)
+  - [Why not run everything locally with uv?](#why-not-run-everything-locally-with-uv)
+  - [Why not use virtualenv or pip directly?](#why-not-use-virtualenv-or-pip-directly)
+- [Success Metrics](#success-metrics)
+- [Integration with CI/CD](#integration-with-cicd)
+- [Summary](#summary)
+
+---
+
 ## Overview
 
 This document explains the **best practices** for running the 431 tests in the colima-services repository.

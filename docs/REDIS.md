@@ -1,5 +1,15 @@
 # Redis Cluster
 
+## Table of Contents
+
+- [Architecture](#architecture)
+- [Cluster Setup](#cluster-setup)
+- [Operations](#operations)
+- [Troubleshooting](#troubleshooting)
+- [REST API Cluster Inspection](#rest-api-cluster-inspection)
+
+---
+
 ### Architecture
 
 **3-Node Master Cluster:**

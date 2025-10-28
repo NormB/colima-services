@@ -1,5 +1,13 @@
 # Management Script
 
+## Table of Contents
+
+- [Available Commands](#available-commands)
+- [Common Workflows](#common-workflows)
+- [Advanced Usage](#advanced-usage)
+
+---
+
 The `manage-colima.sh` script provides a unified interface for all operations.
 
 ### Available Commands

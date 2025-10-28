@@ -1,6 +1,23 @@
 # Services
 
 
+## Table of Contents
+
+  - [Infrastructure Services](#infrastructure-services)
+  - [Observability Stack](#observability-stack)
+  - [Reference Applications](#reference-applications)
+- [Service Configuration](#service-configuration)
+  - [PostgreSQL](#postgresql)
+  - [PgBouncer](#pgbouncer)
+  - [MySQL](#mysql)
+  - [Redis Cluster](#redis-cluster)
+  - [RabbitMQ](#rabbitmq)
+  - [MongoDB](#mongodb)
+  - [Forgejo (Git Server)](#forgejo-git-server)
+  - [HashiCorp Vault](#hashicorp-vault)
+
+---
+
 ### Infrastructure Services
 
 | Service | Version | Port(s) | Purpose | Health Check |

@@ -1,5 +1,33 @@
 # Shared Test Suite
 
+## Table of Contents
+
+- [Overview](#overview)
+- [Test Categories](#test-categories)
+  - [1. **Parity Tests** (`@pytest.mark.parity`)](#1-parity-tests-pytestmarkparity)
+  - [2. **Comparison Tests** (`@pytest.mark.comparison`)](#2-comparison-tests-pytestmarkcomparison)
+- [Prerequisites](#prerequisites)
+  - [1. Start Both APIs](#1-start-both-apis)
+  - [2. Verify APIs Are Running](#2-verify-apis-are-running)
+- [Running Tests](#running-tests)
+  - [Install Dependencies](#install-dependencies)
+  - [Run All Tests](#run-all-tests)
+  - [Run Specific Test Categories](#run-specific-test-categories)
+  - [Run Tests for Single Implementation](#run-tests-for-single-implementation)
+- [Environment Variables](#environment-variables)
+- [Test Files](#test-files)
+- [Expected Results](#expected-results)
+  - [Example Output](#example-output)
+- [Troubleshooting](#troubleshooting)
+  - [APIs Not Running](#apis-not-running)
+  - [Tests Failing Due to Response Differences](#tests-failing-due-to-response-differences)
+  - [Port Already in Use](#port-already-in-use)
+- [CI/CD Integration](#cicd-integration)
+- [Contributing](#contributing)
+- [Success Criteria](#success-criteria)
+
+---
+
 **Purpose:** Validate that both API implementations (code-first and API-first) behave identically.
 
 ## Overview

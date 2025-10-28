@@ -1,5 +1,43 @@
 # Node.js Reference API
 
+## Table of Contents
+
+- [Features](#features)
+  - [Core Capabilities](#core-capabilities)
+  - [Node.js-Specific Features](#nodejs-specific-features)
+- [Quick Start](#quick-start)
+- [API Endpoints](#api-endpoints)
+  - [Root](#root)
+  - [Health Checks (`/health`)](#health-checks-health)
+  - [Vault Integration (`/examples/vault`)](#vault-integration-examplesvault)
+  - [Database Operations (`/examples/database`)](#database-operations-examplesdatabase)
+  - [Caching (`/examples/cache`)](#caching-examplescache)
+  - [Messaging (`/examples/messaging`)](#messaging-examplesmessaging)
+  - [Metrics](#metrics)
+- [Architecture](#architecture)
+- [Key Integration Patterns](#key-integration-patterns)
+  - [Fetching Secrets from Vault](#fetching-secrets-from-vault)
+  - [Database Connections with Vault](#database-connections-with-vault)
+  - [Redis Caching](#redis-caching)
+- [Environment Variables](#environment-variables)
+- [Development](#development)
+  - [Local Development](#local-development)
+  - [Testing](#testing)
+- [Comparison with Other Implementations](#comparison-with-other-implementations)
+- [What This Demonstrates](#what-this-demonstrates)
+- [What This Is NOT](#what-this-is-not)
+- [Security Notes](#security-notes)
+- [Documentation Links](#documentation-links)
+- [Quick Examples](#quick-examples)
+  - [Check All Services](#check-all-services)
+  - [Fetch PostgreSQL Credentials](#fetch-postgresql-credentials)
+  - [Test Database Connection](#test-database-connection)
+  - [Cache Operations](#cache-operations)
+  - [Publish Message](#publish-message)
+- [Summary](#summary)
+
+---
+
 **⚠️ This is a reference implementation for learning and testing. Not intended for production use.**
 
 A Node.js/Express application demonstrating infrastructure integration patterns with the Colima Services stack.

@@ -1,5 +1,25 @@
 # Reference Apps Changelog
 
+## Table of Contents
+
+- [[1.1.0] - 2025-10-27](#110-2025-10-27)
+  - [Added](#added)
+  - [Changed](#changed)
+  - [Fixed](#fixed)
+  - [Test Results](#test-results)
+  - [Technical Details](#technical-details)
+    - [API Endpoints](#api-endpoints)
+    - [Docker Services](#docker-services)
+    - [Test Suite Location](#test-suite-location)
+    - [Running Tests](#running-tests)
+    - [Starting Services](#starting-services)
+  - [Architecture](#architecture)
+  - [Security](#security)
+  - [Documentation](#documentation)
+- [[1.0.0] - Previous Release](#100-previous-release)
+
+---
+
 ## [1.1.0] - 2025-10-27
 
 ### Added

@@ -1,12 +1,30 @@
 # Best Practices
 
-**Daily Usage:**
+## Table of Contents
+
+- [Daily Usage](#daily-usage)
+- [Development Workflow](#development-workflow)
+- [Resource Management](#resource-management)
+- [Backup Strategy](#backup-strategy)
+- [Security Hygiene](#security-hygiene)
+- [Integration Patterns](#integration-patterns)
+  - [Using PostgreSQL](#using-postgresql)
+  - [Using Redis Cluster](#using-redis-cluster)
+  - [Using Vault](#using-vault)
+  - [Using RabbitMQ](#using-rabbitmq)
+  - [Git with Forgejo](#git-with-forgejo)
+  - [Multi-Service Applications](#multi-service-applications)
+
+---
+
+## Daily Usage
+
 1. Start services in morning: `./manage-colima.sh start`
 2. Work on projects
 3. Leave running overnight (or stop: `./manage-colima.sh stop`)
 4. Weekly: Check resource usage and backup
 
-**Development Workflow:**
+## Development Workflow
 ```bash
 # 1. Make code changes
 # 2. Commit to local Forgejo
@@ -22,7 +40,7 @@ vault kv put secret/myapp/config api_key=xyz
 # Publish to RabbitMQ, verify consumption
 ```
 
-**Resource Management:**
+## Resource Management
 ```bash
 # Check resource usage weekly
 ./manage-colima.sh status
@@ -34,7 +52,7 @@ docker system prune -a
 docker system df
 ```
 
-**Backup Strategy:**
+## Backup Strategy
 ```bash
 # Daily: Git commits (auto-backed up by Forgejo)
 # Weekly: Full backup
@@ -44,7 +62,7 @@ docker system df
 # Keep 4 weekly backups, 3 monthly backups
 ```
 
-**Security Hygiene:**
+## Security Hygiene
 ```bash
 # 1. Use strong, unique passwords in .env
 # 2. Backup Vault keys securely
@@ -60,7 +78,7 @@ docker compose up -d
 
 ## Integration Patterns
 
-**Using PostgreSQL from Your App:**
+### Using PostgreSQL
 ```python
 # Python example
 import psycopg2
@@ -74,7 +92,7 @@ conn = psycopg2.connect(
 )
 ```
 
-**Using Redis Cluster from Your App:**
+### Using Redis Cluster
 ```python
 # Python with redis-py-cluster
 from rediscluster import RedisCluster
@@ -95,7 +113,7 @@ rc.set("key", "value")
 print(rc.get("key"))
 ```
 
-**Using Vault from Your App:**
+### Using Vault
 ```bash
 # Get secrets via CLI
 export VAULT_ADDR=http://localhost:8200
@@ -108,7 +126,7 @@ vault kv put secret/myapp/db password=xyz
 DB_PASSWORD=$(vault kv get -field=password secret/myapp/db)
 ```
 
-**Using RabbitMQ:**
+### Using RabbitMQ
 ```python
 # Python with pika
 import pika
@@ -123,7 +141,7 @@ channel.queue_declare(queue='hello')
 channel.basic_publish(exchange='', routing_key='hello', body='Hello World!')
 ```
 
-**Git with Forgejo:**
+### Git with Forgejo
 ```bash
 # Add Forgejo as remote
 git remote add forgejo http://localhost:3000/username/repo.git
@@ -135,7 +153,7 @@ git push forgejo main
 git remote set-url forgejo ssh://git@localhost:2222/username/repo.git
 ```
 
-**Multi-Service Application Example:**
+### Multi-Service Applications
 ```
 Your VoIP App
 ├── PostgreSQL: Call records, user accounts

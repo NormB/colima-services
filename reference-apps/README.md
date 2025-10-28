@@ -1,5 +1,43 @@
 # Reference Applications
 
+## Table of Contents
+
+- [⚠️ Important: Not Production Code](#important-not-production-code)
+- [What Are Reference Apps?](#what-are-reference-apps)
+- [Current Reference Apps](#current-reference-apps)
+  - [1. FastAPI Code-First (Python)](#1-fastapi-code-first-python)
+  - [2. FastAPI API-First (Python)](#2-fastapi-api-first-python)
+  - [Comparing the Two Approaches](#comparing-the-two-approaches)
+  - [Validation: Shared Test Suite](#validation-shared-test-suite)
+  - [Release Notes](#release-notes)
+- [How to Use Reference Apps](#how-to-use-reference-apps)
+  - [As a Learning Tool](#as-a-learning-tool)
+  - [As a Testing Tool](#as-a-testing-tool)
+  - [As a Development Reference](#as-a-development-reference)
+- [Key Integration Patterns](#key-integration-patterns)
+  - [Fetching Secrets from Vault](#fetching-secrets-from-vault)
+  - [Database Connections](#database-connections)
+  - [Redis Cluster Operations](#redis-cluster-operations)
+- [What Reference Apps Are NOT](#what-reference-apps-are-not)
+- [What Reference Apps ARE](#what-reference-apps-are)
+- [API Documentation](#api-documentation)
+  - [3. Go Reference API](#3-go-reference-api)
+  - [4. Node.js Reference API](#4-nodejs-reference-api)
+  - [5. Rust Reference API (Minimal)](#5-rust-reference-api-minimal)
+- [Future Reference Apps](#future-reference-apps)
+- [Common Use Cases](#common-use-cases)
+  - [1. Testing Infrastructure Setup](#1-testing-infrastructure-setup)
+  - [2. Debugging Connection Issues](#2-debugging-connection-issues)
+  - [3. Learning Integration Patterns](#3-learning-integration-patterns)
+  - [4. Building Your Own App](#4-building-your-own-app)
+- [Architecture](#architecture)
+- [Testing](#testing)
+- [Security Notes](#security-notes)
+- [Getting Help](#getting-help)
+- [Summary](#summary)
+
+---
+
 **Purpose:** Educational example applications demonstrating how to integrate with the Colima Services infrastructure.
 
 ## ⚠️ Important: Not Production Code

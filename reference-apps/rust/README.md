@@ -1,5 +1,19 @@
 # Rust Reference API
 
+## Table of Contents
+
+- [🚧 **PROTOTYPE - WORK IN PROGRESS** 🚧](#prototype-work-in-progress)
+  - [Missing Features (compared to other implementations)](#missing-features-compared-to-other-implementations)
+  - [Current Implementation](#current-implementation)
+- [Features (Limited)](#features-limited)
+- [Quick Start](#quick-start)
+- [API Endpoints](#api-endpoints)
+- [Port](#port)
+- [Build](#build)
+- [Note](#note)
+
+---
+
 ## 🚧 **PROTOTYPE - WORK IN PROGRESS** 🚧
 
 **⚠️ WARNING: This implementation is ~15% complete and missing critical features.**

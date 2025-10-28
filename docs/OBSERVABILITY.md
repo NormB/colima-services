@@ -1,5 +1,31 @@
 # Observability Stack
 
+## Table of Contents
+
+  - [Prometheus](#prometheus)
+  - [Grafana](#grafana)
+  - [Loki](#loki)
+- [Observability Troubleshooting](#observability-troubleshooting)
+  - [Exporter Credential Management with Vault](#exporter-credential-management-with-vault)
+  - [MySQL Exporter Issue (ARM64)](#mysql-exporter-issue-arm64)
+    - [1. **sql_exporter** (Recommended Alternative)](#1-sql_exporter-recommended-alternative)
+    - [2. **Percona Monitoring and Management (PMM)**](#2-percona-monitoring-and-management-pmm)
+    - [3. **MySQL Performance Schema Direct Queries**](#3-mysql-performance-schema-direct-queries)
+    - [4. **Wait for Bug Fix**](#4-wait-for-bug-fix)
+  - [Grafana Dashboard Configuration with Vector](#grafana-dashboard-configuration-with-vector)
+    - [PostgreSQL Dashboard](#postgresql-dashboard)
+    - [MongoDB Dashboard](#mongodb-dashboard)
+    - [RabbitMQ Dashboard](#rabbitmq-dashboard)
+    - [Redis Cluster Dashboard](#redis-cluster-dashboard)
+    - [Container Metrics Dashboard](#container-metrics-dashboard)
+    - [System Overview Dashboard](#system-overview-dashboard)
+    - [FastAPI Dashboard](#fastapi-dashboard)
+  - [Container Metrics Dashboard (cAdvisor Limitations)](#container-metrics-dashboard-cadvisor-limitations)
+  - [Build Process Documentation (MySQL Exporter from Source)](#build-process-documentation-mysql-exporter-from-source)
+  - [Summary of Solutions](#summary-of-solutions)
+
+---
+
 The observability stack provides comprehensive monitoring, metrics collection, and log aggregation for all infrastructure services.
 
 ### Prometheus

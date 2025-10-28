@@ -1,5 +1,19 @@
 # Vault PKI Integration
 
+## Table of Contents
+
+  - [Overview](#overview)
+  - [Service Vault Integration](#service-vault-integration)
+  - [SSL/TLS Certificate Management](#ssltls-certificate-management)
+  - [Vault Commands](#vault-commands)
+- [Vault Auto-Unseal](#vault-auto-unseal)
+  - [How It Works](#how-it-works)
+  - [Initial Setup](#initial-setup)
+  - [Auto-Unseal Process](#auto-unseal-process)
+  - [Manual Operations](#manual-operations)
+
+---
+
 ### Overview
 
 HashiCorp Vault provides centralized secrets management and Public Key Infrastructure (PKI) for services. Instead of storing passwords in `.env` files, services fetch credentials from Vault at startup.
