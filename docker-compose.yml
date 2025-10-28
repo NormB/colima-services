@@ -168,6 +168,15 @@ services:
     
     logging: *default-logging
 
+    deploy:
+      resources:
+        limits:
+          cpus: '0.5'
+          memory: 256M
+        reservations:
+          cpus: '0.1'
+          memory: 128M
+
   # ===========================================================================
   # MYSQL - Legacy Database for Local Development
   # ===========================================================================
@@ -313,6 +322,15 @@ services:
 
     logging: *default-logging
 
+    deploy:
+      resources:
+        limits:
+          cpus: '1'
+          memory: 512M
+        reservations:
+          cpus: '0.25'
+          memory: 256M
+
     labels:
       - "com.voip.service=redis-cluster"
       - "com.voip.cluster.node=1"
@@ -376,6 +394,15 @@ services:
       start_period: 10s
 
     logging: *default-logging
+
+    deploy:
+      resources:
+        limits:
+          cpus: '1'
+          memory: 512M
+        reservations:
+          cpus: '0.25'
+          memory: 256M
 
     labels:
       - "com.voip.service=redis-cluster"
@@ -441,6 +468,15 @@ services:
 
     logging: *default-logging
 
+    deploy:
+      resources:
+        limits:
+          cpus: '1'
+          memory: 512M
+        reservations:
+          cpus: '0.25'
+          memory: 256M
+
     labels:
       - "com.voip.service=redis-cluster"
       - "com.voip.cluster.node=3"
@@ -501,6 +537,15 @@ services:
       start_period: 30s
 
     logging: *default-logging
+
+    deploy:
+      resources:
+        limits:
+          cpus: '1'
+          memory: 1G
+        reservations:
+          cpus: '0.5'
+          memory: 512M
 
   # ===========================================================================
   # MONGODB - NoSQL Database (Local Dev)
@@ -606,7 +651,16 @@ services:
       retries: 5
     
     logging: *default-logging
-    
+
+    deploy:
+      resources:
+        limits:
+          cpus: '2'
+          memory: 2G
+        reservations:
+          cpus: '0.5'
+          memory: 512M
+
     labels:
       - "com.voip.service=git-server"
       - "com.voip.platform=colima"
@@ -726,6 +780,15 @@ services:
 
     logging: *default-logging
 
+    deploy:
+      resources:
+        limits:
+          cpus: '1'
+          memory: 1G
+        reservations:
+          cpus: '0.25'
+          memory: 256M
+
     labels:
       - "com.voip.service=reference-api"
       - "com.voip.platform=colima"
@@ -780,6 +843,15 @@ services:
       retries: 3
 
     logging: *default-logging
+
+    deploy:
+      resources:
+        limits:
+          cpus: '1'
+          memory: 1G
+        reservations:
+          cpus: '0.25'
+          memory: 256M
 
     labels:
       - "com.voip.service=api-first"
@@ -838,6 +910,15 @@ services:
       timeout: 10s
       retries: 3
 
+    deploy:
+      resources:
+        limits:
+          cpus: '1'
+          memory: 512M
+        reservations:
+          cpus: '0.25'
+          memory: 256M
+
     labels:
       - "com.voip.service=golang-api"
       - "com.voip.platform=colima"
@@ -895,6 +976,15 @@ services:
       timeout: 10s
       retries: 3
 
+    deploy:
+      resources:
+        limits:
+          cpus: '1'
+          memory: 512M
+        reservations:
+          cpus: '0.25'
+          memory: 256M
+
     labels:
       - "com.voip.service=nodejs-api"
       - "com.voip.platform=colima"
@@ -933,6 +1023,15 @@ services:
       timeout: 10s
       retries: 3
 
+    deploy:
+      resources:
+        limits:
+          cpus: '1'
+          memory: 512M
+        reservations:
+          cpus: '0.25'
+          memory: 256M
+
     labels:
       - "com.voip.service=rust-api"
       - "com.voip.platform=colima"
@@ -951,8 +1050,11 @@ services:
       - '--storage.tsdb.path=/prometheus'
       - '--web.console.libraries=/usr/share/prometheus/console_libraries'
       - '--web.console.templates=/usr/share/prometheus/consoles'
-      - '--storage.tsdb.retention.time=30d'
+      - '--storage.tsdb.retention.time=15d'
+      - '--storage.tsdb.retention.size=5GB'
       - '--web.enable-lifecycle'
+      - '--storage.tsdb.min-block-duration=2h'
+      - '--storage.tsdb.max-block-duration=2h'
 
     ports:
       - "${PROMETHEUS_PORT:-9090}:9090"
@@ -972,6 +1074,15 @@ services:
       retries: 3
 
     logging: *default-logging
+
+    deploy:
+      resources:
+        limits:
+          cpus: '1'
+          memory: 1G
+        reservations:
+          cpus: '0.5'
+          memory: 512M
 
     labels:
       - "com.voip.service=prometheus"
@@ -1019,6 +1130,15 @@ services:
 
     logging: *default-logging
 
+    deploy:
+      resources:
+        limits:
+          cpus: '1'
+          memory: 512M
+        reservations:
+          cpus: '0.25'
+          memory: 256M
+
     labels:
       - "com.voip.service=grafana"
       - "com.voip.platform=colima"
@@ -1052,6 +1172,15 @@ services:
       retries: 3
 
     logging: *default-logging
+
+    deploy:
+      resources:
+        limits:
+          cpus: '1'
+          memory: 1G
+        reservations:
+          cpus: '0.5'
+          memory: 512M
 
     labels:
       - "com.voip.service=loki"
@@ -1107,6 +1236,15 @@ services:
 
     logging: *default-logging
 
+    deploy:
+      resources:
+        limits:
+          cpus: '0.25'
+          memory: 128M
+        reservations:
+          cpus: '0.05'
+          memory: 64M
+
     labels:
       - "com.voip.service=redis-exporter"
       - "com.voip.platform=colima"
@@ -1155,6 +1293,15 @@ services:
       retries: 3
 
     logging: *default-logging
+
+    deploy:
+      resources:
+        limits:
+          cpus: '0.25'
+          memory: 128M
+        reservations:
+          cpus: '0.05'
+          memory: 64M
 
     labels:
       - "com.voip.service=redis-exporter"
@@ -1205,6 +1352,15 @@ services:
 
     logging: *default-logging
 
+    deploy:
+      resources:
+        limits:
+          cpus: '0.25'
+          memory: 128M
+        reservations:
+          cpus: '0.05'
+          memory: 64M
+
     labels:
       - "com.voip.service=redis-exporter"
       - "com.voip.platform=colima"
@@ -1245,6 +1401,15 @@ services:
       retries: 3
 
     logging: *default-logging
+
+    deploy:
+      resources:
+        limits:
+          cpus: '0.5'
+          memory: 256M
+        reservations:
+          cpus: '0.1'
+          memory: 128M
 
     labels:
       - "com.voip.service=cadvisor"
@@ -1310,6 +1475,15 @@ services:
       start_period: 15s
 
     logging: *default-logging
+
+    deploy:
+      resources:
+        limits:
+          cpus: '1'
+          memory: 512M
+        reservations:
+          cpus: '0.25'
+          memory: 256M
 
     labels:
       - "com.voip.service=vector"

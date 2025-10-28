@@ -157,6 +157,45 @@ jobs:
         if: steps.check-python.outputs.has_python == 'false'
         run: echo "ℹ No Python files found, skipping Python lint"
 
+  go-lint:
+    name: Go Lint (golangci-lint)
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Check for Go files
+        id: check-go
+        run: |
+          if find . -name "*.go" -type f | grep -q .; then
+            echo "has_go=true" >> $GITHUB_OUTPUT
+          else
+            echo "has_go=false" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Set up Go
+        if: steps.check-go.outputs.has_go == 'true'
+        uses: actions/setup-go@v5
+        with:
+          go-version: '1.23'
+
+      - name: Run golangci-lint
+        if: steps.check-go.outputs.has_go == 'true'
+        uses: golangci/golangci-lint-action@v6
+        with:
+          version: latest
+          args: --timeout=5m --exclude-dirs=node_modules
+        continue-on-error: true
+
+      - name: Go lint summary
+        if: steps.check-go.outputs.has_go == 'true'
+        run: echo "✓ Go linting completed"
+
+      - name: Skip Go linting
+        if: steps.check-go.outputs.has_go == 'false'
+        run: echo "ℹ No Go files found, skipping Go lint"
+
   docker-compose-lint:
     name: Docker Compose Lint
     runs-on: ubuntu-latest
@@ -287,6 +326,7 @@ jobs:
       - yaml-lint
       - markdown-lint
       - python-lint
+      - go-lint
       - docker-compose-lint
       - env-file-lint
       - permissions-check
