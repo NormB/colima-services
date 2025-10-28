@@ -114,7 +114,7 @@ This repository provides a **complete, self-contained development environment** 
 brew install colima docker docker-compose
 
 # 2. Clone repository
-git clone https://github.com/yourusername/colima-services.git ~/colima-services
+git clone https://github.com/NormB/colima-services.git ~/colima-services
 cd ~/colima-services
 
 # 3. Configure environment
@@ -259,7 +259,7 @@ For detailed installation instructions, see [docs/INSTALLATION.md](./docs/INSTAL
 
 1. Check the [Troubleshooting Guide](./docs/TROUBLESHOOTING.md)
 2. Review the [FAQ](./docs/FAQ.md)
-3. Search existing [GitHub Issues](https://github.com/yourusername/colima-services/issues)
+3. Search existing [GitHub Issues](https://github.com/NormB/colima-services/issues)
 4. Open a new issue with details about your problem
 
 ## License

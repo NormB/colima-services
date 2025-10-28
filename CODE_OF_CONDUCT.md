@@ -59,8 +59,8 @@ representative at an online or offline event.
 ## Enforcement
 
 Instances of abusive, harassing, or otherwise unacceptable behavior may be
-reported to the project maintainers responsible for enforcement at
-[INSERT CONTACT EMAIL].
+reported to the project maintainers responsible for enforcement via the
+GitHub repository's issue tracker or discussions.
 
 All complaints will be reviewed and investigated promptly and fairly.
 

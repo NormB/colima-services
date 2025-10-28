@@ -149,14 +149,14 @@ See [CONTRIBUTING.md](../CONTRIBUTING.md) for guidelines on:
 - [Docker Compose Documentation](https://docs.docker.com/compose/)
 - [FastAPI Documentation](https://fastapi.tiangolo.com/)
 - [Colima Documentation](https://github.com/abiosoft/colima)
-- [Gin Web Framework (Go)](https://gin-gonic.com/docs/)
+- [Gin Web Framework (Go)](https://gin-gonic.com/)
 - [Express.js (Node.js)](https://expressjs.com/)
 - [Actix-web (Rust)](https://actix.rs/)
 
 ### Infrastructure Components
 
 - [PostgreSQL 16 Documentation](https://www.postgresql.org/docs/16/)
-- [MySQL 8.0 Documentation](https://dev.mysql.com/doc/refman/8.0/en/)
+- [MySQL 8.0 Documentation](https://dev.mysql.com/doc/refman/8.0/)
 - [MongoDB 7.0 Documentation](https://www.mongodb.com/docs/v7.0/)
 - [Redis 7.4 Documentation](https://redis.io/docs/)
 - [RabbitMQ 3.13 Documentation](https://www.rabbitmq.com/docs)

@@ -550,8 +550,8 @@ groups:
 
 - [HashiCorp Vault Production Hardening](https://developer.hashicorp.com/vault/tutorials/operations/production-hardening)
 - [AppRole Auth Method](https://developer.hashicorp.com/vault/docs/auth/approle)
-- [Vault Security Best Practices](https://developer.hashicorp.com/vault/tutorials/operations/security-intro)
-- [Disaster Recovery](https://developer.hashicorp.com/vault/tutorials/operations/disaster-recovery)
+- [Vault Security Best Practices](https://developer.hashicorp.com/vault/tutorials/recommended-patterns/production-hardening)
+- [Disaster Recovery](https://developer.hashicorp.com/vault/tutorials/operations/backup-and-restore)
 
 ## Support
 

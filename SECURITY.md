@@ -24,7 +24,10 @@ We take security vulnerabilities seriously. If you discover a security issue, pl
 
 ### 2. Report Privately
 
-Send a detailed report to: **[INSERT SECURITY EMAIL ADDRESS]**
+Send a detailed report via **GitHub Security Advisories**:
+1. Go to the repository's [Security tab](https://github.com/NormB/colima-services/security)
+2. Click "Report a vulnerability"
+3. Fill out the private vulnerability report form
 
 Include in your report:
 - Description of the vulnerability
@@ -275,9 +278,9 @@ trivy image postgres:15-alpine
 - Review CHANGELOG.md for security fixes
 - Subscribe to security advisories for dependencies:
   - [PostgreSQL Security](https://www.postgresql.org/support/security/)
-  - [Redis Security](https://redis.io/topics/security)
+  - [Redis Security](https://redis.io/docs/latest/operate/oss_and_stack/management/security/)
   - [MongoDB Security](https://www.mongodb.com/alerts)
-  - [HashiCorp Vault Security](https://www.hashicorp.com/security)
+  - [HashiCorp Vault Security](https://www.hashicorp.com/trust/security)
   - [Docker Security](https://docs.docker.com/engine/security/)
 
 ### Update Regularly
@@ -342,8 +345,8 @@ This repository includes GitHub Actions workflows for:
 ## Contact
 
 For security questions or concerns:
-- **Security Issues**: [INSERT SECURITY EMAIL]
-- **General Questions**: Open a [GitHub Discussion](https://github.com/NormB/colima-services/discussions)
+- **Security Issues**: Use [GitHub Security Advisories](https://github.com/NormB/colima-services/security/advisories)
+- **General Questions**: Open a [GitHub Issue](https://github.com/NormB/colima-services/issues) with the "question" label
 - **Non-Security Bugs**: Open a [GitHub Issue](https://github.com/NormB/colima-services/issues)
 
 ## Acknowledgments

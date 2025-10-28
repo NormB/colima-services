@@ -1004,7 +1004,7 @@ healthcheck:
 - [Docker Compose Networking](https://docs.docker.com/compose/networking/)
 - [HashiCorp Vault Architecture](https://www.vaultproject.io/docs/internals/architecture)
 - [Prometheus Architecture](https://prometheus.io/docs/introduction/overview/)
-- [Redis Cluster Specification](https://redis.io/docs/reference/cluster-spec/)
+- [Redis Cluster Specification](https://redis.io/docs/latest/operate/oss_and_stack/management/scaling/)
 - [Colima Documentation](https://github.com/abiosoft/colima)
 
 ---

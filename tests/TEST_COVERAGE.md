@@ -1426,7 +1426,7 @@ jobs:
 
 ## Future Test Improvements
 
-See [TEST_IMPROVEMENTS.md](TEST_IMPROVEMENTS.md) for planned enhancements:
+Planned enhancements:
 - Performance testing
 - Load testing with Locust
 - Security testing
@@ -1444,4 +1444,3 @@ See [TEST_IMPROVEMENTS.md](TEST_IMPROVEMENTS.md) for planned enhancements:
 - **Go Reference API README**: [../reference-apps/golang/README.md](../reference-apps/golang/README.md)
 - **API Patterns**: [../reference-apps/API_PATTERNS.md](../reference-apps/API_PATTERNS.md)
 - **Reference Apps Overview**: [../reference-apps/README.md](../reference-apps/README.md)
-- **Test Improvements**: [TEST_IMPROVEMENTS.md](TEST_IMPROVEMENTS.md)
