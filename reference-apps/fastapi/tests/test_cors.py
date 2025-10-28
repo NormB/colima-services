@@ -32,8 +32,9 @@ class TestCORSHeaders:
 
         # Check for CORS headers
         assert "access-control-allow-origin" in response.headers
-        # In debug mode, should allow all origins
-        assert response.headers["access-control-allow-origin"] == "*"
+        # When Origin header is sent, CORS middleware echoes it back (not "*")
+        # This is correct CORS behavior when allow_origins includes "*"
+        assert response.headers["access-control-allow-origin"] == "http://localhost:3000"
 
     def test_cors_headers_on_post_request(self):
         """Test that CORS headers are present on POST requests"""
