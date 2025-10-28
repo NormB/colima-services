@@ -1,0 +1,13 @@
+# Gitleaks Ignore File
+# This file contains fingerprints of false positive secret detections
+
+# Example Vault unseal keys in documentation (docs/INSTALLATION.md lines 374-378)
+# These are fake example keys used to show users what Vault initialization looks like
+68962314936fb8527a280e9fb58e5763ee1a31c5:docs/INSTALLATION.md:generic-api-key:375
+68962314936fb8527a280e9fb58e5763ee1a31c5:docs/INSTALLATION.md:generic-api-key:376
+68962314936fb8527a280e9fb58e5763ee1a31c5:docs/INSTALLATION.md:generic-api-key:377
+68962314936fb8527a280e9fb58e5763ee1a31c5:docs/INSTALLATION.md:generic-api-key:378
+
+# Example password in documentation (docs/INSTALLATION.md line 571)
+# This is a fake example password used to show expected output format
+68962314936fb8527a280e9fb58e5763ee1a31c5:docs/INSTALLATION.md:generic-api-key:571

@@ -1,0 +1,44 @@
+{
+  "name": "colima-services-typescript-api-first",
+  "version": "1.0.0",
+  "description": "TypeScript API-First reference implementation using OpenAPI code generation",
+  "main": "dist/index.js",
+  "scripts": {
+    "build": "tsc",
+    "start": "node dist/index.js",
+    "dev": "ts-node src/index.ts",
+    "test": "jest",
+    "generate": "openapi-generator-cli generate -i ../shared/openapi.yaml -g typescript-express-server -o ./generated"
+  },
+  "keywords": ["typescript", "openapi", "api-first", "vault", "microservices"],
+  "author": "Colima Services Team",
+  "license": "MIT",
+  "dependencies": {
+    "express": "^4.18.2",
+    "node-vault": "^0.10.2",
+    "pg": "^8.11.3",
+    "mysql2": "^3.6.5",
+    "mongodb": "^6.3.0",
+    "redis": "^4.6.12",
+    "amqplib": "^0.10.3",
+    "prom-client": "^15.1.0",
+    "winston": "^3.11.0",
+    "cors": "^2.8.5",
+    "helmet": "^7.1.0",
+    "uuid": "^9.0.1"
+  },
+  "devDependencies": {
+    "@types/express": "^4.17.21",
+    "@types/node": "^20.10.6",
+    "@types/cors": "^2.8.17",
+    "@types/uuid": "^9.0.7",
+    "typescript": "^5.3.3",
+    "ts-node": "^10.9.2",
+    "jest": "^29.7.0",
+    "@types/jest": "^29.5.11",
+    "@openapitools/openapi-generator-cli": "^2.7.0"
+  },
+  "engines": {
+    "node": ">=18.0.0"
+  }
+}
