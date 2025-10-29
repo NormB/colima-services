@@ -43,7 +43,7 @@ The Colima Services project has achieved **world-class documentation standards**
    - Automated backup scripts
 
 4. **Performance Baseline Documentation** (850 lines)
-   - Actual machine specifications (M1 Max, 10-core, 64GB RAM)
+   - Actual machine specifications (Apple M Series Processor, 10-core, 64GB RAM)
    - Comprehensive benchmarks for all 6 reference implementations
    - Database performance (PostgreSQL, MySQL, MongoDB)
    - Redis cluster performance metrics

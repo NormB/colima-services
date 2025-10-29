@@ -44,7 +44,7 @@ This environment is designed for **local development and testing**. For producti
 | Feature | Colima Services | Docker Desktop |
 |---------|-----------------|----------------|
 | **License** | Free (MIT) | Free for personal, paid for business |
-| **Performance** | Optimized for M1/M2/M3 | Good, but heavier |
+| **Performance** | Optimized for Apple Silicon | Good, but heavier |
 | **Resource Usage** | Lightweight | More resource-intensive |
 | **VM Control** | Full control | Limited control |
 | **Services** | 20+ pre-configured | None included |
@@ -65,7 +65,7 @@ This environment is designed for **local development and testing**. For producti
 
 ### Can I run this on Intel Macs?
 
-This guide is optimized for **Apple Silicon** (M1/M2/M3). While Colima works on Intel Macs, you'll need to adjust architecture settings and some images may not be available for x86_64.
+This guide is optimized for **Apple Silicon** (M Series Processors). While Colima works on Intel Macs, you'll need to adjust architecture settings and some images may not be available for x86_64.
 
 ### How do I uninstall everything?
 
@@ -200,7 +200,7 @@ docker exec -i dev-mysql mysql -u dev_admin -p dev_database < backups/2025-10-28
 **Recommended:** 32GB total (12GB for Colima VM)
 **Heavy usage:** 64GB total (16GB+ for Colima VM)
 
-### Can I run this on an M1 MacBook Air (8GB RAM)?
+### Can I run this on an Apple Silicon MacBook Air (8GB RAM)?
 
 **Not recommended.** With only 8GB total RAM, macOS will struggle. You'd need to:
 - Run only essential services

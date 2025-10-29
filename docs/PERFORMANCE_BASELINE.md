@@ -23,7 +23,7 @@
 **Host Machine:**
 - **Model:** MacBook Pro (16-inch, 2021)
 - **Model Identifier:** MacBookPro18,2
-- **Chip:** Apple M1 Max
+- **Chip:** Apple M Series Processor (M1 Max)
 - **CPU:** 10-core (8 performance + 2 efficiency)
 - **Memory:** 64 GB unified memory
 - **Storage:** NVMe SSD
@@ -680,7 +680,7 @@ python3 tests/benchmark_custom.py --endpoint /health/all --requests 10000
 | Date | Version | Changes | Baseline |
 |------|---------|---------|----------|
 | 2025-10-29 | 1.0 | Initial performance baseline | v1.1.1 |
-|  |  | Host: MacBook Pro M1 Max (10-core, 64GB) |  |
+|  |  | Host: MacBook Pro M Series Processor (10-core, 64GB) |  |
 |  |  | Colima: 4 CPU, 8GB RAM, 60GB disk |  |
 |  |  | All services tested under idle + 100 concurrent user load |  |
 
@@ -689,7 +689,7 @@ python3 tests/benchmark_custom.py --endpoint /health/all --requests 10000
 ## Notes
 
 - **These benchmarks reflect development environment performance** - not production
-- **Results are specific to Apple M1 Max architecture** (ARM64/aarch64)
+- **Results are specific to Apple M Series Processor architecture** (ARM64/aarch64)
 - **Colima VM overhead** adds ~10-15% latency compared to native Docker on Linux
 - **Re-run benchmarks** after infrastructure changes or version upgrades
 - **Benchmark methodology** uses standard tools (ab, pgbench, redis-benchmark)

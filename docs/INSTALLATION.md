@@ -33,7 +33,7 @@
 - ✅ Access web UIs and verify everything works
 
 **Before You Begin:**
-- This guide assumes macOS (tested on M1/M2/M3 Macs)
+- This guide assumes macOS (tested on Apple M Series Processors)
 - You'll need at least 16GB RAM and 60GB free disk space
 - Basic terminal/command line familiarity is helpful but not required
 - The entire process is reversible (you can uninstall everything cleanly)
@@ -993,7 +993,7 @@ docker volume rm $(docker volume ls -q)
 
 ### System Requirements
 
-- **Hardware:** Apple Silicon Mac (M1/M2/M3) or Intel Mac
+- **Hardware:** Apple Silicon Mac (M Series Processors) or Intel Mac
 - **RAM:** Minimum 16GB (32GB recommended for heavy usage)
 - **Disk:** 60GB free space for Colima VM + volumes
 - **macOS:** 12.0 (Monterey) or later for VZ support

@@ -17,7 +17,7 @@ Complete step-by-step guide to installing Colima Services on macOS (Apple Silico
 | Requirement | Minimum | Recommended |
 |-------------|---------|-------------|
 | **macOS Version** | 12.0 (Monterey) | 14.0+ (Sonoma) |
-| **Processor** | Apple Silicon (M1/M2/M3) | M2 or later |
+| **Processor** | Apple Silicon (M Series Processors) | Later M Series Models |
 | **RAM** | 16GB | 32GB |
 | **Free Disk Space** | 60GB | 100GB |
 
@@ -72,7 +72,7 @@ which brew
 
 **Follow on-screen instructions to add Homebrew to PATH:**
 ```bash
-# Apple Silicon (M1/M2/M3)
+# Apple Silicon (M Series Processors)
 echo 'eval "$(/opt/homebrew/bin/brew shellenv)"' >> ~/.zprofile
 eval "$(/opt/homebrew/bin/brew shellenv)"
 ```

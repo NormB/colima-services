@@ -63,7 +63,7 @@ Colima Services is a **complete, self-contained development environment** that p
 - **Observability**: Prometheus, Grafana, Loki, Vector
 - **Reference APIs**: 6 language implementations (Python, Go, Node.js, Rust, TypeScript)
 
-All running on **Apple Silicon** (M1/M2/M3) using **Colima** for optimal performance.
+All running on **Apple Silicon** (M Series Processors) using **Colima** for optimal performance.
 
 ## 🎯 Key Features
 

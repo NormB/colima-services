@@ -16,7 +16,7 @@ Comprehensive overview of the Colima Services system architecture, design princi
 
 ```
 ┌─────────────────────────────────────────────────────────┐
-│                    macOS Host (M1/M2/M3)                │
+│              macOS Host (M Series Processors)           │
 │  ┌───────────────────────────────────────────────────┐  │
 │  │           Colima VM (Linux on macOS)              │  │
 │  │  ┌─────────────────────────────────────────────┐  │  │

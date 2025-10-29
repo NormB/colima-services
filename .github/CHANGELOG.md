@@ -51,7 +51,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - **World-Class Documentation Implementation** (5,600+ lines, 9.7/10 rating, top 0.5% of projects)
   - docs/ENVIRONMENT_VARIABLES.md (700 lines) - Complete reference for all 100+ environment variables organized by service
   - docs/DISASTER_RECOVERY.md (600 lines) - 30-minute RTO recovery procedures for all failure scenarios
-  - docs/PERFORMANCE_BASELINE.md (850 lines) - Comprehensive benchmarks with actual M1 Max hardware specifications
+  - docs/PERFORMANCE_BASELINE.md (850 lines) - Comprehensive benchmarks with actual Apple M Series Processor hardware specifications
   - docs/IDE_SETUP.md (1,100 lines) - Complete configurations for VS Code, IntelliJ IDEA, PyCharm, GoLand, Neovim
   - reference-apps/typescript-api-first/README.md (650 lines) - TypeScript API-First implementation documentation
   - DOCUMENTATION_STATUS.md (420 lines) - Documentation metrics, quality assessment, and maintenance plan

@@ -1,8 +1,8 @@
 # Colima Services - Complete Development Environment
 
-> **Comprehensive local development infrastructure for VoIP services on Apple Silicon (M1/M2/M3) using Colima**
+> **Comprehensive local development infrastructure for VoIP services on Apple Silicon (M Series Processors) using Colima**
 
-A production-ready, Docker-based development environment running on Colima that provides Git hosting, databases, caching, message queuing, and secrets management optimized for M-series Macs.
+A production-ready, Docker-based development environment running on Colima that provides Git hosting, databases, caching, message queuing, and secrets management optimized for Apple Silicon Macs.
 
 ## Table of Contents
 

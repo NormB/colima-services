@@ -1,12 +1,12 @@
-# VoIP Development Services - Colima (M1 Mac)
+# VoIP Development Services - Colima (Apple Silicon)
 # Git server, local dev databases, caching, message queue
-# 
+#
 # ARCHITECTURE:
 #   - PostgreSQL: For Forgejo (Git) and local development ONLY
 #   - Other services: Redis, RabbitMQ, MongoDB for local dev/testing
 #   - UTM VM has its own PostgreSQL for VoIP services
 #
-# Run on M1 Mac with Colima:
+# Run on Apple Silicon Mac with Colima:
 #   colima start --cpu 4 --memory 8 --disk 60 --network-address
 #   docker compose up -d
 

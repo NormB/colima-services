@@ -359,7 +359,7 @@ Claude AI assisted in creating comprehensive documentation, writing code example
 ### Apple
 
 **Company:** [Apple Inc.](https://www.apple.com/)
-**Products:** Apple Silicon (M1/M2/M3/M4), macOS, Virtualization.framework
+**Products:** Apple Silicon (M Series Processors), macOS, Virtualization.framework
 
 Apple Silicon Macs provide the powerful, energy-efficient hardware that makes this development environment possible. The Virtualization.framework enables Colima to run containers natively with excellent performance.
 

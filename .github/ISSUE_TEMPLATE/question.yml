@@ -92,7 +92,7 @@ body:
       label: Environment Information
       description: If relevant to your question, provide environment details
       placeholder: |
-        OS: macOS (Apple Silicon M2)
+        OS: macOS (Apple Silicon - M Series Processors)
         Colima version: 0.8.0
         Docker version: 27.0.3
       render: shell

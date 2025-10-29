@@ -4,7 +4,7 @@ Get Colima Services running in **5 minutes** with this streamlined guide.
 
 ## Prerequisites
 
-- **Mac with Apple Silicon** (M1/M2/M3)
+- **Mac with Apple Silicon** (M Series Processors)
 - **Homebrew** installed
 - **15GB free disk space**
 - **macOS 12.0+** (Monterey or later)
