@@ -185,10 +185,10 @@ For detailed installation instructions, see [docs/INSTALLATION.md](./docs/INSTAL
 
 ### Project Documentation
 
-- **[CHANGELOG.md](./CHANGELOG.md)** - Version history and changes
-- **[CONTRIBUTING.md](./CONTRIBUTING.md)** - Contribution guidelines
-- **[CODE_OF_CONDUCT.md](./CODE_OF_CONDUCT.md)** - Community standards
-- **[SECURITY.md](./SECURITY.md)** - Security policy and reporting
+- **[CHANGELOG.md](./.github/CHANGELOG.md)** - Version history and changes
+- **[CONTRIBUTING.md](./.github/CONTRIBUTING.md)** - Contribution guidelines
+- **[CODE_OF_CONDUCT.md](./.github/CODE_OF_CONDUCT.md)** - Community standards
+- **[SECURITY.md](./.github/SECURITY.md)** - Security policy and reporting
 
 ## Features
 

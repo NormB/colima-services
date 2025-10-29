@@ -403,7 +403,7 @@ git clone forgejo:username/repo.git
 ```
 
 **SSH and GPG Keys:**
-For setting up SSH keys (for authenticated push/pull) and GPG keys (for signed commits), see the detailed guide in [CONTRIBUTING.md](../CONTRIBUTING.md#setting-up-ssh-and-gpg-keys-for-forgejo).
+For setting up SSH keys (for authenticated push/pull) and GPG keys (for signed commits), see the detailed guide in [CONTRIBUTING.md](../.github/CONTRIBUTING.md#setting-up-ssh-and-gpg-keys-for-forgejo).
 
 **Access from Network:**
 - Set `FORGEJO_DOMAIN` to Colima IP in `.env`

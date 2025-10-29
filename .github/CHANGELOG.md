@@ -44,6 +44,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Added
+- Created `.github/` directory for project metadata files
+- Created `assets/` directory for project assets
 - Complete architecture documentation (docs/ARCHITECTURE.md) with Mermaid diagrams
 - Comprehensive troubleshooting guide (docs/TROUBLESHOOTING.md) with diagnostic procedures
 - Performance tuning guide (docs/PERFORMANCE_TUNING.md) with optimization strategies
@@ -69,6 +71,18 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Comprehensive security remediation plan (SECURITY_REMEDIATION.md) documenting all 63 CodeQL alerts
 
 ### Changed
+- **Repository Structure**: Reorganized root directory for improved clarity
+  - Moved project metadata to `.github/`: CHANGELOG.md, CODE_OF_CONDUCT.md, CONTRIBUTING.md, SECURITY.md
+  - Moved validate-cicd.sh to `scripts/` directory
+  - Moved social-preview.png to `assets/` directory
+  - Updated all documentation links to reflect new file locations
+  - Removed backup files (.env.bak, docker-compose.yml.bak)
+- Updated CLAUDE.md to reflect current codebase structure:
+  - Added 6th reference application (TypeScript API-First)
+  - Documented Vector, cAdvisor, and Redis Exporters in observability stack
+  - Updated network architecture with all service IPs
+  - Added missing scripts and documentation files
+  - Fixed test documentation references
 - Reorganized documentation into docs/ directory for better discoverability
 - Updated docs/README.md with architecture and operational guides sections
 - Converted all architecture diagrams to Mermaid format

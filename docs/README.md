@@ -113,12 +113,12 @@ This directory contains comprehensive documentation for the Colima Services proj
 
 ### Project-Level Documentation
 
-Located in the project root:
+Located in the project root and `.github/`:
 - [README.md](../README.md) - Main project documentation
-- [CONTRIBUTING.md](../CONTRIBUTING.md) - Contribution guidelines
-- [SECURITY.md](../SECURITY.md) - Security policy and reporting
-- [CODE_OF_CONDUCT.md](../CODE_OF_CONDUCT.md) - Community standards
-- [CHANGELOG.md](../CHANGELOG.md) - Version history
+- [CONTRIBUTING.md](../.github/CONTRIBUTING.md) - Contribution guidelines
+- [SECURITY.md](../.github/SECURITY.md) - Security policy and reporting
+- [CODE_OF_CONDUCT.md](../.github/CODE_OF_CONDUCT.md) - Community standards
+- [CHANGELOG.md](../.github/CHANGELOG.md) - Version history
 
 ### Component Documentation
 
@@ -159,7 +159,7 @@ Located in the project root:
 
 ## Contributing to Documentation
 
-See [CONTRIBUTING.md](../CONTRIBUTING.md) for guidelines on:
+See [CONTRIBUTING.md](../.github/CONTRIBUTING.md) for guidelines on:
 - Documentation style guide
 - Review process
 - Testing documentation changes
@@ -221,13 +221,13 @@ See [CONTRIBUTING.md](../CONTRIBUTING.md) for guidelines on:
 
 - **Monthly:** Review for accuracy
 - **Quarterly:** Update test results
-- **Per Release:** Update CHANGELOG.md
+- **Per Release:** Update .github/CHANGELOG.md
 - **As Needed:** Security documentation
 
 ## Need Help?
 
 - 📖 Start with [README.md](../README.md)
-- 🔒 Security questions? See [SECURITY.md](../SECURITY.md)
+- 🔒 Security questions? See [SECURITY.md](../.github/SECURITY.md)
 - 🧪 Testing questions? See [tests/README.md](../tests/README.md)
 - 🚀 API questions? See [reference-apps/README.md](../reference-apps/README.md)
-- 🤝 Want to contribute? See [CONTRIBUTING.md](../CONTRIBUTING.md)
+- 🤝 Want to contribute? See [CONTRIBUTING.md](../.github/CONTRIBUTING.md)

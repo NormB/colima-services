@@ -163,7 +163,7 @@ See [shared/test-suite/README.md](shared/test-suite/README.md) for details.
 
 ### Release Notes
 
-For details on both implementations, see [CHANGELOG.md](CHANGELOG.md)
+For details on both implementations, see [CHANGELOG.md](CHANGELOG.md) in this directory
 
 ## How to Use Reference Apps
 
