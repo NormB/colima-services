@@ -14,11 +14,13 @@
 
 ---
 
-## 🚧 **PROTOTYPE - WORK IN PROGRESS** 🚧
+## 🚧 **MINIMAL EXAMPLE - INTENTIONALLY INCOMPLETE** 🚧
 
-**⚠️ WARNING: This implementation is ~15% complete and missing critical features.**
+**⚠️ WARNING: This is a minimal example implementation (~15% complete) for learning Rust syntax patterns only.**
 
-**This is NOT production-ready. Use FastAPI, Go, or Node.js implementations instead.**
+**This is NOT a complete reference implementation. Use FastAPI (Python), Go, or Node.js implementations for comprehensive examples.**
+
+**Purpose:** Demonstrates basic Rust/Actix-web patterns and syntax. Not intended to be a full-featured integration example.
 
 ### Missing Features (compared to other implementations)
 - ❌ Database integration (PostgreSQL, MySQL, MongoDB)
