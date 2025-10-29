@@ -563,3 +563,463 @@ gpg -c vault-keys-*.tar.gz
 # Store encrypted file in secure location (1Password, etc.)
 ```
 
+---
+
+## Certificate Lifecycle Management
+
+### Certificate Expiration Timeline
+
+| Certificate Type | Validity Period | Typical Issue Date | Expiration Date | Renewal Window |
+|------------------|-----------------|---------------------|-----------------|----------------|
+| Root CA (pki) | 10 years | 2025-01-15 | 2035-01-15 | 9 years notice |
+| Intermediate CA (pki_int) | 5 years | 2025-01-15 | 2030-01-15 | 4.5 years notice |
+| Service Certificates | 1 year | 2025-01-15 | 2026-01-15 | **30 days notice** |
+
+**Critical:** Service certificates must be renewed annually. Set calendar reminders for 30 days before expiration.
+
+### Checking Certificate Expiration
+
+**Check all service certificates:**
+```bash
+# Quick check all services
+for service in postgres mysql redis-1 redis-2 redis-3 rabbitmq mongodb; do
+  echo "=== $service ==="
+  openssl x509 -in ~/.config/vault/certs/$service/cert.pem -noout -enddate
+  echo ""
+done
+
+# With days until expiry
+for service in postgres mysql redis-1 redis-2 redis-3 rabbitmq mongodb; do
+  EXPIRY=$(openssl x509 -in ~/.config/vault/certs/$service/cert.pem -noout -enddate | cut -d= -f2)
+  EXPIRY_EPOCH=$(date -j -f "%b %d %T %Y %Z" "$EXPIRY" +%s 2>/dev/null || date -d "$EXPIRY" +%s)
+  NOW_EPOCH=$(date +%s)
+  DAYS_UNTIL=$(( ($EXPIRY_EPOCH - $NOW_EPOCH) / 86400 ))
+  echo "$service: $DAYS_UNTIL days until expiry"
+done
+```
+
+**Check Root CA:**
+```bash
+openssl x509 -in ~/.config/vault/ca/ca.pem -noout -enddate -subject
+```
+
+**Check Intermediate CA:**
+```bash
+vault read pki_int/ca/pem | openssl x509 -noout -enddate -subject
+```
+
+### Service Certificate Renewal
+
+**When to Renew:** 30 days before expiration (or sooner)
+
+**Automated Renewal Script:** `scripts/renew-certificates.sh`
+
+```bash
+#!/bin/bash
+# Renew all service certificates from Vault PKI
+# Run annually or when certificates are approaching expiration
+
+set -e
+
+VAULT_ADDR="${VAULT_ADDR:-http://localhost:8200}"
+VAULT_TOKEN="${VAULT_TOKEN:-$(cat ~/.config/vault/root-token)}"
+
+echo "🔄 Renewing service certificates..."
+echo "Vault: $VAULT_ADDR"
+
+# Check Vault is unsealed
+if ! vault status > /dev/null 2>&1; then
+  echo "❌ Error: Vault is not accessible or is sealed"
+  echo "Run: ./manage-colima.sh vault-unseal"
+  exit 1
+fi
+
+# Backup existing certificates
+echo "📦 Backing up existing certificates..."
+BACKUP_DIR=~/.config/vault/certs-backup-$(date +%Y%m%d-%H%M%S)
+mkdir -p "$BACKUP_DIR"
+cp -r ~/.config/vault/certs/* "$BACKUP_DIR/"
+echo "   Backup created: $BACKUP_DIR"
+
+# Generate new certificates
+echo "🔐 Generating new certificates..."
+export VAULT_ADDR VAULT_TOKEN
+./scripts/generate-certificates.sh
+
+# Verify new certificates
+echo "✅ Verifying new certificates..."
+for service in postgres mysql redis-1 redis-2 redis-3 rabbitmq mongodb; do
+  if [ -f ~/.config/vault/certs/$service/cert.pem ]; then
+    EXPIRY=$(openssl x509 -in ~/.config/vault/certs/$service/cert.pem -noout -enddate | cut -d= -f2)
+    echo "   $service: Valid until $EXPIRY"
+  fi
+done
+
+echo ""
+echo "🔄 Restarting services to load new certificates..."
+./manage-colima.sh restart
+
+echo ""
+echo "✅ Certificate renewal complete!"
+echo "   Old certificates backed up to: $BACKUP_DIR"
+echo "   New certificates expire in ~365 days"
+echo ""
+echo "📅 Set reminder to renew again in 11 months"
+```
+
+**Make executable and run:**
+```bash
+chmod +x scripts/renew-certificates.sh
+./scripts/renew-certificates.sh
+```
+
+**Manual Renewal (if script fails):**
+
+```bash
+# 1. Set environment
+export VAULT_TOKEN=$(cat ~/.config/vault/root-token)
+export VAULT_ADDR=http://localhost:8200
+
+# 2. Backup existing certificates
+cp -r ~/.config/vault/certs ~/.config/vault/certs-backup-$(date +%Y%m%d)
+
+# 3. Regenerate certificates
+./scripts/generate-certificates.sh
+
+# 4. Restart services
+./manage-colima.sh restart
+
+# 5. Verify new certificates
+for service in postgres mysql redis-1; do
+  openssl x509 -in ~/.config/vault/certs/$service/cert.pem -noout -dates
+done
+```
+
+### Intermediate CA Renewal
+
+**When to Renew:** 60 days before expiration (5-year cert, so plan at 4 years 10 months)
+
+**⚠️ CRITICAL:** Intermediate CA renewal affects ALL service certificates. Plan carefully.
+
+**Renewal Procedure:**
+
+```bash
+# 1. Set environment
+export VAULT_TOKEN=$(cat ~/.config/vault/root-token)
+export VAULT_ADDR=http://localhost:8200
+
+# 2. Check current intermediate CA expiration
+vault read pki_int/ca/pem | openssl x509 -noout -enddate
+
+# 3. Generate new intermediate CSR
+vault write -format=json pki_int/intermediate/generate/internal \
+  common_name="Colima Services Intermediate CA v2" \
+  ttl="43800h" \
+  key_type="rsa" \
+  key_bits="4096" > pki_int_csr_v2.json
+
+CSR=$(jq -r '.data.csr' < pki_int_csr_v2.json)
+
+# 4. Sign with Root CA
+vault write -format=json pki/root/sign-intermediate \
+  csr="$CSR" \
+  format=pem_bundle \
+  ttl="43800h" > pki_int_cert_v2.json
+
+CERT=$(jq -r '.data.certificate' < pki_int_cert_v2.json)
+
+# 5. Import signed certificate
+vault write pki_int/intermediate/set-signed certificate="$CERT"
+
+# 6. Verify new intermediate CA
+vault read pki_int/ca/pem | openssl x509 -noout -text | grep "Not After"
+
+# 7. Regenerate ALL service certificates
+./scripts/generate-certificates.sh
+
+# 8. Restart all services
+./manage-colima.sh restart
+
+# 9. Verify everything works
+./manage-colima.sh health
+```
+
+**Post-Renewal Verification:**
+```bash
+# Check Intermediate CA is active
+vault list pki_int/roles
+
+# Test certificate issuance
+vault write pki_int/issue/postgres-role \
+  common_name=test.postgres.local \
+  ttl=1h
+
+# Verify service health
+./manage-colima.sh health
+```
+
+### Root CA Renewal
+
+**When to Renew:** 6-12 months before expiration (10-year cert, plan at 9 years)
+
+**⚠️ MAJOR EVENT:** Root CA renewal requires extensive planning:
+
+1. **Coordinated rollover period** (dual root CA trust)
+2. **New intermediate CA** must be issued
+3. **All service certificates** must be regenerated
+4. **Distribution** of new root CA to all clients
+5. **Testing** in non-production environment first
+
+**DO NOT attempt Root CA renewal without:**
+- Full backup of current PKI
+- Test environment validation
+- Communication plan for dependent systems
+- Rollback procedure
+
+**Recommendation:** Create a dedicated `ROOT_CA_RENEWAL.md` runbook 6 months before expiration with detailed step-by-step procedures specific to your environment.
+
+**Emergency Root CA Renewal (if Root CA is compromised):**
+
+See [DISASTER_RECOVERY.md](DISASTER_RECOVERY.md) - "Vault Data Loss" section.
+
+### Automated Expiration Monitoring
+
+**Daily Cron Job:**
+
+```bash
+# Add to crontab: crontab -e
+# Check certificate expiration daily at 9 AM
+0 9 * * * /Users/gator/colima-services/scripts/check-cert-expiry.sh 2>&1 | mail -s "Certificate Expiry Report" admin@example.com
+```
+
+**Monitoring Script:** `scripts/check-cert-expiry.sh`
+
+```bash
+#!/bin/bash
+# Check certificate expiration and alert if approaching expiry
+
+WARN_DAYS=30
+CRIT_DAYS=7
+FOUND_WARNING=0
+FOUND_CRITICAL=0
+
+echo "Certificate Expiration Report - $(date)"
+echo "==========================================="
+echo ""
+
+# Check service certificates
+echo "Service Certificates:"
+for cert_path in ~/.config/vault/certs/*/cert.pem; do
+  if [ ! -f "$cert_path" ]; then
+    continue
+  fi
+
+  service=$(basename $(dirname "$cert_path"))
+  expiry=$(openssl x509 -in "$cert_path" -noout -enddate | cut -d= -f2)
+
+  # Calculate days until expiry (macOS compatible)
+  if date -j -f "%b %d %T %Y %Z" "$expiry" +%s > /dev/null 2>&1; then
+    expiry_epoch=$(date -j -f "%b %d %T %Y %Z" "$expiry" +%s)
+  else
+    expiry_epoch=$(date -d "$expiry" +%s)
+  fi
+
+  now_epoch=$(date +%s)
+  days_until=$(( ($expiry_epoch - $now_epoch) / 86400 ))
+
+  if [ $days_until -lt $CRIT_DAYS ]; then
+    echo "❌ CRITICAL: $service certificate expires in $days_until days ($expiry)"
+    FOUND_CRITICAL=1
+  elif [ $days_until -lt $WARN_DAYS ]; then
+    echo "⚠️  WARNING: $service certificate expires in $days_until days ($expiry)"
+    FOUND_WARNING=1
+  else
+    echo "✅ OK: $service certificate valid for $days_until days"
+  fi
+done
+
+echo ""
+echo "Root and Intermediate CAs:"
+
+# Check Root CA
+if [ -f ~/.config/vault/ca/ca.pem ]; then
+  root_expiry=$(openssl x509 -in ~/.config/vault/ca/ca.pem -noout -enddate | cut -d= -f2)
+  echo "   Root CA expires: $root_expiry"
+fi
+
+# Check Intermediate CA
+if command -v vault > /dev/null 2>&1; then
+  export VAULT_ADDR=http://localhost:8200
+  export VAULT_TOKEN=$(cat ~/.config/vault/root-token 2>/dev/null)
+  if [ -n "$VAULT_TOKEN" ]; then
+    int_expiry=$(vault read pki_int/ca/pem 2>/dev/null | openssl x509 -noout -enddate 2>/dev/null)
+    if [ -n "$int_expiry" ]; then
+      echo "   Intermediate CA expires: $int_expiry"
+    fi
+  fi
+fi
+
+echo ""
+echo "==========================================="
+
+# Exit codes for monitoring systems
+if [ $FOUND_CRITICAL -eq 1 ]; then
+  exit 2
+elif [ $FOUND_WARNING -eq 1 ]; then
+  exit 1
+else
+  exit 0
+fi
+```
+
+**Make executable:**
+```bash
+chmod +x scripts/check-cert-expiry.sh
+
+# Test run
+./scripts/check-cert-expiry.sh
+```
+
+### Certificate Revocation
+
+**When to Revoke:** Certificate compromise, key exposure, or service decommissioning
+
+**Revocation Procedure:**
+
+```bash
+# 1. Get certificate serial number
+openssl x509 -in ~/.config/vault/certs/postgres/cert.pem -noout -serial
+
+# Example output: serial=3A:5F:2B:...
+
+# 2. Revoke certificate
+vault write pki_int/revoke serial_number="3A:5F:2B:..."
+
+# 3. Generate new certificate immediately
+vault write pki_int/issue/postgres-role \
+  common_name="postgres" \
+  ttl="8760h" \
+  format=pem_bundle > postgres_new.json
+
+# 4. Extract and install new certificate
+jq -r '.data.certificate' < postgres_new.json > ~/.config/vault/certs/postgres/cert.pem
+jq -r '.data.private_key' < postgres_new.json > ~/.config/vault/certs/postgres/key.pem
+jq -r '.data.ca_chain[]' < postgres_new.json > ~/.config/vault/certs/postgres/ca.pem
+
+# 5. Restart affected service
+docker compose restart postgres
+
+# 6. Update Certificate Revocation List (CRL)
+vault read pki_int/crl
+```
+
+### Best Practices
+
+1. **Calendar Reminders:**
+   - **Root CA:** Set reminder 9 years from issue date
+   - **Intermediate CA:** Set reminder 4 years 6 months from issue date
+   - **Service Certificates:** Set reminders every 11 months
+
+2. **Automate Renewal:**
+   - **Service certificates:** Run `renew-certificates.sh` monthly (automated)
+   - **Intermediate CA:** Manual process with advance planning
+   - **Root CA:** Treat as major project, plan 6-12 months ahead
+
+3. **Test Renewal Process:**
+   - Practice renewal in test environment quarterly
+   - Document any issues encountered
+   - Update renewal scripts based on lessons learned
+
+4. **Monitor Continuously:**
+   - Daily automated expiration checks (`check-cert-expiry.sh`)
+   - Alert if certificates < 30 days from expiry
+   - Escalate if certificates < 7 days from expiry
+
+5. **Backup Before Renewal:**
+   - Always backup `~/.config/vault/` before renewal
+   - Store backups securely off-system
+   - Test restoration from backup
+
+6. **Verify After Renewal:**
+   - Check certificate dates with `openssl x509`
+   - Verify services restart successfully
+   - Run health checks: `./manage-colima.sh health`
+   - Test TLS connections to services
+
+### Troubleshooting Certificate Issues
+
+**Problem:** Service won't start after certificate renewal
+
+**Solution:**
+```bash
+# Check certificate permissions
+ls -la ~/.config/vault/certs/postgres/
+
+# Should be readable (644 for certs, 600 for keys)
+chmod 644 ~/.config/vault/certs/postgres/cert.pem
+chmod 644 ~/.config/vault/certs/postgres/ca.pem
+chmod 600 ~/.config/vault/certs/postgres/key.pem
+
+# Check certificate validity
+openssl verify -CAfile ~/.config/vault/certs/postgres/ca.pem \
+  ~/.config/vault/certs/postgres/cert.pem
+
+# Check service logs
+docker compose logs postgres | grep -i tls
+```
+
+**Problem:** Certificate verification failed
+
+**Solution:**
+```bash
+# Verify certificate chain
+openssl verify -verbose -CAfile ~/.config/vault/ca/ca.pem \
+  -untrusted ~/.config/vault/ca/ca-chain.pem \
+  ~/.config/vault/certs/postgres/cert.pem
+
+# If chain is broken, regenerate
+./scripts/generate-certificates.sh
+```
+
+**Problem:** Vault won't issue new certificates
+
+**Solution:**
+```bash
+# Check Vault PKI role exists
+vault list pki_int/roles
+
+# If missing, re-run vault-bootstrap
+./manage-colima.sh vault-bootstrap
+
+# Check intermediate CA is configured
+vault read pki_int/cert/ca
+```
+
+### Renewal Checklist
+
+**30 Days Before Expiry:**
+- [ ] Run `check-cert-expiry.sh` to confirm expiry dates
+- [ ] Schedule maintenance window (service restart required)
+- [ ] Notify stakeholders of planned renewal
+- [ ] Backup current certificates
+- [ ] Test renewal script in non-production environment
+
+**Renewal Day:**
+- [ ] Verify Vault is healthy and unsealed
+- [ ] Backup `~/.config/vault/` directory
+- [ ] Run `renew-certificates.sh` script
+- [ ] Verify new certificate dates
+- [ ] Restart services: `./manage-colima.sh restart`
+- [ ] Verify services healthy: `./manage-colima.sh health`
+- [ ] Test TLS connections
+- [ ] Monitor service logs for TLS errors
+
+**Post-Renewal (24 hours later):**
+- [ ] Confirm no TLS errors in logs
+- [ ] Verify applications connecting successfully
+- [ ] Update renewal tracking spreadsheet
+- [ ] Set reminder for next renewal (11 months)
+- [ ] Document any issues encountered
+
+---
+
