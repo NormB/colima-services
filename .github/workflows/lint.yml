@@ -182,7 +182,7 @@ jobs:
 
       - name: Run golangci-lint
         if: steps.check-go.outputs.has_go == 'true'
-        uses: golangci/golangci-lint-action@v6
+        uses: golangci/golangci-lint-action@v8
         with:
           version: latest
           args: --timeout=5m --exclude-dirs=node_modules
