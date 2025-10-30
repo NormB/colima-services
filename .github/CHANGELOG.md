@@ -43,6 +43,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Fixed
+- Dependabot configuration file had empty package-ecosystem field causing GitHub validation errors
+- Added comprehensive ecosystem monitoring for all reference applications:
+  - Docker base images in docker-compose.yml
+  - GitHub Actions workflow dependencies
+  - Python dependencies (FastAPI implementations and shared test suite)
+  - Go modules (Gin implementation)
+  - Node.js packages (Express and TypeScript implementations)
+  - Rust dependencies (Actix-web implementation)
+
 ---
 
 ## [1.2.0] - 2025-10-29
