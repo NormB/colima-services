@@ -55,7 +55,7 @@ jobs:
 
       - name: Lint Dockerfiles
         if: steps.find-dockerfiles.outputs.dockerfiles != ''
-        uses: hadolint/hadolint-action@v3.1.0
+        uses: hadolint/hadolint-action@v3.3.0
         with:
           dockerfile: ${{ steps.find-dockerfiles.outputs.dockerfiles }}
           failure-threshold: warning
@@ -70,7 +70,7 @@ jobs:
         uses: actions/checkout@v4
 
       - name: Set up Python
-        uses: actions/setup-python@v5
+        uses: actions/setup-python@v6
         with:
           python-version: '3.11'
 
@@ -112,7 +112,7 @@ jobs:
         uses: actions/checkout@v4
 
       - name: Markdown Lint
-        uses: DavidAnson/markdownlint-cli2-action@v16
+        uses: DavidAnson/markdownlint-cli2-action@v20
         with:
           globs: |
             **/*.md
@@ -139,7 +139,7 @@ jobs:
 
       - name: Set up Python
         if: steps.check-python.outputs.has_python == 'true'
-        uses: actions/setup-python@v5
+        uses: actions/setup-python@v6
         with:
           python-version: '3.11'
 
@@ -182,7 +182,7 @@ jobs:
 
       - name: Run golangci-lint
         if: steps.check-go.outputs.has_go == 'true'
-        uses: golangci/golangci-lint-action@v6
+        uses: golangci/golangci-lint-action@v8
         with:
           version: latest
           args: --timeout=5m --exclude-dirs=node_modules
