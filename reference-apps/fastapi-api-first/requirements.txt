@@ -20,7 +20,7 @@ pymongo==4.6.3
 
 # Redis and Caching
 redis[hiredis]==4.6.0  # Downgraded for fastapi-cache2 compatibility
-fastapi-cache2[redis]==0.2.1  # Response caching
+fastapi-cache2[redis]==0.2.2  # Response caching
 
 # RabbitMQ
 aio-pika==9.3.1
