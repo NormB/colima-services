@@ -43,6 +43,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+---
+
+## [1.2.1] - 2025-10-30
+
 ### Added
 - Comprehensive Dependabot monitoring for all 7 package ecosystems (Docker, GitHub Actions, Python, Go, Node.js, Rust, TypeScript)
 - DEPENDENCY_UPGRADE_REPORT.md documenting **ALL 30 merged PRs (100% success rate)** and Go 1.24 upgrade process
