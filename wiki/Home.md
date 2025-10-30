@@ -44,6 +44,8 @@ Welcome to the **Colima Services** wiki! This is your comprehensive guide to set
 - **[Port Reference](Port-Reference)** - All service ports
 - **[CLI Reference](CLI-Reference)** - Command-line tools
 - **[API Endpoints](API-Endpoints)** - Reference API documentation
+- **[Changelog](Changelog)** - Version history and release notes
+- **[Dependency Upgrade Report](Dependency-Upgrade-Report)** - October 2025 dependency maintenance
 
 ### Contributing
 - **[Contributing Guide](Contributing-Guide)** - How to contribute
@@ -96,4 +98,4 @@ This wiki is maintained alongside the codebase. If you find outdated information
 2. Open an issue on GitHub
 3. Submit a PR with corrections
 
-Last updated: 2025-10-28
+Last updated: 2025-10-30
