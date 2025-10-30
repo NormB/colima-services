@@ -55,7 +55,7 @@ jobs:
 
       - name: Lint Dockerfiles
         if: steps.find-dockerfiles.outputs.dockerfiles != ''
-        uses: hadolint/hadolint-action@v3.1.0
+        uses: hadolint/hadolint-action@v3.3.0
         with:
           dockerfile: ${{ steps.find-dockerfiles.outputs.dockerfiles }}
           failure-threshold: warning
