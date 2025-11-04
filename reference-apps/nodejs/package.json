@@ -1,0 +1,51 @@
+{
+  "name": "colima-services-nodejs-reference",
+  "version": "1.0.0",
+  "description": "Node.js reference implementation for Colima Services infrastructure integration",
+  "main": "src/index.js",
+  "scripts": {
+    "start": "node src/index.js",
+    "dev": "nodemon src/index.js",
+    "test": "jest --coverage",
+    "test:watch": "jest --watch",
+    "lint": "eslint src/**/*.js"
+  },
+  "keywords": [
+    "vault",
+    "hashicorp",
+    "postgresql",
+    "mysql",
+    "mongodb",
+    "redis",
+    "rabbitmq",
+    "microservices",
+    "reference-implementation"
+  ],
+  "author": "Colima Services Team",
+  "license": "MIT",
+  "dependencies": {
+    "express": "^5.1.0",
+    "node-vault": "^0.10.2",
+    "pg": "^8.11.3",
+    "mysql2": "^3.6.5",
+    "mongodb": "^6.3.0",
+    "redis": "^4.6.12",
+    "amqplib": "^0.10.3",
+    "prom-client": "^15.1.0",
+    "winston": "^3.11.0",
+    "cors": "^2.8.5",
+    "helmet": "^8.1.0",
+    "express-rate-limit": "^8.2.1",
+    "uuid": "^13.0.0"
+  },
+  "devDependencies": {
+    "jest": "^30.2.0",
+    "supertest": "^6.3.3",
+    "nodemon": "^3.0.2",
+    "eslint": "^9.39.0"
+  },
+  "engines": {
+    "node": ">=18.0.0",
+    "npm": ">=9.0.0"
+  }
+}

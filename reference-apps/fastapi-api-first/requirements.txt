@@ -1,0 +1,38 @@
+# API-First Implementation Dependencies
+# Must match code-first implementation versions for compatibility
+
+# Core FastAPI dependencies
+fastapi==0.104.1
+uvicorn[standard]==0.38.0
+pydantic-settings==2.1.0
+slowapi==0.1.9  # Rate limiting
+pybreaker==1.4.1  # Circuit breaker
+
+# HTTP client
+httpx==0.25.2
+
+# Database drivers (versions must match code-first for compatibility)
+asyncpg==0.30.0
+aiomysql==0.3.0
+cryptography>=41.0.0  # Required for MySQL caching_sha2_password auth
+motor==3.7.1
+pymongo==4.6.3
+
+# Redis and Caching
+redis[hiredis]==7.0.1  # Downgraded for fastapi-cache2 compatibility
+fastapi-cache2[redis]==0.2.2  # Response caching
+
+# RabbitMQ
+aio-pika==9.3.1
+
+# Utilities
+python-json-logger==4.0.0
+
+# Observability
+prometheus-client==0.19.0
+
+# Testing
+pytest==8.4.2
+pytest-asyncio==0.21.1
+pytest-cov==7.0.0
+pytest-mock==3.15.1
