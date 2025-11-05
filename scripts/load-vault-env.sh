@@ -205,10 +205,15 @@ main() {
     export POSTGRES_PASSWORD
     success "PostgreSQL password loaded from Vault"
 
-    # You can add more secrets here as needed
-    # Example:
-    # MYSQL_PASSWORD=$(read_vault_secret "mysql" "password")
-    # export MYSQL_PASSWORD
+    # Read MySQL password from Vault
+    info "Reading MySQL credentials from Vault..."
+    MYSQL_ROOT_PASSWORD=$(read_vault_secret mysql password)
+    if [ -z "$MYSQL_ROOT_PASSWORD" ]; then
+        error "Failed to read MySQL password from Vault"
+        return 1
+    fi
+    export MYSQL_ROOT_PASSWORD
+    success "MySQL password loaded from Vault"
 
     info ""
     success "All secrets loaded from Vault"

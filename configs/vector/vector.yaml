@@ -27,6 +27,8 @@ sources:
 
   # ---------------------------------------------------------------------------
   # PostgreSQL Metrics (Native - Replaces postgres-exporter)
+  # Note: Uses compatibility schema (compat.pg_stat_bgwriter) for PostgreSQL 18+
+  # See: configs/postgres/01-pg18-compatibility.sql
   # ---------------------------------------------------------------------------
   postgresql_metrics:
     type: postgresql_metrics

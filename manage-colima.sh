@@ -888,6 +888,9 @@ cmd_backup() {
         error "Colima is not running. Start it first with: ./manage-colima.sh start"
     fi
 
+    # Load credentials from Vault
+    load_vault_credentials
+
     local backup_dir
     backup_dir="backups/$(date +%Y%m%d_%H%M%S)"
     mkdir -p "$backup_dir"

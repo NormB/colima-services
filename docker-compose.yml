@@ -58,7 +58,7 @@ services:
 
   postgres:
     <<: *default-platform
-    image: postgres:16.6-alpine3.21
+    image: postgres:18
     container_name: dev-postgres
     restart: unless-stopped
 
@@ -84,7 +84,7 @@ services:
       - "${POSTGRES_HOST_PORT:-5432}:5432"
 
     volumes:
-      - postgres_data:/var/lib/postgresql/data
+      - postgres_data:/var/lib/postgresql
       - ./configs/postgres:/docker-entrypoint-initdb.d:ro
       - ./configs/postgres/scripts/init.sh:/init/init.sh:ro
       - ${HOME}/.config/vault/certs/postgres:/var/lib/postgresql/certs:ro

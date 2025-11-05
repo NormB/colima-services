@@ -45,6 +45,38 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [1.3.0] - 2025-11-05
+
+### Changed
+
+- **PostgreSQL upgraded from 16.6 to 18.0**
+  - Switched from Alpine-based (`postgres:16.6-alpine3.21`) to Debian-based (`postgres:18`) image
+  - Updated init script (`configs/postgres/scripts/init.sh`) to use `apt-get` instead of `apk` and `curl` instead of `wget`
+  - Updated volume mount from `/var/lib/postgresql/data` to `/var/lib/postgresql` (PostgreSQL 18 requirement)
+  - All databases restored successfully with zero data loss
+  - All 370+ tests passing (16/16 test suites)
+
+### Added
+
+- **PostgreSQL 18 compatibility layer for monitoring tools**
+  - Created `configs/postgres/01-pg18-compatibility.sql` with backward-compatible statistics views
+  - Implemented `compat.pg_stat_bgwriter` view that maps new PG18 column names to pre-PG17 names:
+    - `pg_stat_checkpointer.num_timed` → `checkpoints_timed`
+    - `pg_stat_checkpointer.num_requested` → `checkpoints_req`
+    - `pg_stat_checkpointer.write_time` → `checkpoint_write_time`
+    - `pg_stat_io` aggregations → `buffers_backend`, `buffers_backend_fsync`
+  - Configured database search_path to prioritize `compat` schema
+  - Vector PostgreSQL metrics collection fully operational without code changes
+
+### Fixed
+
+- **Backup script unbound variable error**
+  - Added `load_vault_credentials()` call to `manage-colima.sh` backup command
+  - Updated `scripts/load-vault-env.sh` to load MySQL password from Vault
+  - Backup script now successfully loads all required credentials
+
+---
+
 ## [1.2.1] - 2025-10-30
 
 ### Added
