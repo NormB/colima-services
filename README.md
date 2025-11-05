@@ -196,7 +196,7 @@ For detailed installation instructions, see [docs/INSTALLATION.md](./docs/INSTAL
 
 | Service | Version | Purpose | Access |
 |---------|---------|---------|--------|
-| **PostgreSQL** | 16 | Primary relational database | localhost:5432 |
+| **PostgreSQL** | 18 | Primary relational database | localhost:5432 |
 | **PgBouncer** | Latest | Connection pooling for PostgreSQL | localhost:6432 |
 | **MySQL** | 8.0 | Legacy application support | localhost:3306 |
 | **MongoDB** | 7 | NoSQL document database | localhost:27017 |

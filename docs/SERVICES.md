@@ -72,7 +72,7 @@ All 5 implementations demonstrate identical core functionality with language-spe
 **Purpose:** Primary database for Forgejo (Git server) and local development.
 
 **Configuration:**
-- Image: `postgres:16-alpine` (ARM64 native)
+- Image: `postgres:18` (Debian-based, ARM64 native)
 - **Credentials:** Auto-fetched from Vault at startup via `configs/postgres/scripts/init.sh`
   - Stored in Vault at `secret/postgres`
   - Fields: `user`, `password`, `database`
@@ -84,6 +84,10 @@ All 5 implementations demonstrate identical core functionality with language-spe
 - Shared buffers: 256MB
 - Effective cache: 1GB
 - **Optional TLS:** Configurable via `POSTGRES_ENABLE_TLS=true`
+- **PostgreSQL 18 Compatibility Layer:** Includes `configs/postgres/01-pg18-compatibility.sql`
+  - Creates `compat.pg_stat_bgwriter` view for backward compatibility with monitoring tools
+  - Maps new PostgreSQL 18 statistics columns to pre-PG17 column names
+  - Enables Vector metrics collection without modifications
 
 **Key Settings** (`docker-compose.yml:68-78`):
 ```yaml

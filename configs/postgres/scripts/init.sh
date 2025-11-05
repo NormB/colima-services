@@ -39,7 +39,7 @@
 #     VAULT_TOKEN=hvs.CAESIJ... VAULT_ADDR=http://vault:8200 ./init.sh postgres
 #
 # DEPENDENCIES:
-#   - wget: For Vault health checks and API requests
+#   - curl: For Vault health checks and API requests
 #   - jq: For JSON parsing (auto-installed if missing)
 #   - docker-entrypoint.sh: PostgreSQL official entrypoint script
 #   - HashiCorp Vault: Must be accessible and unsealed
@@ -174,7 +174,7 @@ error() { echo -e "${RED}[PostgreSQL Init]${NC} $1"; exit 1; }
 # Notes:
 #   - Maximum wait time: 120 seconds (60 attempts * 2 seconds)
 #   - Checks Vault health endpoint: $VAULT_ADDR/v1/sys/health?standbyok=true
-#   - Uses wget with spider mode for lightweight health checks
+#   - Uses curl for lightweight health checks
 #######################################
 wait_for_vault() {
     info "Waiting for Vault to be ready..."
@@ -183,7 +183,7 @@ wait_for_vault() {
     local attempt=0
 
     while [ $attempt -lt $max_attempts ]; do
-        if wget --spider -q --no-check-certificate "$VAULT_ADDR/v1/sys/health?standbyok=true" 2>/dev/null; then
+        if curl -sf "$VAULT_ADDR/v1/sys/health?standbyok=true" > /dev/null 2>&1; then
             success "Vault is ready"
             return 0
         fi
@@ -222,8 +222,8 @@ wait_for_vault() {
 fetch_credentials() {
     info "Fetching credentials and TLS setting from Vault..."
 
-    local response=$(wget -qO- --no-check-certificate \
-        --header "X-Vault-Token: $VAULT_TOKEN" \
+    local response=$(curl -sf \
+        -H "X-Vault-Token: $VAULT_TOKEN" \
         "$VAULT_ADDR/v1/secret/data/$SERVICE_NAME" 2>/dev/null)
 
     if [ $? -ne 0 ] || [ -z "$response" ]; then
@@ -359,10 +359,10 @@ main() {
     info "Starting PostgreSQL initialization with Vault integration..."
     info ""
 
-    # Install jq if not present
-    if ! command -v jq &> /dev/null; then
-        info "Installing jq for JSON parsing..."
-        apk add --no-cache jq > /dev/null 2>&1
+    # Install required tools if not present
+    if ! command -v curl &> /dev/null || ! command -v jq &> /dev/null; then
+        info "Installing curl and jq..."
+        apt-get update > /dev/null 2>&1 && apt-get install -y curl jq > /dev/null 2>&1
     fi
 
     # Check required environment variables and validate token format
