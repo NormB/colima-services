@@ -40,18 +40,12 @@ TESTS_FAILED=0
 declare -a FAILED_TESTS=()
 
 # Vault configuration
-export VAULT_ADDR="${VAULT_ADDR:-http://localhost:8200}"
-export VAULT_TOKEN="${VAULT_TOKEN:-}"
-
-# Try to get token from file if not set
-if [ -z "$VAULT_TOKEN" ]; then
-    if [ -f ~/.config/vault/root-token ]; then
-        export VAULT_TOKEN=$(cat ~/.config/vault/root-token)
-    fi
-fi
-
-# Ensure VAULT_ADDR uses localhost (not docker hostname) since tests run from host
 export VAULT_ADDR="http://localhost:8200"
+
+# Always read token from file (ignore environment variable)
+if [ -f ~/.config/vault/root-token ]; then
+    export VAULT_TOKEN=$(cat ~/.config/vault/root-token)
+fi
 
 # Verify we can access Vault
 if [ -z "$VAULT_TOKEN" ]; then
@@ -127,7 +121,7 @@ test_secret_versioning() {
     local version=$(echo "$read_response" | jq -r '.data.metadata.version')
     local created_time=$(echo "$read_response" | jq -r '.data.metadata.created_time')
 
-    if [ "$version" == "1" ] && [ -n "$created_time" ]; then
+    if [ "$version" == "1" ] && [ -n "$created_time" ] && [ "$created_time" != "null" ]; then
         # Update the secret to create version 2
         curl -s -X POST -H "X-Vault-Token: $VAULT_TOKEN" \
             -d '{"data": {"value": "version2"}}' \

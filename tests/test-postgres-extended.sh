@@ -42,28 +42,26 @@ declare -a FAILED_TESTS=()
 # PostgreSQL configuration
 POSTGRES_HOST="${POSTGRES_HOST:-localhost}"
 POSTGRES_PORT="${POSTGRES_PORT:-5432}"
-POSTGRES_DB="${POSTGRES_DB:-postgres}"
-POSTGRES_USER="${POSTGRES_USER:-}"
-POSTGRES_PASSWORD="${POSTGRES_PASSWORD:-}"
+POSTGRES_DB="${POSTGRES_DB:-devdb}"
 
-# Get credentials from Vault if available
+# Always get credentials from Vault (ignore environment variables)
 if [ -f ~/.config/vault/root-token ]; then
     export VAULT_TOKEN=$(cat ~/.config/vault/root-token)
 
-    # Retrieve user and password from Vault
-    if [ -z "$POSTGRES_USER" ]; then
-        POSTGRES_USER=$(curl -s -H "X-Vault-Token: $VAULT_TOKEN" \
-            http://localhost:8200/v1/secret/data/postgres 2>/dev/null | jq -r '.data.data.user' 2>/dev/null)
-    fi
+    # Retrieve user, database, and password from Vault
+    POSTGRES_USER=$(curl -s -H "X-Vault-Token: $VAULT_TOKEN" \
+        http://localhost:8200/v1/secret/data/postgres 2>/dev/null | jq -r '.data.data.user' 2>/dev/null)
 
-    if [ -z "$POSTGRES_PASSWORD" ]; then
-        POSTGRES_PASSWORD=$(curl -s -H "X-Vault-Token: $VAULT_TOKEN" \
-            http://localhost:8200/v1/secret/data/postgres 2>/dev/null | jq -r '.data.data.password' 2>/dev/null)
-    fi
+    POSTGRES_DB=$(curl -s -H "X-Vault-Token: $VAULT_TOKEN" \
+        http://localhost:8200/v1/secret/data/postgres 2>/dev/null | jq -r '.data.data.database' 2>/dev/null)
+
+    POSTGRES_PASSWORD=$(curl -s -H "X-Vault-Token: $VAULT_TOKEN" \
+        http://localhost:8200/v1/secret/data/postgres 2>/dev/null | jq -r '.data.data.password' 2>/dev/null)
 fi
 
 # Set defaults if Vault retrieval failed
-POSTGRES_USER="${POSTGRES_USER:-postgres}"
+POSTGRES_USER="${POSTGRES_USER:-devuser}"
+POSTGRES_DB="${POSTGRES_DB:-devdb}"
 
 # Verify we got the password
 if [ -z "$POSTGRES_PASSWORD" ] || [ "$POSTGRES_PASSWORD" == "null" ]; then
@@ -95,7 +93,7 @@ test_transaction_isolation() {
     info "Test 1: Transaction isolation levels"
 
     # Test READ COMMITTED (default)
-    local result=$(psql -h "$POSTGRES_HOST" -p "$POSTGRES_PORT" -U "$POSTGRES_USER" -d postgres -t -c \
+    local result=$(psql -h "$POSTGRES_HOST" -p "$POSTGRES_PORT" -U "$POSTGRES_USER" -d "$POSTGRES_DB" -t -c \
         "SHOW transaction_isolation;" 2>/dev/null | tr -d ' ')
 
     if [ -z "$result" ]; then
@@ -104,7 +102,7 @@ test_transaction_isolation() {
     fi
 
     # Test setting different isolation levels
-    psql -h "$POSTGRES_HOST" -p "$POSTGRES_PORT" -U "$POSTGRES_USER" -d postgres -c \
+    psql -h "$POSTGRES_HOST" -p "$POSTGRES_PORT" -U "$POSTGRES_USER" -d "$POSTGRES_DB" -c \
         "BEGIN TRANSACTION ISOLATION LEVEL SERIALIZABLE; COMMIT;" &>/dev/null
 
     if [ $? -eq 0 ]; then
@@ -124,7 +122,7 @@ test_concurrent_connections() {
     info "Test 2: Concurrent connection handling"
 
     # Get current connection count
-    local baseline_conns=$(psql -h "$POSTGRES_HOST" -p "$POSTGRES_PORT" -U "$POSTGRES_USER" -d postgres -t -c \
+    local baseline_conns=$(psql -h "$POSTGRES_HOST" -p "$POSTGRES_PORT" -U "$POSTGRES_USER" -d "$POSTGRES_DB" -t -c \
         "SELECT count(*) FROM pg_stat_activity;" 2>/dev/null | tr -d ' ')
 
     if [ -z "$baseline_conns" ]; then
@@ -134,14 +132,14 @@ test_concurrent_connections() {
 
     # Create 10 concurrent connections with longer-running queries
     for i in {1..10}; do
-        psql -h "$POSTGRES_HOST" -p "$POSTGRES_PORT" -U "$POSTGRES_USER" -d postgres -c "SELECT pg_sleep(1);" &>/dev/null &
+        psql -h "$POSTGRES_HOST" -p "$POSTGRES_PORT" -U "$POSTGRES_USER" -d "$POSTGRES_DB" -c "SELECT pg_sleep(1);" &>/dev/null &
     done
 
     # Give connections time to establish
     sleep 0.5
 
     # Check peak connection count
-    local peak_conns=$(psql -h "$POSTGRES_HOST" -p "$POSTGRES_PORT" -U "$POSTGRES_USER" -d postgres -t -c \
+    local peak_conns=$(psql -h "$POSTGRES_HOST" -p "$POSTGRES_PORT" -U "$POSTGRES_USER" -d "$POSTGRES_DB" -t -c \
         "SELECT count(*) FROM pg_stat_activity;" 2>/dev/null | tr -d ' ')
 
     wait
@@ -165,7 +163,7 @@ test_query_performance() {
     info "Test 3: Query performance and explain plans"
 
     # Create a test table with data
-    psql -h "$POSTGRES_HOST" -p "$POSTGRES_PORT" -U "$POSTGRES_USER" -d postgres &>/dev/null <<EOF
+    psql -h "$POSTGRES_HOST" -p "$POSTGRES_PORT" -U "$POSTGRES_USER" -d "$POSTGRES_DB" &>/dev/null <<EOF
 DROP TABLE IF EXISTS perf_test;
 CREATE TABLE perf_test (id SERIAL PRIMARY KEY, data TEXT, created_at TIMESTAMP DEFAULT NOW());
 INSERT INTO perf_test (data) SELECT 'test_' || generate_series(1, 1000);
@@ -177,15 +175,15 @@ EOF
     fi
 
     # Test EXPLAIN output
-    local explain_output=$(psql -h "$POSTGRES_HOST" -p "$POSTGRES_PORT" -U "$POSTGRES_USER" -d postgres -t -c \
+    local explain_output=$(psql -h "$POSTGRES_HOST" -p "$POSTGRES_PORT" -U "$POSTGRES_USER" -d "$POSTGRES_DB" -t -c \
         "EXPLAIN SELECT * FROM perf_test WHERE id < 100;" 2>/dev/null)
 
     # Test EXPLAIN ANALYZE for timing information
-    local analyze_output=$(psql -h "$POSTGRES_HOST" -p "$POSTGRES_PORT" -U "$POSTGRES_USER" -d postgres -t -c \
+    local analyze_output=$(psql -h "$POSTGRES_HOST" -p "$POSTGRES_PORT" -U "$POSTGRES_USER" -d "$POSTGRES_DB" -t -c \
         "EXPLAIN ANALYZE SELECT COUNT(*) FROM perf_test;" 2>/dev/null | grep -i "execution time")
 
     # Cleanup
-    psql -h "$POSTGRES_HOST" -p "$POSTGRES_PORT" -U "$POSTGRES_USER" -d postgres -c \
+    psql -h "$POSTGRES_HOST" -p "$POSTGRES_PORT" -U "$POSTGRES_USER" -d "$POSTGRES_DB" -c \
         "DROP TABLE IF EXISTS perf_test;" &>/dev/null
 
     if [ -n "$explain_output" ] && [ -n "$analyze_output" ]; then
@@ -204,14 +202,14 @@ test_encoding_collation() {
     TESTS_RUN=$((TESTS_RUN + 1))
     info "Test 4: Database encoding and collation"
 
-    local encoding=$(psql -h "$POSTGRES_HOST" -p "$POSTGRES_PORT" -U "$POSTGRES_USER" -d postgres -t -c \
+    local encoding=$(psql -h "$POSTGRES_HOST" -p "$POSTGRES_PORT" -U "$POSTGRES_USER" -d "$POSTGRES_DB" -t -c \
         "SHOW server_encoding;" 2>/dev/null | tr -d ' ')
 
     # Query collation and ctype from pg_database (they're not runtime parameters)
-    local collation=$(psql -h "$POSTGRES_HOST" -p "$POSTGRES_PORT" -U "$POSTGRES_USER" -d postgres -t -c \
+    local collation=$(psql -h "$POSTGRES_HOST" -p "$POSTGRES_PORT" -U "$POSTGRES_USER" -d "$POSTGRES_DB" -t -c \
         "SELECT datcollate FROM pg_database WHERE datname = 'postgres';" 2>/dev/null | tr -d ' ')
 
-    local ctype=$(psql -h "$POSTGRES_HOST" -p "$POSTGRES_PORT" -U "$POSTGRES_USER" -d postgres -t -c \
+    local ctype=$(psql -h "$POSTGRES_HOST" -p "$POSTGRES_PORT" -U "$POSTGRES_USER" -d "$POSTGRES_DB" -t -c \
         "SELECT datctype FROM pg_database WHERE datname = 'postgres';" 2>/dev/null | tr -d ' ')
 
     if [ -n "$encoding" ] && [ -n "$collation" ] && [ -n "$ctype" ]; then
@@ -231,7 +229,7 @@ test_extensions() {
     info "Test 5: Extension availability and functionality"
 
     # Check available extensions
-    local available_exts=$(psql -h "$POSTGRES_HOST" -p "$POSTGRES_PORT" -U "$POSTGRES_USER" -d postgres -t -c \
+    local available_exts=$(psql -h "$POSTGRES_HOST" -p "$POSTGRES_PORT" -U "$POSTGRES_USER" -d "$POSTGRES_DB" -t -c \
         "SELECT count(*) FROM pg_available_extensions;" 2>/dev/null | tr -d ' ')
 
     if [ -z "$available_exts" ] || [ "$available_exts" -eq 0 ]; then
@@ -240,7 +238,7 @@ test_extensions() {
     fi
 
     # Try to create and use pg_trgm extension for similarity searches
-    psql -h "$POSTGRES_HOST" -p "$POSTGRES_PORT" -U "$POSTGRES_USER" -d postgres &>/dev/null <<EOF
+    psql -h "$POSTGRES_HOST" -p "$POSTGRES_PORT" -U "$POSTGRES_USER" -d "$POSTGRES_DB" &>/dev/null <<EOF
 DROP EXTENSION IF EXISTS pg_trgm CASCADE;
 CREATE EXTENSION IF NOT EXISTS pg_trgm;
 SELECT similarity('hello', 'helo');
@@ -263,28 +261,28 @@ test_statistics_vacuum() {
     info "Test 6: Table statistics and vacuum operations"
 
     # Create test table
-    psql -h "$POSTGRES_HOST" -p "$POSTGRES_PORT" -U "$POSTGRES_USER" -d postgres &>/dev/null <<EOF
+    psql -h "$POSTGRES_HOST" -p "$POSTGRES_PORT" -U "$POSTGRES_USER" -d "$POSTGRES_DB" &>/dev/null <<EOF
 DROP TABLE IF EXISTS vacuum_test;
 CREATE TABLE vacuum_test (id SERIAL PRIMARY KEY, data TEXT);
 INSERT INTO vacuum_test (data) SELECT 'row_' || generate_series(1, 100);
 EOF
 
     # Run ANALYZE to update statistics
-    psql -h "$POSTGRES_HOST" -p "$POSTGRES_PORT" -U "$POSTGRES_USER" -d postgres -c \
+    psql -h "$POSTGRES_HOST" -p "$POSTGRES_PORT" -U "$POSTGRES_USER" -d "$POSTGRES_DB" -c \
         "ANALYZE vacuum_test;" &>/dev/null
 
     # Check statistics
-    local stats=$(psql -h "$POSTGRES_HOST" -p "$POSTGRES_PORT" -U "$POSTGRES_USER" -d postgres -t -c \
+    local stats=$(psql -h "$POSTGRES_HOST" -p "$POSTGRES_PORT" -U "$POSTGRES_USER" -d "$POSTGRES_DB" -t -c \
         "SELECT n_tup_ins FROM pg_stat_user_tables WHERE relname='vacuum_test';" 2>/dev/null | tr -d ' ')
 
     # Run VACUUM
-    psql -h "$POSTGRES_HOST" -p "$POSTGRES_PORT" -U "$POSTGRES_USER" -d postgres -c \
+    psql -h "$POSTGRES_HOST" -p "$POSTGRES_PORT" -U "$POSTGRES_USER" -d "$POSTGRES_DB" -c \
         "VACUUM vacuum_test;" &>/dev/null
 
     local vacuum_result=$?
 
     # Cleanup
-    psql -h "$POSTGRES_HOST" -p "$POSTGRES_PORT" -U "$POSTGRES_USER" -d postgres -c \
+    psql -h "$POSTGRES_HOST" -p "$POSTGRES_PORT" -U "$POSTGRES_USER" -d "$POSTGRES_DB" -c \
         "DROP TABLE IF EXISTS vacuum_test;" &>/dev/null
 
     if [ "$vacuum_result" -eq 0 ] && [ "$stats" == "100" ]; then
@@ -304,7 +302,7 @@ test_indexes() {
     info "Test 7: Index creation and usage"
 
     # Create test table with index
-    psql -h "$POSTGRES_HOST" -p "$POSTGRES_PORT" -U "$POSTGRES_USER" -d postgres &>/dev/null <<EOF
+    psql -h "$POSTGRES_HOST" -p "$POSTGRES_PORT" -U "$POSTGRES_USER" -d "$POSTGRES_DB" &>/dev/null <<EOF
 DROP TABLE IF EXISTS index_test;
 CREATE TABLE index_test (id SERIAL PRIMARY KEY, email TEXT, username TEXT);
 INSERT INTO index_test (email, username)
@@ -320,15 +318,15 @@ EOF
     fi
 
     # Verify indexes exist
-    local index_count=$(psql -h "$POSTGRES_HOST" -p "$POSTGRES_PORT" -U "$POSTGRES_USER" -d postgres -t -c \
+    local index_count=$(psql -h "$POSTGRES_HOST" -p "$POSTGRES_PORT" -U "$POSTGRES_USER" -d "$POSTGRES_DB" -t -c \
         "SELECT count(*) FROM pg_indexes WHERE tablename='index_test';" 2>/dev/null | tr -d ' ')
 
     # Check if index is used in query plan
-    local uses_index=$(psql -h "$POSTGRES_HOST" -p "$POSTGRES_PORT" -U "$POSTGRES_USER" -d postgres -t -c \
+    local uses_index=$(psql -h "$POSTGRES_HOST" -p "$POSTGRES_PORT" -U "$POSTGRES_USER" -d "$POSTGRES_DB" -t -c \
         "EXPLAIN SELECT * FROM index_test WHERE email='user500@example.com';" 2>/dev/null | grep -c "idx_email")
 
     # Cleanup
-    psql -h "$POSTGRES_HOST" -p "$POSTGRES_PORT" -U "$POSTGRES_USER" -d postgres -c \
+    psql -h "$POSTGRES_HOST" -p "$POSTGRES_PORT" -U "$POSTGRES_USER" -d "$POSTGRES_DB" -c \
         "DROP TABLE IF EXISTS index_test;" &>/dev/null
 
     if [ "$index_count" -ge 2 ] && [ "$uses_index" -gt 0 ]; then
@@ -348,7 +346,7 @@ test_json_operations() {
     info "Test 8: JSON/JSONB operations"
 
     # Create table with JSONB column
-    psql -h "$POSTGRES_HOST" -p "$POSTGRES_PORT" -U "$POSTGRES_USER" -d postgres &>/dev/null <<EOF
+    psql -h "$POSTGRES_HOST" -p "$POSTGRES_PORT" -U "$POSTGRES_USER" -d "$POSTGRES_DB" &>/dev/null <<EOF
 DROP TABLE IF EXISTS json_test;
 CREATE TABLE json_test (id SERIAL PRIMARY KEY, data JSONB);
 INSERT INTO json_test (data) VALUES
@@ -357,15 +355,15 @@ INSERT INTO json_test (data) VALUES
 EOF
 
     # Test JSONB queries
-    local json_query=$(psql -h "$POSTGRES_HOST" -p "$POSTGRES_PORT" -U "$POSTGRES_USER" -d postgres -t -c \
+    local json_query=$(psql -h "$POSTGRES_HOST" -p "$POSTGRES_PORT" -U "$POSTGRES_USER" -d "$POSTGRES_DB" -t -c \
         "SELECT data->>'name' FROM json_test WHERE data->>'age' = '30';" 2>/dev/null | tr -d ' ')
 
     # Test JSONB operators
-    local jsonb_contains=$(psql -h "$POSTGRES_HOST" -p "$POSTGRES_PORT" -U "$POSTGRES_USER" -d postgres -t -c \
+    local jsonb_contains=$(psql -h "$POSTGRES_HOST" -p "$POSTGRES_PORT" -U "$POSTGRES_USER" -d "$POSTGRES_DB" -t -c \
         "SELECT count(*) FROM json_test WHERE data @> '{\"tags\": [\"developer\"]}';" 2>/dev/null | tr -d ' ')
 
     # Cleanup
-    psql -h "$POSTGRES_HOST" -p "$POSTGRES_PORT" -U "$POSTGRES_USER" -d postgres -c \
+    psql -h "$POSTGRES_HOST" -p "$POSTGRES_PORT" -U "$POSTGRES_USER" -d "$POSTGRES_DB" -c \
         "DROP TABLE IF EXISTS json_test;" &>/dev/null
 
     if [ "$json_query" == "John" ] && [ "$jsonb_contains" == "1" ]; then
@@ -385,7 +383,7 @@ test_fulltext_search() {
     info "Test 9: Full-text search capabilities"
 
     # Create table with text data
-    psql -h "$POSTGRES_HOST" -p "$POSTGRES_PORT" -U "$POSTGRES_USER" -d postgres &>/dev/null <<EOF
+    psql -h "$POSTGRES_HOST" -p "$POSTGRES_PORT" -U "$POSTGRES_USER" -d "$POSTGRES_DB" &>/dev/null <<EOF
 DROP TABLE IF EXISTS fts_test;
 CREATE TABLE fts_test (id SERIAL PRIMARY KEY, title TEXT, content TEXT, tsv tsvector);
 INSERT INTO fts_test (title, content) VALUES
@@ -397,18 +395,18 @@ CREATE INDEX idx_fts ON fts_test USING GIN(tsv);
 EOF
 
     # Test full-text search
-    local search_result=$(psql -h "$POSTGRES_HOST" -p "$POSTGRES_PORT" -U "$POSTGRES_USER" -d postgres -t -c \
+    local search_result=$(psql -h "$POSTGRES_HOST" -p "$POSTGRES_PORT" -U "$POSTGRES_USER" -d "$POSTGRES_DB" -t -c \
         "SELECT title FROM fts_test WHERE tsv @@ to_tsquery('english', 'PostgreSQL');" 2>/dev/null | grep -c "PostgreSQL")
 
     # Test ranked search
-    local ranked_result=$(psql -h "$POSTGRES_HOST" -p "$POSTGRES_PORT" -U "$POSTGRES_USER" -d postgres -t -c \
+    local ranked_result=$(psql -h "$POSTGRES_HOST" -p "$POSTGRES_PORT" -U "$POSTGRES_USER" -d "$POSTGRES_DB" -t -c \
         "SELECT title, ts_rank(tsv, to_tsquery('english', 'database')) as rank
          FROM fts_test
          WHERE tsv @@ to_tsquery('english', 'database')
          ORDER BY rank DESC;" 2>/dev/null | grep -c "PostgreSQL")
 
     # Cleanup
-    psql -h "$POSTGRES_HOST" -p "$POSTGRES_PORT" -U "$POSTGRES_USER" -d postgres -c \
+    psql -h "$POSTGRES_HOST" -p "$POSTGRES_PORT" -U "$POSTGRES_USER" -d "$POSTGRES_DB" -c \
         "DROP TABLE IF EXISTS fts_test;" &>/dev/null
 
     if [ "$search_result" -gt 0 ] && [ "$ranked_result" -gt 0 ]; then
@@ -428,15 +426,15 @@ test_connection_limits() {
     info "Test 10: Connection limit configuration"
 
     # Check max connections setting
-    local max_conns=$(psql -h "$POSTGRES_HOST" -p "$POSTGRES_PORT" -U "$POSTGRES_USER" -d postgres -t -c \
+    local max_conns=$(psql -h "$POSTGRES_HOST" -p "$POSTGRES_PORT" -U "$POSTGRES_USER" -d "$POSTGRES_DB" -t -c \
         "SHOW max_connections;" 2>/dev/null | tr -d ' ')
 
     # Check current connections
-    local current_conns=$(psql -h "$POSTGRES_HOST" -p "$POSTGRES_PORT" -U "$POSTGRES_USER" -d postgres -t -c \
+    local current_conns=$(psql -h "$POSTGRES_HOST" -p "$POSTGRES_PORT" -U "$POSTGRES_USER" -d "$POSTGRES_DB" -t -c \
         "SELECT count(*) FROM pg_stat_activity;" 2>/dev/null | tr -d ' ')
 
     # Check connection statistics
-    local stats=$(psql -h "$POSTGRES_HOST" -p "$POSTGRES_PORT" -U "$POSTGRES_USER" -d postgres -t -c \
+    local stats=$(psql -h "$POSTGRES_HOST" -p "$POSTGRES_PORT" -U "$POSTGRES_USER" -d "$POSTGRES_DB" -t -c \
         "SELECT numbackends, xact_commit, xact_rollback
          FROM pg_stat_database
          WHERE datname='postgres';" 2>/dev/null)

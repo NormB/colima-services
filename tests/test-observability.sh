@@ -234,9 +234,7 @@ test_vector_pipeline() {
     fi
 
     # Check Vector logs for pipeline initialization
-    local vector_logs=$(docker logs dev-vector 2>&1 | tail -50)
-
-    if echo "$vector_logs" | grep -q "Vector has started"; then
+    if docker logs dev-vector 2>&1 | grep -q "Vector has started"; then
         # Check if Vector is processing logs
         local log_count=$(docker logs dev-vector 2>&1 | wc -l)
         success "Vector pipeline active (container running, $log_count log lines)"
