@@ -43,6 +43,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+- Rust linting and testing infrastructure
+  - Added `rust-lint` job to `.github/workflows/lint.yml` with `cargo fmt` and `cargo clippy`
+  - Created comprehensive `tests/test-rust.sh` script with 7 endpoint tests
+  - Added 5 unit tests to `reference-apps/rust/src/main.rs` for API endpoints and serialization
+  - Updated test suite documentation to include Rust testing
+
 ### Changed
 - Enhanced `vault-show-password` command to display complete Forgejo credentials
   - Now shows username, email, and password for Forgejo (previously only showed password)
