@@ -1175,6 +1175,15 @@ cmd_vault_bootstrap() {
     echo
 
     bash "$SCRIPT_DIR/configs/vault/scripts/vault-bootstrap.sh"
+
+    # Create Forgejo database in PostgreSQL
+    info ""
+    info "Creating Forgejo database in PostgreSQL..."
+    if docker compose exec -T postgres psql -U devuser -d postgres < "$SCRIPT_DIR/configs/postgres/02-create-forgejo-db.sql" > /dev/null 2>&1; then
+        success "Forgejo database created successfully"
+    else
+        warn "Forgejo database may already exist or PostgreSQL is not ready"
+    fi
 }
 
 #######################################
@@ -1231,19 +1240,19 @@ cmd_vault_ca_cert() {
 }
 
 #######################################
-# Retrieve and display a service password from Vault.
+# Retrieve and display service credentials from Vault.
 # Globals:
 #   VAULT_ADDR          - Vault API endpoint (set)
 #   VAULT_TOKEN         - Root token for authentication (set)
 # Arguments:
-#   $1      - (Required) Service name (postgres, mysql, redis-1, rabbitmq, mongodb)
+#   $1      - (Required) Service name (postgres, mysql, redis-1, rabbitmq, mongodb, forgejo)
 # Returns:
-#   0       - Password retrieved and displayed
-#   1       - Service name missing, auth failed, or password not found (via error())
+#   0       - Credentials retrieved and displayed
+#   1       - Service name missing, auth failed, or credentials not found (via error())
 # Outputs:
-#   Service password to stdout
+#   Service credentials to stdout (password for most services, username/email/password for Forgejo)
 # Notes:
-#   Retrieves passwords from Vault KV v2 secrets at path: secret/<service>
+#   Retrieves credentials from Vault KV v2 secrets at path: secret/<service>
 #
 #   Available services (after bootstrap):
 #     - postgres: PostgreSQL admin password
@@ -1251,15 +1260,14 @@ cmd_vault_ca_cert() {
 #     - redis-1: Redis AUTH password
 #     - rabbitmq: RabbitMQ admin password
 #     - mongodb: MongoDB root password
+#     - forgejo: Admin username, email, and password
 #
-#   Uses two methods for password retrieval:
-#     1. Vault CLI (if installed): vault kv get -field=password
-#     2. Fallback to curl + jq: Direct API call to Vault
+#   Uses docker exec to run vault commands inside the Vault container.
 #
-#   Authentication required: VAULT_TOKEN must be set or available in
-#   ~/.config/vault/root-token
+#   Authentication: Automatically retrieves VAULT_TOKEN from container's
+#   /vault-keys/root-token file.
 #
-#   Security: Passwords are shown in plain text on terminal. Use with
+#   Security: Credentials are shown in plain text on terminal. Use with
 #   caution in shared environments.
 #
 #   Automation example:
@@ -1299,32 +1307,47 @@ cmd_vault_show_password() {
     warn "Password will be displayed in plaintext - ensure terminal is secure"
     echo
 
-    info "Fetching password for service: $service"
-
-    # Determine the password field name based on service
-    local password_field="password"
     if [ "$service" = "forgejo" ]; then
-        password_field="admin_password"
-    fi
-
-    # Use curl if vault CLI not available
-    if ! command -v vault &> /dev/null; then
-        password=$(curl -sf -H "X-Vault-Token: $VAULT_TOKEN" \
-            "$VAULT_ADDR/v1/secret/data/$service" | jq -r ".data.data.$password_field")
+        info "Fetching credentials for service: $service"
     else
-        password=$(vault kv get -field="$password_field" "secret/$service" 2>/dev/null)
+        info "Fetching password for service: $service"
     fi
 
-    if [ -z "$password" ] || [ "$password" = "null" ]; then
-        error "Could not retrieve password for service: $service"
+    # For Forgejo, show username, email, and password
+    if [ "$service" = "forgejo" ]; then
+        # Use docker exec to run vault commands in the container
+        admin_user=$(docker exec dev-vault sh -c "export VAULT_TOKEN=\$(cat /vault-keys/root-token) && vault kv get -field=admin_user secret/$service" 2>/dev/null)
+        admin_email=$(docker exec dev-vault sh -c "export VAULT_TOKEN=\$(cat /vault-keys/root-token) && vault kv get -field=admin_email secret/$service" 2>/dev/null)
+        password=$(docker exec dev-vault sh -c "export VAULT_TOKEN=\$(cat /vault-keys/root-token) && vault kv get -field=admin_password secret/$service" 2>/dev/null)
+
+        if [ -z "$admin_user" ] || [ "$admin_user" = "null" ] || [ -z "$password" ] || [ "$password" = "null" ]; then
+            error "Could not retrieve credentials for Forgejo"
+            echo
+            info "Make sure Forgejo credentials exist in Vault: vault kv get secret/forgejo"
+            exit 1
+        fi
+
         echo
-        info "Make sure the service exists in Vault: vault kv list secret/"
-        exit 1
-    fi
+        success "Forgejo Admin Credentials:"
+        echo "  Username: $admin_user"
+        echo "  Email:    $admin_email"
+        echo "  Password: $password"
+    else
+        # For other services, just show password
+        # Use docker exec to run vault commands in the container
+        password=$(docker exec dev-vault sh -c "export VAULT_TOKEN=\$(cat /vault-keys/root-token) && vault kv get -field=password secret/$service" 2>/dev/null)
 
-    echo
-    success "Password for $service:"
-    echo "$password"
+        if [ -z "$password" ] || [ "$password" = "null" ]; then
+            error "Could not retrieve password for service: $service"
+            echo
+            info "Make sure the service exists in Vault: vault kv list secret/"
+            exit 1
+        fi
+
+        echo
+        success "Password for $service:"
+        echo "$password"
+    fi
 }
 
 #######################################
