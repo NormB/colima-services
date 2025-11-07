@@ -42,27 +42,21 @@ declare -a FAILED_TESTS=()
 PGBOUNCER_HOST="${PGBOUNCER_HOST:-localhost}"
 PGBOUNCER_PORT="${PGBOUNCER_PORT:-6432}"
 POSTGRES_PORT="${POSTGRES_PORT:-5432}"
-POSTGRES_USER="${POSTGRES_USER:-}"
-POSTGRES_PASSWORD="${POSTGRES_PASSWORD:-}"
 
-# Get credentials from Vault if available
+# Always get credentials from Vault (ignore environment variables)
 if [ -f ~/.config/vault/root-token ]; then
     export VAULT_TOKEN=$(cat ~/.config/vault/root-token)
 
     # Retrieve user and password from Vault
-    if [ -z "$POSTGRES_USER" ]; then
-        POSTGRES_USER=$(curl -s -H "X-Vault-Token: $VAULT_TOKEN" \
-            http://localhost:8200/v1/secret/data/postgres 2>/dev/null | jq -r '.data.data.user' 2>/dev/null)
-    fi
+    POSTGRES_USER=$(curl -s -H "X-Vault-Token: $VAULT_TOKEN" \
+        http://localhost:8200/v1/secret/data/postgres 2>/dev/null | jq -r '.data.data.user' 2>/dev/null)
 
-    if [ -z "$POSTGRES_PASSWORD" ]; then
-        POSTGRES_PASSWORD=$(curl -s -H "X-Vault-Token: $VAULT_TOKEN" \
-            http://localhost:8200/v1/secret/data/postgres 2>/dev/null | jq -r '.data.data.password' 2>/dev/null)
-    fi
+    POSTGRES_PASSWORD=$(curl -s -H "X-Vault-Token: $VAULT_TOKEN" \
+        http://localhost:8200/v1/secret/data/postgres 2>/dev/null | jq -r '.data.data.password' 2>/dev/null)
 fi
 
 # Set defaults if Vault retrieval failed
-POSTGRES_USER="${POSTGRES_USER:-postgres}"
+POSTGRES_USER="${POSTGRES_USER:-devuser}"
 
 # Verify we got the password
 if [ -z "$POSTGRES_PASSWORD" ] || [ "$POSTGRES_PASSWORD" == "null" ]; then
