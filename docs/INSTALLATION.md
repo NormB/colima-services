@@ -184,11 +184,11 @@ pwd
 **3.2 Clone the Repository:**
 
 ```bash
-# Clone into ~/colima-services directory
-git clone https://github.com/NormB/colima-services.git ~/colima-services
+# Clone into ~/devstack-core directory
+git clone https://github.com/NormB/devstack-core.git ~/devstack-core
 
 # Expected output:
-# Cloning into '/Users/yourusername/colima-services'...
+# Cloning into '/Users/yourusername/devstack-core'...
 # remote: Enumerating objects: ...
 # Receiving objects: 100% (...), done.
 ```
@@ -197,7 +197,7 @@ git clone https://github.com/NormB/colima-services.git ~/colima-services
 
 ```bash
 # Change into the project directory
-cd ~/colima-services
+cd ~/devstack-core
 
 # Verify you're in the right place
 ls -la
@@ -205,7 +205,7 @@ ls -la
 # Expected output: You should see files like:
 # .env.example
 # docker-compose.yml
-# manage-colima.sh
+# manage-devstack.sh
 # README.md
 # configs/
 # scripts/
@@ -238,13 +238,13 @@ ls -la .env
 
 ```bash
 # Add execute permissions
-chmod +x manage-colima.sh
+chmod +x manage-devstack.sh
 
 # Verify permissions
-ls -l manage-colima.sh
+ls -l manage-devstack.sh
 
 # Expected output (note the 'x'):
-# -rwxr-xr-x  1 yourusername  staff  xxxxx Nov 23 10:00 manage-colima.sh
+# -rwxr-xr-x  1 yourusername  staff  xxxxx Nov 23 10:00 manage-devstack.sh
 ```
 
 **4.3 Review Configuration (Optional but Recommended):**
@@ -269,14 +269,14 @@ cat .env | head -30
 
 ```bash
 # Start Colima with the management script
-./manage-colima.sh start
+./manage-devstack.sh start
 ```
 
 **Expected Output (this takes 2-3 minutes on first run):**
 
 ```
 ============================================
-  Colima Services - Management Script
+  DevStack Core - Management Script
 ============================================
 
 [✓] Checking environment file...
@@ -319,7 +319,7 @@ dev-vault               Up 28 seconds   starting (0/1)
 ...
 
 [!] Note: Vault needs to be initialized on first run
-    Run: ./manage-colima.sh vault-init
+    Run: ./manage-devstack.sh vault-init
 ```
 
 **What's Happening:**
@@ -379,7 +379,7 @@ dev-forgejo             Up 2 minutes    healthy
 
 ```bash
 # Run the initialization script
-./manage-colima.sh vault-init
+./manage-devstack.sh vault-init
 ```
 
 **Expected Output:**
@@ -457,7 +457,7 @@ tail -5 .env
 
 ```bash
 # Check Vault status
-./manage-colima.sh vault-status
+./manage-devstack.sh vault-status
 
 # Expected output:
 # Key             Value
@@ -474,7 +474,7 @@ tail -5 .env
 **What to Look For:**
 - `Initialized: true` ✅
 - `Sealed: false` ✅
-- If `Sealed: true`, run: `./manage-colima.sh vault-unseal`
+- If `Sealed: true`, run: `./manage-devstack.sh vault-unseal`
 
 ---
 
@@ -486,7 +486,7 @@ tail -5 .env
 
 ```bash
 # Run the bootstrap script
-./manage-colima.sh vault-bootstrap
+./manage-devstack.sh vault-bootstrap
 ```
 
 **Expected Output (takes 1-2 minutes):**
@@ -543,9 +543,9 @@ tail -5 .env
 [*] All service credentials have been generated and stored in Vault
 
 [!] To view any service password:
-    ./manage-colima.sh vault-show-password <service>
+    ./manage-devstack.sh vault-show-password <service>
 
-    Example: ./manage-colima.sh vault-show-password postgres
+    Example: ./manage-devstack.sh vault-show-password postgres
 ```
 
 **What Just Happened:**
@@ -558,13 +558,13 @@ tail -5 .env
 
 ```bash
 # Restart all services so they fetch passwords from Vault
-./manage-colima.sh restart
+./manage-devstack.sh restart
 ```
 
 **Expected Output:**
 
 ```
-[*] Restarting Colima services...
+[*] Restarting DevStack Core services...
 [+] Running 13/13
  ✔ Container dev-postgres          Started
  ✔ Container dev-mysql             Started
@@ -586,7 +586,7 @@ docker logs dev-postgres 2>&1 | grep -i "vault"
 # [✓] Database: dev_db
 
 # View any service password
-./manage-colima.sh vault-show-password postgres
+./manage-devstack.sh vault-show-password postgres
 
 # Expected output:
 # PostgreSQL Credentials:
@@ -603,14 +603,14 @@ docker logs dev-postgres 2>&1 | grep -i "vault"
 
 ```bash
 # Run comprehensive status check
-./manage-colima.sh status
+./manage-devstack.sh status
 ```
 
 **Expected Output:**
 
 ```
 ============================================
-  Colima Services - Status
+  DevStack Core - Status
 ============================================
 
 [✓] Colima Status:
@@ -659,7 +659,7 @@ docker exec dev-mysql mysqladmin ping -h localhost
 # Expected output: mysqld is alive
 
 # Test Redis
-docker exec dev-redis-1 redis-cli -a $(./manage-colima.sh vault-show-password redis-1 | grep "Password:" | awk '{print $2}') ping
+docker exec dev-redis-1 redis-cli -a $(./manage-devstack.sh vault-show-password redis-1 | grep "Password:" | awk '{print $2}') ping
 
 # Expected output: PONG
 
@@ -673,7 +673,7 @@ docker exec dev-mongodb mongosh --quiet --eval "db.adminCommand('ping')"
 
 ```bash
 # Run built-in health checks
-./manage-colima.sh health
+./manage-devstack.sh health
 ```
 
 **Expected Output:**
@@ -709,7 +709,7 @@ Open these URLs in your browser:
 |---------|-----|---------------|
 | **Forgejo (Git Server)** | http://localhost:3000 | (create account on first visit) |
 | **Vault UI** | http://localhost:8200/ui | Token from `~/.config/vault/root-token` |
-| **RabbitMQ Management** | http://localhost:15672 | Get from: `./manage-colima.sh vault-show-password rabbitmq` |
+| **RabbitMQ Management** | http://localhost:15672 | Get from: `./manage-devstack.sh vault-show-password rabbitmq` |
 | **Grafana Dashboards** | http://localhost:3001 | admin / admin |
 | **Prometheus Metrics** | http://localhost:9090 | (no login required) |
 | **FastAPI Code-First** | http://localhost:8000/docs | (no login required) |
@@ -778,18 +778,18 @@ open http://localhost:3001
 
 ```bash
 # PostgreSQL
-PGPASSWORD=$(./manage-colima.sh vault-show-password postgres | grep "Password:" | awk '{print $2}') \
+PGPASSWORD=$(./manage-devstack.sh vault-show-password postgres | grep "Password:" | awk '{print $2}') \
   psql -h localhost -p 5432 -U dev_admin -d dev_db
 
 # MySQL
 mysql -h 127.0.0.1 -P 3306 -u dev_admin -p
-# (paste password from: ./manage-colima.sh vault-show-password mysql)
+# (paste password from: ./manage-devstack.sh vault-show-password mysql)
 
 # Redis
-redis-cli -h localhost -p 6379 -a $(./manage-colima.sh vault-show-password redis-1 | grep "Password:" | awk '{print $2}')
+redis-cli -h localhost -p 6379 -a $(./manage-devstack.sh vault-show-password redis-1 | grep "Password:" | awk '{print $2}')
 
 # MongoDB
-mongosh "mongodb://dev_admin:$(./manage-colima.sh vault-show-password mongodb | grep "Password:" | awk '{print $2}')@localhost:27017/dev_db"
+mongosh "mongodb://dev_admin:$(./manage-devstack.sh vault-show-password mongodb | grep "Password:" | awk '{print $2}')@localhost:27017/dev_db"
 ```
 
 **9.6 Test with FastAPI Reference Application:**
@@ -821,7 +821,7 @@ curl http://localhost:8000/api/v1/databases/test
 colima status
 
 # If stopped, start it:
-./manage-colima.sh start
+./manage-devstack.sh start
 
 # Solution 2: Set Docker context
 docker context use colima
@@ -833,10 +833,10 @@ docker context use colima
 
 ```bash
 # Check status
-./manage-colima.sh vault-status
+./manage-devstack.sh vault-status
 
 # If sealed:
-./manage-colima.sh vault-unseal
+./manage-devstack.sh vault-unseal
 
 # Auto-unseal should happen automatically on restart
 # If it doesn't, check logs:
@@ -874,10 +874,10 @@ docker logs dev-postgres --tail 50
 docker compose restart <service-name>
 
 # 2. Check if Vault is unsealed:
-./manage-colima.sh vault-status
+./manage-devstack.sh vault-status
 
 # 3. Verify credentials were generated:
-./manage-colima.sh vault-show-password <service>
+./manage-devstack.sh vault-show-password <service>
 ```
 
 ---
@@ -892,7 +892,7 @@ docker ps | grep forgejo
 docker logs dev-forgejo --tail 50
 
 # Try accessing via Colima IP instead:
-COLIMA_IP=$(./manage-colima.sh ip | grep "Colima IP:" | awk '{print $3}')
+COLIMA_IP=$(./manage-devstack.sh ip | grep "Colima IP:" | awk '{print $3}')
 open http://$COLIMA_IP:3000
 ```
 
@@ -902,13 +902,13 @@ open http://$COLIMA_IP:3000
 
 ```bash
 # Check cluster status
-docker exec dev-redis-1 redis-cli -a $(./manage-colima.sh vault-show-password redis-1 | grep "Password:" | awk '{print $2}') cluster info
+docker exec dev-redis-1 redis-cli -a $(./manage-devstack.sh vault-show-password redis-1 | grep "Password:" | awk '{print $2}') cluster info
 
 # Re-initialize cluster:
 ./configs/redis/scripts/redis-cluster-init.sh
 
 # Verify:
-docker exec dev-redis-1 redis-cli -a $(./manage-colima.sh vault-show-password redis-1 | grep "Password:" | awk '{print $2}') cluster nodes
+docker exec dev-redis-1 redis-cli -a $(./manage-devstack.sh vault-show-password redis-1 | grep "Password:" | awk '{print $2}') cluster nodes
 ```
 
 ---
@@ -923,7 +923,7 @@ docker system df
 docker system prune -a --volumes
 
 # WARNING: This removes ALL unused Docker data
-# Your colima-services volumes are safe (they're in use)
+# Your devstack-core volumes are safe (they're in use)
 
 # Verify space freed:
 docker system df
@@ -942,7 +942,7 @@ colima stop
 colima start --cpu 6 --memory 12  # 6 CPUs, 12GB RAM
 
 # Restart services:
-./manage-colima.sh restart
+./manage-devstack.sh restart
 ```
 
 ---
@@ -953,7 +953,7 @@ colima start --cpu 6 --memory 12  # 6 CPUs, 12GB RAM
 # WARNING: This deletes ALL data and containers!
 
 # Stop everything
-./manage-colima.sh stop
+./manage-devstack.sh stop
 
 # Delete Colima VM
 colima delete
@@ -962,9 +962,9 @@ colima delete
 docker volume rm $(docker volume ls -q)
 
 # Start fresh:
-./manage-colima.sh start
-./manage-colima.sh vault-init
-./manage-colima.sh vault-bootstrap
+./manage-devstack.sh start
+./manage-devstack.sh vault-init
+./manage-devstack.sh vault-bootstrap
 ```
 
 ---
@@ -1054,8 +1054,8 @@ brew install colima docker docker-compose
 
 **2. Clone Repository**
 ```bash
-git clone https://github.com/NormB/colima-services.git ~/colima-services
-cd ~/colima-services
+git clone https://github.com/NormB/devstack-core.git ~/devstack-core
+cd ~/devstack-core
 ```
 
 **3. Configure Environment**
@@ -1065,14 +1065,14 @@ nano .env  # or vim, code, etc.
 ```
 
 **Important:** Passwords are auto-generated by Vault during bootstrap:
-- Run `./manage-colima.sh vault-bootstrap` to generate all service credentials
+- Run `./manage-devstack.sh vault-bootstrap` to generate all service credentials
 - Passwords are 25-character random strings (base64, URL-safe)
 - Stored securely in Vault, fetched at container startup
 - No plaintext passwords in configuration files
 
 **4. Make Management Script Executable**
 ```bash
-chmod +x manage-colima.sh
+chmod +x manage-devstack.sh
 ```
 
 ### Configuration
@@ -1086,7 +1086,7 @@ VAULT_TOKEN=<from ~/.config/vault/root-token after initialization>
 
 # Service Credentials - ALL MANAGED BY VAULT
 # Credentials are automatically loaded from Vault at container startup
-# To view credentials: ./manage-colima.sh vault-show-password <service>
+# To view credentials: ./manage-devstack.sh vault-show-password <service>
 #
 # Services with Vault integration:
 #   - PostgreSQL: secret/postgres (user, password, database)
@@ -1122,11 +1122,11 @@ All service credentials are managed by HashiCorp Vault. After running `vault-boo
 
 ```bash
 # View any service password
-./manage-colima.sh vault-show-password postgres
-./manage-colima.sh vault-show-password mysql
-./manage-colima.sh vault-show-password redis-1
-./manage-colima.sh vault-show-password rabbitmq
-./manage-colima.sh vault-show-password mongodb
+./manage-devstack.sh vault-show-password postgres
+./manage-devstack.sh vault-show-password mysql
+./manage-devstack.sh vault-show-password redis-1
+./manage-devstack.sh vault-show-password rabbitmq
+./manage-devstack.sh vault-show-password mongodb
 
 # Or using Vault CLI
 export VAULT_ADDR=http://localhost:8200
@@ -1147,7 +1147,7 @@ export COLIMA_DISK=60            # Disk size in GB
 
 **Option 1: Using Management Script (Recommended)**
 ```bash
-./manage-colima.sh start
+./manage-devstack.sh start
 ```
 
 This will:
@@ -1174,7 +1174,7 @@ docker compose ps
 
 **Verify Everything is Running:**
 ```bash
-./manage-colima.sh status
-./manage-colima.sh health
+./manage-devstack.sh status
+./manage-devstack.sh health
 ```
 

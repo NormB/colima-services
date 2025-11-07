@@ -1,4 +1,4 @@
-# Colima Services - Complete Development Environment
+# DevStack Core - Complete Development Environment
 
 > **Comprehensive local development infrastructure for VoIP services on Apple Silicon (M Series Processors) using Colima**
 
@@ -82,7 +82,7 @@ This repository provides a **complete, self-contained development environment** 
 4. **Version Controlled** - Infrastructure as code using Docker Compose
 5. **Isolated** - Separate network and volumes, doesn't conflict with other projects
 6. **Persistent** - Data survives container restarts via Docker volumes
-7. **Manageable** - Single script (`manage-colima.sh`) for all operations
+7. **Manageable** - Single script (`manage-devstack.sh`) for all operations
 
 **Use Cases:**
 - VoIP application development (primary purpose)
@@ -96,7 +96,7 @@ This repository provides a **complete, self-contained development environment** 
 ### Architecture Philosophy
 
 **Separation of Concerns:**
-- This Colima environment: Git hosting (Forgejo) + development databases
+- DevStack Core environment: Git hosting (Forgejo) + development databases
 - Separate UTM VM: Production VoIP services (OpenSIPS, FreeSWITCH)
 - Benefit: Network latency minimization, clear environment boundaries
 
@@ -114,24 +114,24 @@ This repository provides a **complete, self-contained development environment** 
 brew install colima docker docker-compose
 
 # 2. Clone repository
-git clone https://github.com/NormB/colima-services.git ~/colima-services
-cd ~/colima-services
+git clone https://github.com/NormB/devstack-core.git ~/devstack-core
+cd ~/devstack-core
 
 # 3. Configure environment
 cp .env.example .env
 nano .env  # Set strong passwords
 
 # 4. Start everything
-./manage-colima.sh start
+./manage-devstack.sh start
 
 # 5. Initialize Vault (first time only)
-./manage-colima.sh vault-init
+./manage-devstack.sh vault-init
 
 # 6. Bootstrap Vault PKI and credentials (first time only)
-./manage-colima.sh vault-bootstrap
+./manage-devstack.sh vault-bootstrap
 
 # 7. Check status
-./manage-colima.sh status
+./manage-devstack.sh status
 ```
 
 **Access Services:**
@@ -154,7 +154,7 @@ For detailed installation instructions, see [docs/INSTALLATION.md](./docs/INSTAL
 - **[Services Overview](./docs/SERVICES.md)** - Detailed configuration for PostgreSQL, MySQL, MongoDB, Redis, RabbitMQ, Forgejo, and Vault
 - **[Vault Integration](./docs/VAULT.md)** - Vault PKI setup, certificate management, auto-unseal configuration, and Vault commands
 - **[Redis Cluster](./docs/REDIS.md)** - Redis cluster architecture, setup, operations, and troubleshooting
-- **[Management Script](./docs/MANAGEMENT.md)** - Complete guide to manage-colima.sh commands and workflows
+- **[Management Script](./docs/MANAGEMENT.md)** - Complete guide to manage-devstack.sh commands and workflows
 - **[Observability Stack](./docs/OBSERVABILITY.md)** - Prometheus, Grafana, Loki setup and troubleshooting
 - **[Best Practices](./docs/BEST_PRACTICES.md)** - Development best practices and integration patterns
 - **[FAQ](./docs/FAQ.md)** - Frequently asked questions and common issues
@@ -240,26 +240,26 @@ For detailed installation instructions, see [docs/INSTALLATION.md](./docs/INSTAL
 
 ```bash
 # Check status of all services
-./manage-colima.sh status
+./manage-devstack.sh status
 
 # View logs for a specific service
-./manage-colima.sh logs vault
+./manage-devstack.sh logs vault
 
 # Restart a service
-./manage-colima.sh restart postgres
+./manage-devstack.sh restart postgres
 
 # Health check all services
-./manage-colima.sh health
+./manage-devstack.sh health
 
 # View all available commands
-./manage-colima.sh help
+./manage-devstack.sh help
 ```
 
 ### Need More Help?
 
 1. Check the [Troubleshooting Guide](./docs/TROUBLESHOOTING.md)
 2. Review the [FAQ](./docs/FAQ.md)
-3. Search existing [GitHub Issues](https://github.com/NormB/colima-services/issues)
+3. Search existing [GitHub Issues](https://github.com/NormB/devstack-core/issues)
 4. Open a new issue with details about your problem
 
 ## License
