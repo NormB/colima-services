@@ -1,4 +1,4 @@
-# Test dependencies for colima-services test suite
+# Test dependencies for DevStack Core test suite
 #
 # Install with: pip3 install -r tests/requirements.txt
 #

@@ -2,7 +2,7 @@
 Configuration management for the reference application (API-First)
 
 Loads settings from environment variables with sensible defaults
-for the Colima services infrastructure.
+for the DevStack Core infrastructure.
 
 This configuration is shared between code-first and API-first implementations.
 """
@@ -16,7 +16,7 @@ class Settings(BaseSettings):
 
     # Application
     DEBUG: bool = os.getenv("DEBUG", "false").lower() == "true"
-    APP_NAME: str = "Colima Services Reference API (API-First)"
+    APP_NAME: str = "DevStack Core Reference API (API-First)"
 
     # Vault
     VAULT_ADDR: str = os.getenv("VAULT_ADDR", "http://vault:8200")

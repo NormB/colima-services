@@ -2,7 +2,7 @@
 Configuration management for the reference application
 
 Loads settings from environment variables with sensible defaults
-for the Colima services infrastructure.
+for the DevStack Core infrastructure.
 """
 
 import os
@@ -14,7 +14,7 @@ class Settings(BaseSettings):
 
     # Application
     DEBUG: bool = os.getenv("DEBUG", "false").lower() == "true"
-    APP_NAME: str = "Colima Services Reference API"
+    APP_NAME: str = "DevStack Core Reference API"
 
     # Vault
     VAULT_ADDR: str = os.getenv("VAULT_ADDR", "http://vault:8200")
