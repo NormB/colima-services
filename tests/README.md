@@ -69,6 +69,7 @@ Comprehensive test coverage for all infrastructure components and applications.
 
 ### Application Tests
 - **`test-fastapi.sh`** - FastAPI reference app with Redis Cluster APIs (14 tests)
+- **`test-rust.sh`** - Rust reference app with Actix-web (7 tests)
 
 ## New Features (Latest Update)
 
