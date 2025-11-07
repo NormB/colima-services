@@ -195,6 +195,11 @@ warning() {
     echo -e "${YELLOW}[WARNING]${NC} $1"
 }
 
+# Alias for compatibility
+warn() {
+    warning "$1"
+}
+
 #######################################
 # Print error message and exit script with code 1.
 # Globals:

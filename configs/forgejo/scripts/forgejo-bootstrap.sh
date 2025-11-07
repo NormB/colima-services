@@ -216,7 +216,8 @@ EOF
         # Manual fallback - update config directly
         warn "API installation may have failed, updating configuration manually..."
         sed -i "s/INSTALL_LOCK = false/INSTALL_LOCK = true/" /data/gitea/conf/app.ini
-        sed -i "s/SECRET_KEY = /SECRET_KEY = ${SECRET_KEY}/" /data/gitea/conf/app.ini
+        # Use | as delimiter to avoid issues with / in SECRET_KEY
+        sed -i "s|SECRET_KEY = |SECRET_KEY = ${SECRET_KEY}|" /data/gitea/conf/app.ini
         success "Configuration updated"
     fi
 }
