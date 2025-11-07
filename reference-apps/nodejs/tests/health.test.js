@@ -6,7 +6,7 @@ describe('Health Check Endpoints', () => {
   test('GET / returns API information', async () => {
     const response = await request(baseURL).get('/');
     expect(response.status).toBe(200);
-    expect(response.body.name).toBe('Colima Services Node.js Reference API');
+    expect(response.body.name).toBe('DevStack Core Node.js Reference API');
     expect(response.body.language).toBe('Node.js');
   });
 

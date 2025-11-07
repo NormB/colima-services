@@ -8,85 +8,85 @@
 
 ---
 
-The `manage-colima.sh` script provides a unified interface for all operations.
+The `manage-devstack.sh` script provides a unified interface for all operations.
 
 ### Available Commands
 
 ```bash
-./manage-colima.sh <command> [options]
+./manage-devstack.sh <command> [options]
 ```
 
 | Command | Description | Example |
 |---------|-------------|---------|
-| `start` | Start Colima VM and all services | `./manage-colima.sh start` |
-| `stop` | Stop services and Colima VM | `./manage-colima.sh stop` |
-| `restart` | Restart Docker services | `./manage-colima.sh restart` |
-| `status` | Show Colima and service status | `./manage-colima.sh status` |
-| `logs [service]` | View service logs | `./manage-colima.sh logs postgres` |
-| `shell [service]` | Open shell in container | `./manage-colima.sh shell postgres` |
-| `ip` | Get Colima IP address | `./manage-colima.sh ip` |
-| `health` | Check service health | `./manage-colima.sh health` |
-| `backup` | Backup all service data | `./manage-colima.sh backup` |
-| `reset` | Delete and reset Colima VM | `./manage-colima.sh reset` |
-| `vault-init` | Initialize Vault | `./manage-colima.sh vault-init` |
-| `vault-unseal` | Manually unseal Vault | `./manage-colima.sh vault-unseal` |
-| `vault-status` | Show Vault status | `./manage-colima.sh vault-status` |
-| `vault-token` | Print Vault root token | `./manage-colima.sh vault-token` |
-| `vault-bootstrap` | Setup Vault PKI and service credentials | `./manage-colima.sh vault-bootstrap` |
-| `vault-ca-cert` | Export CA certificates | `./manage-colima.sh vault-ca-cert` |
-| `vault-show-password <service>` | Show service password from Vault | `./manage-colima.sh vault-show-password postgres` |
-| `help` | Show help message | `./manage-colima.sh help` |
+| `start` | Start Colima VM and all services | `./manage-devstack.sh start` |
+| `stop` | Stop services and Colima VM | `./manage-devstack.sh stop` |
+| `restart` | Restart Docker services | `./manage-devstack.sh restart` |
+| `status` | Show Colima and service status | `./manage-devstack.sh status` |
+| `logs [service]` | View service logs | `./manage-devstack.sh logs postgres` |
+| `shell [service]` | Open shell in container | `./manage-devstack.sh shell postgres` |
+| `ip` | Get Colima IP address | `./manage-devstack.sh ip` |
+| `health` | Check service health | `./manage-devstack.sh health` |
+| `backup` | Backup all service data | `./manage-devstack.sh backup` |
+| `reset` | Delete and reset Colima VM | `./manage-devstack.sh reset` |
+| `vault-init` | Initialize Vault | `./manage-devstack.sh vault-init` |
+| `vault-unseal` | Manually unseal Vault | `./manage-devstack.sh vault-unseal` |
+| `vault-status` | Show Vault status | `./manage-devstack.sh vault-status` |
+| `vault-token` | Print Vault root token | `./manage-devstack.sh vault-token` |
+| `vault-bootstrap` | Setup Vault PKI and service credentials | `./manage-devstack.sh vault-bootstrap` |
+| `vault-ca-cert` | Export CA certificates | `./manage-devstack.sh vault-ca-cert` |
+| `vault-show-password <service>` | Show service password from Vault | `./manage-devstack.sh vault-show-password postgres` |
+| `help` | Show help message | `./manage-devstack.sh help` |
 
 ### Common Workflows
 
 **Daily Development:**
 ```bash
 # Morning: Start everything
-./manage-colima.sh start
+./manage-devstack.sh start
 
 # Check what's running
-./manage-colima.sh status
+./manage-devstack.sh status
 
 # View logs if something's wrong
-./manage-colima.sh logs postgres
+./manage-devstack.sh logs postgres
 
 # Evening: Stop everything (or leave running)
-./manage-colima.sh stop
+./manage-devstack.sh stop
 ```
 
 **Troubleshooting:**
 ```bash
 # Check health of all services
-./manage-colima.sh health
+./manage-devstack.sh health
 
 # View logs for specific service
-./manage-colima.sh logs vault
+./manage-devstack.sh logs vault
 
 # Open shell to investigate
-./manage-colima.sh shell postgres
+./manage-devstack.sh shell postgres
 
 # Restart specific service
 docker compose restart postgres
 
 # Full restart
-./manage-colima.sh restart
+./manage-devstack.sh restart
 ```
 
 **Backup and Maintenance:**
 ```bash
 # Weekly backup
-./manage-colima.sh backup
+./manage-devstack.sh backup
 
 # Check resource usage
-./manage-colima.sh status
+./manage-devstack.sh status
 # Look at CPU/Memory columns
 
 # Clean up old images
 docker system prune -a
 
 # Reset everything (WARNING: destroys data)
-./manage-colima.sh reset
-./manage-colima.sh start
+./manage-devstack.sh reset
+./manage-devstack.sh start
 ```
 
 ### Advanced Usage
@@ -97,11 +97,11 @@ docker system prune -a
 export COLIMA_CPU=6
 export COLIMA_MEMORY=12
 export COLIMA_DISK=100
-./manage-colima.sh start
+./manage-devstack.sh start
 
 # Use different profile
 export COLIMA_PROFILE=myproject
-./manage-colima.sh start
+./manage-devstack.sh start
 ```
 
 **Script Internals:**

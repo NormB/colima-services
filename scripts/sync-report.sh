@@ -80,7 +80,7 @@ generate_report() {
 # API Synchronization Report
 
 **Generated:** $(date '+%Y-%m-%d %H:%M:%S')
-**Project:** Colima Services Reference API
+**Project:** DevStack Core Reference API
 
 ---
 

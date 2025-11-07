@@ -1,4 +1,4 @@
-# Prometheus Configuration for Colima Services
+# Prometheus Configuration for DevStack Core
 
 global:
   scrape_interval: 15s

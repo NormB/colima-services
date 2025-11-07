@@ -50,7 +50,7 @@ docker volume create postgres-data
 docker run --rm -v postgres-data:/data -v $(pwd):/backup alpine tar xzf /backup/postgres-data.tar.gz -C /data
 
 # Start services
-./manage-colima.sh start
+./manage-devstack.sh start
 ```
 
 ## Migrating Existing Databases
@@ -60,7 +60,7 @@ docker run --rm -v postgres-data:/data -v $(pwd):/backup alpine tar xzf /backup/
 # From old system
 pg_dumpall -U postgres > all-databases.sql
 
-# To colima-services
+# To devstack-core
 cat all-databases.sql | docker exec -i dev-postgres psql -U postgres
 ```
 
@@ -69,7 +69,7 @@ cat all-databases.sql | docker exec -i dev-postgres psql -U postgres
 # From old system
 mysqldump --all-databases -u root -p > all-databases.sql
 
-# To colima-services
+# To devstack-core
 cat all-databases.sql | docker exec -i dev-mysql mysql -u root -p
 ```
 
@@ -78,7 +78,7 @@ cat all-databases.sql | docker exec -i dev-mysql mysql -u root -p
 # From old system
 mongodump --out=/backup/
 
-# To colima-services
+# To devstack-core
 docker cp /backup/ dev-mongodb:/backup/
 docker exec dev-mongodb mongorestore /backup/
 ```
@@ -124,16 +124,16 @@ docker exec dev-mongodb mongoimport \
 **Transfer environment variables:**
 ```bash
 # From old .env
-cp old-project/.env ~/colima-services/.env
+cp old-project/.env ~/devstack-core/.env
 
 # Update paths and IPs
-nano ~/colima-services/.env
+nano ~/devstack-core/.env
 ```
 
 **Migrate application configs:**
 ```bash
 # Copy configs
-cp -r old-configs/ ~/colima-services/configs/myapp/
+cp -r old-configs/ ~/devstack-core/configs/myapp/
 
 # Update docker-compose.yml
 nano docker-compose.yml
@@ -160,7 +160,7 @@ docker exec dev-mongodb mongosh devdb --eval "db.users.countDocuments()"
 
 **Check health:**
 ```bash
-./manage-colima.sh health
+./manage-devstack.sh health
 ```
 
 ## Rollback Procedures
@@ -169,7 +169,7 @@ docker exec dev-mongodb mongosh devdb --eval "db.users.countDocuments()"
 
 1. **Stop Colima:**
 ```bash
-./manage-colima.sh stop
+./manage-devstack.sh stop
 ```
 
 2. **Restore Docker Desktop:**

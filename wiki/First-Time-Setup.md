@@ -32,13 +32,13 @@ After installation, you need to complete **one-time setup** to:
 Before starting this guide:
 
 ✅ Completed [Installation](Installation)
-✅ All services are running (`./manage-colima.sh status`)
-✅ Vault is unsealed (check with `./manage-colima.sh vault-status`)
+✅ All services are running (`./manage-devstack.sh status`)
+✅ Vault is unsealed (check with `./manage-devstack.sh vault-status`)
 
 **Verify services are running:**
 ```bash
-cd ~/colima-services
-./manage-colima.sh status
+cd ~/devstack-core
+./manage-devstack.sh status
 
 # All services should show STATE: running
 ```
@@ -50,7 +50,7 @@ Vault initialization creates the master keys needed to unseal Vault and access s
 ### Run Vault Initialization
 
 ```bash
-./manage-colima.sh vault-init
+./manage-devstack.sh vault-init
 ```
 
 ### Expected Output
@@ -111,7 +111,7 @@ Version                1.18.0
 ### Verify Vault Status
 
 ```bash
-./manage-colima.sh vault-status
+./manage-devstack.sh vault-status
 ```
 
 **Expected output:**
@@ -147,7 +147,7 @@ docker compose restart vault
 sleep 30
 
 # Try again
-./manage-colima.sh vault-init
+./manage-devstack.sh vault-init
 ```
 
 ## Step 2: Bootstrap Vault
@@ -157,7 +157,7 @@ Bootstrapping sets up PKI infrastructure and generates all service credentials.
 ### Run Vault Bootstrap
 
 ```bash
-./manage-colima.sh vault-bootstrap
+./manage-devstack.sh vault-bootstrap
 ```
 
 ### Expected Output
@@ -180,7 +180,7 @@ Step 1/6: Enabling PKI secrets engine at 'pki/'...
 
 Step 2/6: Generating Root CA certificate...
 [✓] Root CA generated (10-year validity)
-    Common Name: Colima Services Root CA
+    Common Name: DevStack Core Root CA
     Validity: 87600h (10 years)
 
 Step 3/6: Enabling Intermediate CA at 'pki_int/'...
@@ -188,7 +188,7 @@ Step 3/6: Enabling Intermediate CA at 'pki_int/'...
 
 Step 4/6: Generating Intermediate CA...
 [✓] Intermediate CA generated (5-year validity)
-    Common Name: Colima Services Intermediate CA
+    Common Name: DevStack Core Intermediate CA
     Validity: 43800h (5 years)
 
 Step 5/6: Setting up certificate roles...
@@ -249,10 +249,10 @@ Services are now configured with:
   ✓ Secure credential storage in Vault
 
 To retrieve service passwords:
-  ./manage-colima.sh vault-show-password <service>
+  ./manage-devstack.sh vault-show-password <service>
 
 Example:
-  ./manage-colima.sh vault-show-password postgres
+  ./manage-devstack.sh vault-show-password postgres
 ```
 
 ### What Just Happened?
@@ -308,7 +308,7 @@ export VAULT_TOKEN=$(cat ~/.config/vault/root-token)
 vault token lookup
 
 # Try bootstrap again
-./manage-colima.sh vault-bootstrap
+./manage-devstack.sh vault-bootstrap
 ```
 
 **PKI already exists:**
@@ -322,7 +322,7 @@ This is normal if re-running bootstrap. The command is idempotent for secrets bu
 ### Check All Services Are Healthy
 
 ```bash
-./manage-colima.sh health
+./manage-devstack.sh health
 ```
 
 **Expected output:**
@@ -370,13 +370,13 @@ Health Check Results:
 Some services may need restarting to fetch credentials from Vault:
 
 ```bash
-./manage-colima.sh restart
+./manage-devstack.sh restart
 ```
 
 **Wait for services to become healthy:**
 ```bash
 # Check status every 10 seconds
-watch -n 10 './manage-colima.sh status'
+watch -n 10 './manage-devstack.sh status'
 
 # Press Ctrl+C when all services show "healthy"
 ```
@@ -401,7 +401,7 @@ Open these URLs in your browser:
 **PostgreSQL:**
 ```bash
 # Get password
-./manage-colima.sh vault-show-password postgres
+./manage-devstack.sh vault-show-password postgres
 
 # Connect
 psql postgresql://dev_admin@localhost:5432/dev_database
@@ -411,7 +411,7 @@ psql postgresql://dev_admin@localhost:5432/dev_database
 **MySQL:**
 ```bash
 # Get password
-./manage-colima.sh vault-show-password mysql
+./manage-devstack.sh vault-show-password mysql
 
 # Connect
 mysql -h 127.0.0.1 -u dev_admin -p dev_database
@@ -421,7 +421,7 @@ mysql -h 127.0.0.1 -u dev_admin -p dev_database
 **MongoDB:**
 ```bash
 # Get password
-./manage-colima.sh vault-show-password mongodb
+./manage-devstack.sh vault-show-password mongodb
 
 # Build connection string
 echo "mongodb://dev_admin:<password>@localhost:27017/dev_database"
@@ -448,19 +448,19 @@ PONG
 
 ```bash
 # PostgreSQL
-./manage-colima.sh vault-show-password postgres
+./manage-devstack.sh vault-show-password postgres
 
 # MySQL
-./manage-colima.sh vault-show-password mysql
+./manage-devstack.sh vault-show-password mysql
 
 # MongoDB
-./manage-colima.sh vault-show-password mongodb
+./manage-devstack.sh vault-show-password mongodb
 
 # Redis
-./manage-colima.sh vault-show-password redis
+./manage-devstack.sh vault-show-password redis
 
 # RabbitMQ
-./manage-colima.sh vault-show-password rabbitmq
+./manage-devstack.sh vault-show-password rabbitmq
 ```
 
 ## Step 5: Test Integrations
@@ -538,14 +538,14 @@ ls -la ~/vault-backups/
 **Solution:**
 ```bash
 # Verify Vault is unsealed
-./manage-colima.sh vault-status
+./manage-devstack.sh vault-status
 
 # If sealed, restart Vault (auto-unseals)
 docker compose restart vault
 sleep 30
 
 # Restart dependent services
-./manage-colima.sh restart
+./manage-devstack.sh restart
 ```
 
 ### Password Authentication Fails
@@ -579,7 +579,7 @@ ls -la ~/.config/vault/certs/postgres/
 ./scripts/generate-certificates.sh
 
 # Restart services to pick up new certificates
-./manage-colima.sh restart
+./manage-devstack.sh restart
 ```
 
 ### Forgot to Backup Vault Keys
@@ -587,7 +587,7 @@ ls -la ~/.config/vault/certs/postgres/
 **⚠️ If Vault gets sealed and you don't have keys:**
 
 Vault data is **permanently unrecoverable**. You must:
-1. Reset everything: `./manage-colima.sh reset`
+1. Reset everything: `./manage-devstack.sh reset`
 2. Start over from [Installation](Installation)
 
 **Prevention:** Backup now!
@@ -617,16 +617,16 @@ Now that setup is complete, normal workflow is:
 
 ```bash
 # Start everything (typically once per day)
-./manage-colima.sh start
+./manage-devstack.sh start
 
 # Check status
-./manage-colima.sh status
+./manage-devstack.sh status
 
 # View logs if needed
-./manage-colima.sh logs <service>
+./manage-devstack.sh logs <service>
 
 # Stop everything (end of day)
-./manage-colima.sh stop
+./manage-devstack.sh stop
 ```
 
 **Services auto-start with credentials** - no need to re-run vault-init or vault-bootstrap unless you reset the environment.
@@ -636,8 +636,8 @@ Now that setup is complete, normal workflow is:
 - **[Common Issues](Common-Issues)** - Troubleshooting guide
 - **[Management Commands](Management-Commands)** - Command reference
 - **[Architecture Overview](Architecture-Overview)** - How it all works
-- **GitHub Issues** - [Report problems](https://github.com/NormB/colima-services/issues)
+- **GitHub Issues** - [Report problems](https://github.com/NormB/devstack-core/issues)
 
 ---
 
-**Congratulations!** 🎉 Your Colima Services environment is fully configured and ready to use.
+**Congratulations!** 🎉 Your DevStack Core environment is fully configured and ready to use.

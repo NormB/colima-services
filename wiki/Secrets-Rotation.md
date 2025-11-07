@@ -1,6 +1,6 @@
 # Secrets Rotation
 
-Comprehensive guide to rotating secrets, credentials, and certificates in the Colima Services environment.
+Comprehensive guide to rotating secrets, credentials, and certificates in the DevStack Core environment.
 
 ## Table of Contents
 
@@ -50,7 +50,7 @@ Comprehensive guide to rotating secrets, credentials, and certificates in the Co
 
 ## Overview
 
-Secrets rotation is the practice of regularly changing passwords, credentials, and certificates to maintain security. This guide covers rotating all secrets in the Colima Services environment using Vault as the central secrets management system.
+Secrets rotation is the practice of regularly changing passwords, credentials, and certificates to maintain security. This guide covers rotating all secrets in the DevStack Core environment using Vault as the central secrets management system.
 
 **Key Principles:**
 - **Vault-first:** All secrets stored in Vault, services fetch at startup
@@ -97,7 +97,7 @@ Secrets rotation is the practice of regularly changing passwords, credentials, a
 | ISO 27001 | Credential lifecycle management | Risk-based |
 | NIST 800-53 | Periodic password changes | 60-90 days |
 
-**Colima Services Recommendations:**
+**DevStack Core Recommendations:**
 - **Development:** Annual rotation (low risk)
 - **Staging:** Quarterly rotation (moderate risk)
 - **Production:** Monthly to Quarterly (high risk)
@@ -338,7 +338,7 @@ docker logs reference-api --tail 20
 
 ```bash
 #!/bin/bash
-# Save as: /Users/gator/colima-services/scripts/rotate-postgres-password.sh
+# Save as: /Users/gator/devstack-core/scripts/rotate-postgres-password.sh
 
 set -e
 
@@ -396,7 +396,7 @@ echo "Log: Rotated PostgreSQL password" >> ~/rotation.log
 **Make script executable and run:**
 
 ```bash
-chmod +x /Users/gator/colima-services/scripts/rotate-postgres-password.sh
+chmod +x /Users/gator/devstack-core/scripts/rotate-postgres-password.sh
 ./scripts/rotate-postgres-password.sh
 ```
 
@@ -935,7 +935,7 @@ echo "=== Verification Complete ==="
 
 ```bash
 # Run comprehensive health checks
-./manage-colima.sh health
+./manage-devstack.sh health
 
 # Check specific services
 docker exec dev-postgres pg_isready -U postgres
@@ -984,11 +984,11 @@ echo "⚠️  Investigate rotation failure before retrying"
 
 ```bash
 #!/bin/bash
-# Save as: /Users/gator/colima-services/scripts/rotate-all-secrets.sh
+# Save as: /Users/gator/devstack-core/scripts/rotate-all-secrets.sh
 
 set -e
 
-echo "=== Colima Services - Complete Secrets Rotation ==="
+echo "=== DevStack Core - Complete Secrets Rotation ==="
 echo "Started: $(date)"
 
 export VAULT_ADDR=http://localhost:8200
@@ -1045,13 +1045,13 @@ echo "Log: $ROTATION_LOG"
 crontab -e
 
 # Add rotation schedule (quarterly: January 1, April 1, July 1, October 1 at 2 AM)
-0 2 1 1,4,7,10 * /Users/gator/colima-services/scripts/rotate-all-secrets.sh >> ~/rotation.log 2>&1
+0 2 1 1,4,7,10 * /Users/gator/devstack-core/scripts/rotate-all-secrets.sh >> ~/rotation.log 2>&1
 
 # Or monthly (1st of each month at 2 AM)
-0 2 1 * * /Users/gator/colima-services/scripts/rotate-all-secrets.sh >> ~/rotation.log 2>&1
+0 2 1 * * /Users/gator/devstack-core/scripts/rotate-all-secrets.sh >> ~/rotation.log 2>&1
 
 # Certificate rotation (every 60 days)
-0 3 */60 * * /Users/gator/colima-services/scripts/rotate-certificates.sh >> ~/cert-rotation.log 2>&1
+0 3 */60 * * /Users/gator/devstack-core/scripts/rotate-certificates.sh >> ~/cert-rotation.log 2>&1
 ```
 
 **Notification on completion:**
@@ -1084,7 +1084,7 @@ tail -1 ~/rotation.log
 
 ```bash
 #!/bin/bash
-# Save as: /Users/gator/colima-services/scripts/check-certificate-expiration.sh
+# Save as: /Users/gator/devstack-core/scripts/check-certificate-expiration.sh
 
 echo "=== Certificate Expiration Report ==="
 echo "Generated: $(date)"
@@ -1278,7 +1278,7 @@ docker exec dev-postgres psql -U postgres -c "CREATE USER myapp_user WITH PASSWO
 8. **Verify after every rotation:**
    ```bash
    ./scripts/verify-rotation.sh
-   ./manage-colima.sh health
+   ./manage-devstack.sh health
    ./tests/run-all-tests.sh
    ```
 
@@ -1308,7 +1308,7 @@ docker exec dev-postgres psql -U postgres -c "CREATE USER myapp_user WITH PASSWO
 ### Rotation Scripts Location
 
 ```
-/Users/gator/colima-services/scripts/
+/Users/gator/devstack-core/scripts/
 ├── rotate-all-secrets.sh              # Master rotation script
 ├── rotate-postgres-password.sh        # PostgreSQL rotation
 ├── rotate-mysql-password.sh           # MySQL rotation

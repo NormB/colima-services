@@ -29,7 +29,7 @@
 
 ---
 
-This directory contains comprehensive documentation for the Colima Services project.
+This directory contains comprehensive documentation for the DevStack Core project.
 
 ## Documentation Index
 

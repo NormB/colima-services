@@ -1,6 +1,6 @@
 # Acknowledgements
 
-Recognition and gratitude for the projects, tools, and communities that made Colima Services possible.
+Recognition and gratitude for the projects, tools, and communities that made DevStack Core possible.
 
 ## Table of Contents
 
@@ -387,7 +387,7 @@ Your feedback, bug reports, feature requests, and contributions make this projec
 
 Want to be acknowledged for your contributions?
 
-**Contribute to Colima Services:**
+**Contribute to DevStack Core:**
 - Submit pull requests
 - Report bugs and suggest features
 - Improve documentation
@@ -400,17 +400,17 @@ See [Contributing-Guide](Contributing-Guide) for details.
 
 ## License Information
 
-Colima Services itself is open source and permissively licensed. All dependencies listed above are used in accordance with their respective licenses. For specific license details, please refer to each project's repository.
+DevStack Core itself is open source and permissively licensed. All dependencies listed above are used in accordance with their respective licenses. For specific license details, please refer to each project's repository.
 
-**Colima Services License:** MIT (see repository)
+**DevStack Core License:** MIT (see repository)
 
 ---
 
 ## Stay Connected
 
-- **GitHub Repository:** [NormB/colima-services](https://github.com/NormB/colima-services)
-- **GitHub Wiki:** [colima-services/wiki](https://github.com/NormB/colima-services/wiki)
-- **Issues:** [Report bugs or request features](https://github.com/NormB/colima-services/issues)
+- **GitHub Repository:** [NormB/devstack-core](https://github.com/NormB/devstack-core)
+- **GitHub Wiki:** [devstack-core/wiki](https://github.com/NormB/devstack-core/wiki)
+- **Issues:** [Report bugs or request features](https://github.com/NormB/devstack-core/issues)
 
 ---
 
@@ -426,4 +426,4 @@ Thank you to everyone who makes open source possible. 🙏
 
 *Last updated: 2025-10-29*
 
-*If we've missed acknowledging any project, please [open an issue](https://github.com/NormB/colima-services/issues) and we'll add it.*
+*If we've missed acknowledging any project, please [open an issue](https://github.com/NormB/devstack-core/issues) and we'll add it.*

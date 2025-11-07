@@ -1,6 +1,6 @@
 # API Patterns
 
-Comprehensive guide to API development patterns, multi-language reference implementations, and integration best practices for the Colima Services infrastructure.
+Comprehensive guide to API development patterns, multi-language reference implementations, and integration best practices for the DevStack Core infrastructure.
 
 ---
 
@@ -23,7 +23,7 @@ Comprehensive guide to API development patterns, multi-language reference implem
 
 ## Overview
 
-The Colima Services project includes **five reference API implementations** demonstrating identical functionality across different technology stacks. Each implementation showcases language-specific best practices while maintaining consistent integration patterns.
+The DevStack Core project includes **five reference API implementations** demonstrating identical functionality across different technology stacks. Each implementation showcases language-specific best practices while maintaining consistent integration patterns.
 
 ### Purpose
 

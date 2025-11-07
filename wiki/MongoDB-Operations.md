@@ -1,6 +1,6 @@
 # MongoDB Operations
 
-Comprehensive guide to MongoDB database operations in the Colima Services environment.
+Comprehensive guide to MongoDB database operations in the DevStack Core environment.
 
 ## Table of Contents
 
@@ -76,7 +76,7 @@ Comprehensive guide to MongoDB database operations in the Colima Services enviro
 
 ## Overview
 
-MongoDB is configured in the Colima Services environment with:
+MongoDB is configured in the DevStack Core environment with:
 
 - **Version**: MongoDB 7.0
 - **Host Port**: 27017
@@ -1649,7 +1649,7 @@ Complete backup script:
 #!/bin/bash
 # MongoDB backup script
 
-BACKUP_DIR="/Users/gator/colima-services/backups/mongodb"
+BACKUP_DIR="/Users/gator/devstack-core/backups/mongodb"
 DATE=$(date +%Y%m%d_%H%M%S)
 MONGO_PASS=$(vault kv get -field=password secret/mongodb)
 

@@ -1,6 +1,6 @@
 # Wiki Summary
 
-This document was created as a summary of all 10 comprehensive wiki pages that have been generated for the Colima Services project.
+This document was created as a summary of all 10 comprehensive wiki pages that have been generated for the DevStack Core project.
 
 ## Wiki Pages Created
 
@@ -67,12 +67,12 @@ This document was created as a summary of all 10 comprehensive wiki pages that h
    - Monitoring with Prometheus
    - Grafana dashboards
    - Log aggregation with Loki
-   - Using ./manage-colima.sh health
+   - Using ./manage-devstack.sh health
    - Troubleshooting unhealthy services
    - Metrics endpoints
 
 8. **[Backup-and-Restore.md](./Backup-and-Restore.md)** - To be created
-   - Backup strategy using ./manage-colima.sh backup
+   - Backup strategy using ./manage-devstack.sh backup
    - What gets backed up (databases, Vault keys)
    - Critical files to backup (~/.config/vault/)
    - Backup scheduling

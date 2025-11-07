@@ -1,6 +1,6 @@
 # Troubleshooting Guide
 
-Comprehensive troubleshooting guide for common issues in the Colima Services infrastructure.
+Comprehensive troubleshooting guide for common issues in the DevStack Core infrastructure.
 
 ---
 
@@ -114,7 +114,7 @@ docker ps --format "table {{.Names}}\t{{.Status}}"
 All services should show `Up` and `healthy` within 60 seconds.
 
 **Prevention:**
-Add automatic bootstrap check to `manage-colima.sh start` (see [Future Enhancements](#future-enhancements)).
+Add automatic bootstrap check to `manage-devstack.sh start` (see [Future Enhancements](#future-enhancements)).
 
 ---
 
@@ -122,7 +122,7 @@ Add automatic bootstrap check to `manage-colima.sh start` (see [Future Enhanceme
 
 **Symptoms:**
 ```bash
-$ ./manage-colima.sh start
+$ ./manage-devstack.sh start
 ERRO[0000] error starting vm: error creating instance
 ```
 
@@ -134,7 +134,7 @@ ERRO[0000] error starting vm: error creating instance
 df -h ~
 
 # Solution: Free up disk space or adjust COLIMA_DISK
-COLIMA_DISK=100 ./manage-colima.sh start
+COLIMA_DISK=100 ./manage-devstack.sh start
 ```
 
 2. **VZ framework issue (macOS Ventura+)**
@@ -147,7 +147,7 @@ brew upgrade colima
 
 # Restart with fresh config
 colima delete
-./manage-colima.sh start
+./manage-devstack.sh start
 ```
 
 3. **Port conflicts**
@@ -409,7 +409,7 @@ host    all             all             172.20.0.0/16           md5
 3. **Reset PostgreSQL:**
 ```bash
 docker compose stop postgres
-docker volume rm colima-services_postgres_data
+docker volume rm devstack-core_postgres_data
 docker compose up -d postgres
 ```
 
@@ -459,7 +459,7 @@ docker exec -it dev-mongodb-1 mongosh -u dev_user -p <password> --authentication
 3. **Reset MongoDB:**
 ```bash
 docker compose stop mongodb
-docker volume rm colima-services_mongodb_data
+docker volume rm devstack-core_mongodb_data
 docker compose up -d mongodb
 ```
 
@@ -508,7 +508,7 @@ docker exec dev-redis-1 redis-cli -a <password> --cluster create \
 4. **Reset cluster:**
 ```bash
 docker compose stop redis-1 redis-2 redis-3
-docker volume rm colima-services_redis_data_1 colima-services_redis_data_2 colima-services_redis_data_3
+docker volume rm devstack-core_redis_data_1 devstack-core_redis_data_2 devstack-core_redis_data_3
 docker compose up -d redis-1 redis-2 redis-3
 ```
 
@@ -662,7 +662,7 @@ colima start
 
 Or use manage script:
 ```bash
-./manage-colima.sh start
+./manage-devstack.sh start
 ```
 
 3. **If stuck, force restart:**
@@ -700,7 +700,7 @@ docker volume prune
 docker volume ls
 
 # Remove specific volume
-docker volume rm colima-services_prometheus_data
+docker volume rm devstack-core_prometheus_data
 ```
 
 3. **Increase Colima disk:**
@@ -728,7 +728,7 @@ colima start
 colima stop
 
 # Start with more resources
-COLIMA_CPU=8 COLIMA_MEMORY=16 ./manage-colima.sh start
+COLIMA_CPU=8 COLIMA_MEMORY=16 ./manage-devstack.sh start
 ```
 
 2. **Check resource usage:**
@@ -908,7 +908,7 @@ services:
 
 3. **Increase Colima memory:**
 ```bash
-COLIMA_MEMORY=16 ./manage-colima.sh start
+COLIMA_MEMORY=16 ./manage-devstack.sh start
 ```
 
 ---
@@ -1078,14 +1078,14 @@ docker exec dev-postgres-1 psql -U dev_admin -d dev_database -c \
 **Planned improvements to reduce troubleshooting:**
 
 1. **Automatic Vault Bootstrap Detection**
-   - Add check to `manage-colima.sh start`
+   - Add check to `manage-devstack.sh start`
    - Auto-run bootstrap if credentials missing
    - Make startup truly "one command"
 
 2. **Health Dashboard**
    - Quick status showing all 28 services
    - Vault bootstrap status indicator
-   - Add to `./manage-colima.sh status`
+   - Add to `./manage-devstack.sh status`
 
 3. **Enhanced Error Messages**
    - Better service log output

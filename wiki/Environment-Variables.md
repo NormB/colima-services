@@ -27,7 +27,7 @@ All environment variables are stored in the `.env` file in the project root. Cop
 
 ```bash
 # Project name (affects container names)
-COMPOSE_PROJECT_NAME=colima-services
+COMPOSE_PROJECT_NAME=devstack-core
 
 # Environment (dev, staging, prod)
 ENVIRONMENT=development
@@ -295,7 +295,7 @@ VAULT_CERTS_DIR=/Users/${USER}/.config/vault/certs
 
 ```bash
 # Project Configuration
-COMPOSE_PROJECT_NAME=colima-services
+COMPOSE_PROJECT_NAME=devstack-core
 ENVIRONMENT=development
 
 # Vault

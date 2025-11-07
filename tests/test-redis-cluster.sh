@@ -54,7 +54,7 @@
 #   ./test-redis-cluster.sh && echo "Cluster ready"
 #
 # AUTHOR:
-#   Colima Services Project
+#   DevStack Core Project
 #
 # SEE ALSO:
 #   - test-redis.sh - Basic Redis tests (non-cluster specific)

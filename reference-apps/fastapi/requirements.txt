@@ -15,7 +15,7 @@ motor==3.7.1
 pymongo==4.15.3
 
 # Redis and Caching
-redis[hiredis]==7.0.1  # Downgraded for fastapi-cache2 compatibility
+redis[hiredis]==4.6.0  # Compatible with fastapi-cache2 (requires <5.0.0)
 fastapi-cache2[redis]==0.2.2  # Response caching
 
 # RabbitMQ

@@ -56,7 +56,7 @@
 #   ./test-fastapi.sh
 #
 # AUTHOR:
-#   Colima Services Project
+#   DevStack Core Project
 #
 # SEE ALSO:
 #   - ../reference-api/app/ - FastAPI application source code
@@ -616,7 +616,7 @@ test_openapi_schema() {
     if [ $status -eq 0 ] && echo "$response" | jq -e '.openapi' &>/dev/null; then
         local title=$(echo "$response" | jq -r '.info.title')
 
-        if [ "$title" = "Colima Services - Reference API" ]; then
+        if [ "$title" = "DevStack Core - Reference API" ]; then
             success "OpenAPI schema is valid and accessible"
             return 0
         fi

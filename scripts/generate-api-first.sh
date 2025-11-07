@@ -500,7 +500,7 @@ logger = logging.getLogger(__name__)
 
 # Create FastAPI app
 app = FastAPI(
-    title="Colima Services - Reference API (API-First)",
+    title="DevStack Core - Reference API (API-First)",
     version="1.0.0",
     description="API-First implementation generated from OpenAPI specification",
 )
@@ -538,7 +538,7 @@ async def shutdown_event():
 async def root():
     """Root endpoint with API information."""
     return {
-        "name": "Colima Services - Reference API (API-First)",
+        "name": "DevStack Core - Reference API (API-First)",
         "version": "1.0.0",
         "implementation": "api-first",
         "description": "Generated from OpenAPI specification",
@@ -618,7 +618,7 @@ This implementation is **generated from the OpenAPI specification** in
 
 ## Overview
 
-This is the API-first implementation of the Colima Services Reference API.
+This is the API-first implementation of the DevStack Core Reference API.
 The code structure is generated from the OpenAPI spec and enhanced with
 business logic to match the code-first implementation.
 

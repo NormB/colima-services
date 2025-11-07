@@ -2,7 +2,7 @@
 
 **⚠️ This is a reference implementation for learning and testing. Not intended for production use.**
 
-This FastAPI application demonstrates production-grade best practices for integrating with the Colima Services infrastructure. It showcases secure credential management, resilience patterns, observability, and comprehensive error handling.
+This FastAPI application demonstrates production-grade best practices for integrating with the DevStack Core infrastructure. It showcases secure credential management, resilience patterns, observability, and comprehensive error handling.
 
 ## Table of Contents
 
@@ -728,7 +728,7 @@ The application is included in the main `docker-compose.yml`:
 
 ```bash
 # From repository root
-./manage-colima.sh start
+./manage-devstack.sh start
 
 # Application available at:
 # - HTTP:  http://localhost:8000
@@ -876,7 +876,7 @@ REDIS_NODES=redis-1:6379,redis-2:6379,redis-3:6379
 ```bash
 # Application Settings
 DEBUG=false                            # Enable debug mode (default: false)
-APP_NAME="Colima Services Reference API"
+APP_NAME="DevStack Core Reference API"
 ```
 
 ### Docker Compose Configuration
@@ -1132,8 +1132,8 @@ For production deployment, consider:
 
 ## License
 
-This reference application is part of the Colima Services project. See the main repository for license information.
+This reference application is part of the DevStack Core project. See the main repository for license information.
 
 ## Contributing
 
-This is a reference implementation. For contributions, improvements, or issues, please refer to the main Colima Services repository.
+This is a reference implementation. For contributions, improvements, or issues, please refer to the main DevStack Core repository.

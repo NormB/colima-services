@@ -1,6 +1,6 @@
 # Management Commands
 
-Complete reference for the `manage-colima.sh` script - the primary interface for managing all Colima Services operations.
+Complete reference for the `manage-devstack.sh` script - the primary interface for managing all DevStack Core operations.
 
 ## Table of Contents
 
@@ -15,7 +15,7 @@ Complete reference for the `manage-colima.sh` script - the primary interface for
 
 ## Overview
 
-The `manage-colima.sh` script provides a unified interface for:
+The `manage-devstack.sh` script provides a unified interface for:
 - Starting/stopping the entire environment
 - Managing Vault initialization and configuration
 - Monitoring service health
@@ -26,20 +26,20 @@ The `manage-colima.sh` script provides a unified interface for:
 
 ```bash
 # Show all available commands
-./manage-colima.sh help
+./manage-devstack.sh help
 
 # Show version
-./manage-colima.sh version
+./manage-devstack.sh version
 ```
 
 ## Core Commands
 
 ### start
 
-Start the entire Colima Services environment.
+Start the entire DevStack Core environment.
 
 ```bash
-./manage-colima.sh start
+./manage-devstack.sh start
 ```
 
 **What it does:**
@@ -67,7 +67,7 @@ Start the entire Colima Services environment.
 Stop all services and Colima VM.
 
 ```bash
-./manage-colima.sh stop
+./manage-devstack.sh stop
 ```
 
 **What it does:**
@@ -94,7 +94,7 @@ Stop all services and Colima VM.
 Restart all Docker Compose services without restarting Colima VM.
 
 ```bash
-./manage-colima.sh restart
+./manage-devstack.sh restart
 ```
 
 **What it does:**
@@ -114,7 +114,7 @@ Restart all Docker Compose services without restarting Colima VM.
 Display status of all services with resource usage.
 
 ```bash
-./manage-colima.sh status
+./manage-devstack.sh status
 ```
 
 **What it shows:**
@@ -141,7 +141,7 @@ dev-redis-1       running   healthy   0.08%    12.3MB      0.0.0.0:6379->6379/tc
 Initialize Vault for first time use.
 
 ```bash
-./manage-colima.sh vault-init
+./manage-devstack.sh vault-init
 ```
 
 **What it does:**
@@ -173,7 +173,7 @@ Initialize Vault for first time use.
 Bootstrap Vault with PKI and service credentials.
 
 ```bash
-./manage-colima.sh vault-bootstrap
+./manage-devstack.sh vault-bootstrap
 ```
 
 **What it does:**
@@ -207,7 +207,7 @@ Bootstrap Vault with PKI and service credentials.
 Check Vault initialization and seal status.
 
 ```bash
-./manage-colima.sh vault-status
+./manage-devstack.sh vault-status
 ```
 
 **What it shows:**
@@ -233,7 +233,7 @@ Vault Status:
 Manually unseal Vault (rarely needed due to auto-unseal).
 
 ```bash
-./manage-colima.sh vault-unseal
+./manage-devstack.sh vault-unseal
 ```
 
 **What it does:**
@@ -253,7 +253,7 @@ Manually unseal Vault (rarely needed due to auto-unseal).
 Display the Vault root token.
 
 ```bash
-./manage-colima.sh vault-token
+./manage-devstack.sh vault-token
 ```
 
 **What it shows:**
@@ -278,7 +278,7 @@ Export with:
 Retrieve a service password from Vault.
 
 ```bash
-./manage-colima.sh vault-show-password <service>
+./manage-devstack.sh vault-show-password <service>
 ```
 
 **Supported services:**
@@ -291,7 +291,7 @@ Retrieve a service password from Vault.
 **Example:**
 ```bash
 # Get PostgreSQL password
-./manage-colima.sh vault-show-password postgres
+./manage-devstack.sh vault-show-password postgres
 
 # Output: <password-string>
 ```
@@ -309,25 +309,25 @@ View logs for a specific service or all services.
 
 ```bash
 # View logs for one service
-./manage-colima.sh logs <service-name>
+./manage-devstack.sh logs <service-name>
 
 # View all logs
-./manage-colima.sh logs
+./manage-devstack.sh logs
 
 # Follow logs (real-time)
-./manage-colima.sh logs <service-name> -f
+./manage-devstack.sh logs <service-name> -f
 ```
 
 **Examples:**
 ```bash
 # View Vault logs
-./manage-colima.sh logs vault
+./manage-devstack.sh logs vault
 
 # Follow PostgreSQL logs
-./manage-colima.sh logs postgres -f
+./manage-devstack.sh logs postgres -f
 
 # View last 100 lines
-./manage-colima.sh logs redis-1 --tail 100
+./manage-devstack.sh logs redis-1 --tail 100
 ```
 
 **Service names:**
@@ -346,7 +346,7 @@ View logs for a specific service or all services.
 Open interactive shell in a container.
 
 ```bash
-./manage-colima.sh shell <service-name>
+./manage-devstack.sh shell <service-name>
 ```
 
 **What it does:**
@@ -356,13 +356,13 @@ Open interactive shell in a container.
 **Examples:**
 ```bash
 # Shell into PostgreSQL container
-./manage-colima.sh shell postgres
+./manage-devstack.sh shell postgres
 
 # Now you can run:
 # psql -U dev_admin -d dev_database
 
 # Shell into Vault container
-./manage-colima.sh shell vault
+./manage-devstack.sh shell vault
 
 # Now you can run:
 # vault status
@@ -375,7 +375,7 @@ Open interactive shell in a container.
 Run health checks on all services.
 
 ```bash
-./manage-colima.sh health
+./manage-devstack.sh health
 ```
 
 **What it checks:**
@@ -401,7 +401,7 @@ Run health checks on all services.
 Display real-time resource usage statistics.
 
 ```bash
-./manage-colima.sh stats
+./manage-devstack.sh stats
 ```
 
 **What it shows:**
@@ -423,7 +423,7 @@ Display real-time resource usage statistics.
 Create backups of all databases.
 
 ```bash
-./manage-colima.sh backup
+./manage-devstack.sh backup
 ```
 
 **What it backs up:**
@@ -457,7 +457,7 @@ cp -r ~/.config/vault ~/vault-backup-$(date +%Y%m%d)
 **⚠️ DESTRUCTIVE:** Delete all data and reset environment.
 
 ```bash
-./manage-colima.sh reset
+./manage-devstack.sh reset
 ```
 
 **What it does:**
@@ -482,9 +482,9 @@ cp -r ~/.config/vault ~/vault-backup-$(date +%Y%m%d)
 
 **After reset:**
 ```bash
-./manage-colima.sh start
-./manage-colima.sh vault-init
-./manage-colima.sh vault-bootstrap
+./manage-devstack.sh start
+./manage-devstack.sh vault-init
+./manage-devstack.sh vault-bootstrap
 ```
 
 ## Command Reference
@@ -512,41 +512,41 @@ cp -r ~/.config/vault ~/vault-backup-$(date +%Y%m%d)
 
 **First Time Setup:**
 ```bash
-./manage-colima.sh start
-./manage-colima.sh vault-init
-./manage-colima.sh vault-bootstrap
-./manage-colima.sh health
+./manage-devstack.sh start
+./manage-devstack.sh vault-init
+./manage-devstack.sh vault-bootstrap
+./manage-devstack.sh health
 ```
 
 **Daily Startup:**
 ```bash
-./manage-colima.sh start
-./manage-colima.sh status
+./manage-devstack.sh start
+./manage-devstack.sh status
 ```
 
 **Debugging Issues:**
 ```bash
-./manage-colima.sh status
-./manage-colima.sh health
-./manage-colima.sh logs <problematic-service>
-./manage-colima.sh shell <problematic-service>
+./manage-devstack.sh status
+./manage-devstack.sh health
+./manage-devstack.sh logs <problematic-service>
+./manage-devstack.sh shell <problematic-service>
 ```
 
 **Before Updates:**
 ```bash
-./manage-colima.sh backup
+./manage-devstack.sh backup
 # Make changes
-./manage-colima.sh restart
-./manage-colima.sh health
+./manage-devstack.sh restart
+./manage-devstack.sh health
 ```
 
 **Clean Slate:**
 ```bash
-./manage-colima.sh backup  # Save what you need
-./manage-colima.sh reset
-./manage-colima.sh start
-./manage-colima.sh vault-init
-./manage-colima.sh vault-bootstrap
+./manage-devstack.sh backup  # Save what you need
+./manage-devstack.sh reset
+./manage-devstack.sh start
+./manage-devstack.sh vault-init
+./manage-devstack.sh vault-bootstrap
 ```
 
 ## Makefile Commands

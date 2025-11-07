@@ -57,7 +57,7 @@
 #   ./test-vault.sh
 #
 #   # Run tests after bootstrapping Vault
-#   ../manage-colima.sh vault-bootstrap
+#   ../manage-devstack.sh vault-bootstrap
 #   ./test-vault.sh
 #
 # AUTHORS:
@@ -439,7 +439,7 @@ test_vault_postgres_credentials() {
     local password=$(echo "$response" | jq -r '.data.data.password')
     local database=$(echo "$response" | jq -r '.data.data.database')
 
-    if [ "$user" = "dev_admin" ] && [ -n "$password" ] && [ "$database" = "dev_database" ]; then
+    if [ "$user" = "devuser" ] && [ -n "$password" ] && [ "$database" = "devdb" ]; then
         success "PostgreSQL credentials are valid (user=$user, db=$database)"
         return 0
     else
@@ -480,7 +480,7 @@ test_vault_issue_certificate() {
     local cert_response=$(curl -sf -X POST \
         -H "X-Vault-Token: $VAULT_TOKEN" \
         -H "Content-Type: application/json" \
-        -d '{"common_name":"postgres.dev-services.local","ttl":"1h"}' \
+        -d '{"common_name":"postgres","ttl":"1h"}' \
         "$VAULT_ADDR/v1/pki_int/issue/postgres-role" 2>/dev/null)
 
     local certificate=$(echo "$cert_response" | jq -r '.data.certificate // empty')
@@ -542,7 +542,7 @@ test_vault_ca_exported() {
 ################################################################################
 # Tests if management script Vault commands function correctly.
 #
-# Verifies that the manage-colima.sh script's Vault integration commands work
+# Verifies that the manage-devstack.sh script's Vault integration commands work
 # as expected. Tests three key commands:
 # - vault-status: Checks Vault health and seal status
 # - vault-token: Retrieves the root token
@@ -553,7 +553,7 @@ test_vault_ca_exported() {
 #
 # Globals:
 #   TESTS_RUN - Incremented to track total tests
-#   PROJECT_ROOT - Used to locate manage-colima.sh script
+#   PROJECT_ROOT - Used to locate manage-devstack.sh script
 #
 # Returns:
 #   0 - All management commands work correctly
@@ -567,13 +567,13 @@ test_management_commands() {
     info "Test 10: Management script Vault commands work"
 
     # Test vault-status
-    if "$PROJECT_ROOT/manage-colima.sh" vault-status &>/dev/null; then
+    if "$PROJECT_ROOT/manage-devstack.sh" vault-status &>/dev/null; then
         # Test vault-token
-        local token=$("$PROJECT_ROOT/manage-colima.sh" vault-token 2>/dev/null)
+        local token=$("$PROJECT_ROOT/manage-devstack.sh" vault-token 2>/dev/null)
 
         if [ -n "$token" ]; then
             # Test vault-show-password
-            local password=$("$PROJECT_ROOT/manage-colima.sh" vault-show-password postgres 2>/dev/null)
+            local password=$("$PROJECT_ROOT/manage-devstack.sh" vault-show-password postgres 2>/dev/null)
 
             if [ -n "$password" ]; then
                 success "Management commands work correctly"

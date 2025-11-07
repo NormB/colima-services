@@ -6,7 +6,7 @@ import (
 	"time"
 
 	"github.com/gin-gonic/gin"
-	"github.com/normbrandinger/colima-services/reference-apps/golang/internal/services"
+	"github.com/normbrandinger/devstack-core/reference-apps/golang/internal/services"
 )
 
 // VaultHandler handles Vault-related endpoints

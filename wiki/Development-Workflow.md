@@ -15,34 +15,34 @@
 
 **Morning startup:**
 ```bash
-cd ~/colima-services
-./manage-colima.sh start
-./manage-colima.sh health
+cd ~/devstack-core
+./manage-devstack.sh start
+./manage-devstack.sh health
 ```
 
 **Check service status:**
 ```bash
-./manage-colima.sh status
+./manage-devstack.sh status
 open http://localhost:3001  # Grafana
 open http://localhost:3000  # Forgejo
 ```
 
 **End of day:**
 ```bash
-./manage-colima.sh stop
+./manage-devstack.sh stop
 ```
 
 ## Starting Services
 
 ```bash
 # Start everything
-./manage-colima.sh start
+./manage-devstack.sh start
 
 # Start specific services
 docker compose up -d postgres redis-1 vault
 
 # Check health
-./manage-colima.sh health
+./manage-devstack.sh health
 ```
 
 ## Committing to Forgejo
@@ -164,7 +164,7 @@ channel.start_consuming()
 
 **View logs:**
 ```bash
-./manage-colima.sh logs myservice -f
+./manage-devstack.sh logs myservice -f
 ```
 
 **Check metrics in Grafana:**
@@ -181,7 +181,7 @@ open http://localhost:3001
 
 **End of day:**
 ```bash
-./manage-colima.sh stop
+./manage-devstack.sh stop
 ```
 
 **Restart specific service:**

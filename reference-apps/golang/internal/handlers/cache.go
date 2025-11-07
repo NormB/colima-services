@@ -10,8 +10,8 @@ import (
 	"github.com/gin-gonic/gin"
 	"github.com/redis/go-redis/v9"
 
-	"github.com/normbrandinger/colima-services/reference-apps/golang/internal/config"
-	"github.com/normbrandinger/colima-services/reference-apps/golang/internal/services"
+	"github.com/normbrandinger/devstack-core/reference-apps/golang/internal/config"
+	"github.com/normbrandinger/devstack-core/reference-apps/golang/internal/services"
 )
 
 // CacheHandler handles cache-related endpoints

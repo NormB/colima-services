@@ -29,7 +29,7 @@
 
 ## Overview
 
-This document provides a comprehensive reference for all environment variables used in the Colima Services infrastructure. Variables are organized by service and include:
+This document provides a comprehensive reference for all environment variables used in the DevStack Core infrastructure. Variables are organized by service and include:
 
 - **Variable Name**: The environment variable name
 - **Default Value**: Default if not set
@@ -70,8 +70,8 @@ HashiCorp Vault manages all service credentials and TLS certificates.
 **Setup:**
 ```bash
 # After initial start
-./manage-colima.sh vault-init      # Creates token
-./manage-colima.sh vault-bootstrap # Stores credentials
+./manage-devstack.sh vault-init      # Creates token
+./manage-devstack.sh vault-bootstrap # Stores credentials
 
 # Token location
 cat ~/.config/vault/root-token
@@ -592,7 +592,7 @@ docker compose config
 
 ```bash
 # List all environment variables
-./manage-colima.sh status
+./manage-devstack.sh status
 
 # Check specific service
 docker compose exec postgres env | grep POSTGRES
@@ -605,7 +605,7 @@ docker compose exec postgres env | grep POSTGRES
 nano .env
 
 # 2. Restart services to apply
-./manage-colima.sh restart
+./manage-devstack.sh restart
 
 # Or restart specific service
 docker compose restart postgres

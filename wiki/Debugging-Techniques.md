@@ -1,6 +1,6 @@
 # Debugging Techniques
 
-Systematic debugging approaches for all services in the Colima Services environment.
+Systematic debugging approaches for all services in the DevStack Core environment.
 
 ## Table of Contents
 
@@ -19,7 +19,7 @@ Systematic debugging approaches for all services in the Colima Services environm
 
 ## Overview
 
-Systematic debugging is essential for identifying and resolving issues in containerized environments. This guide provides comprehensive debugging techniques for all Colima Services components.
+Systematic debugging is essential for identifying and resolving issues in containerized environments. This guide provides comprehensive debugging techniques for all DevStack Core components.
 
 ## Debugging Philosophy
 
@@ -479,7 +479,7 @@ for key in $(jq -r '.unseal_keys_b64[]' ~/.config/vault/keys.json); do
 done
 
 # Or use management script
-./manage-colima.sh vault-unseal
+./manage-devstack.sh vault-unseal
 
 # Verify unsealed
 docker exec vault vault status | grep "Sealed.*false"

@@ -1,6 +1,6 @@
 # Best Practices
 
-Practical guidelines for daily usage, development workflows, resource management, backup strategies, and integration patterns for the Colima Services infrastructure.
+Practical guidelines for daily usage, development workflows, resource management, backup strategies, and integration patterns for the DevStack Core infrastructure.
 
 ---
 
@@ -23,27 +23,27 @@ Practical guidelines for daily usage, development workflows, resource management
 
 ```bash
 # Start all services
-./manage-colima.sh start
+./manage-devstack.sh start
 
 # Verify everything is healthy
-./manage-colima.sh health
+./manage-devstack.sh health
 
 # Check resource usage
-./manage-colima.sh status
+./manage-devstack.sh status
 ```
 
 ### During Development
 
 ```bash
 # Check service logs when debugging
-./manage-colima.sh logs postgres
-./manage-colima.sh logs vault
+./manage-devstack.sh logs postgres
+./manage-devstack.sh logs vault
 
 # Restart specific service after config changes
 docker compose restart postgres
 
 # Get credentials for manual testing
-./manage-colima.sh vault-show-password postgres
+./manage-devstack.sh vault-show-password postgres
 ```
 
 ### End of Day
@@ -53,7 +53,7 @@ docker compose restart postgres
 # Services stay available, VM uses minimal resources when idle
 
 # Option 2: Stop everything
-./manage-colima.sh stop
+./manage-devstack.sh stop
 
 # Option 3: Stop services but leave Colima running
 docker compose stop
@@ -63,11 +63,11 @@ docker compose stop
 
 ```bash
 # Check resource usage
-./manage-colima.sh status
+./manage-devstack.sh status
 docker system df
 
 # Backup databases
-./manage-colima.sh backup
+./manage-devstack.sh backup
 
 # Clean up unused images (monthly)
 docker system prune -a --volumes
@@ -88,14 +88,14 @@ nano myapp/main.py
 **2. Test with Local Services**
 ```bash
 # PostgreSQL
-PGPASSWORD=$(./manage-colima.sh vault-show-password postgres) \
+PGPASSWORD=$(./manage-devstack.sh vault-show-password postgres) \
   psql -h localhost -U dev_admin -d dev_database
 
 # Redis
-redis-cli -h localhost -p 6379 -a $(./manage-colima.sh vault-show-password redis-1)
+redis-cli -h localhost -p 6379 -a $(./manage-devstack.sh vault-show-password redis-1)
 
 # MySQL
-mysql -h localhost -u dev_user -p$(./manage-colima.sh vault-show-password mysql)
+mysql -h localhost -u dev_user -p$(./manage-devstack.sh vault-show-password mysql)
 ```
 
 **3. Store Secrets in Vault**
@@ -199,7 +199,7 @@ docker logs dev-myapp
 
 ```bash
 # Overall system status
-./manage-colima.sh status
+./manage-devstack.sh status
 
 # Detailed container stats
 docker stats
@@ -219,7 +219,7 @@ colima status
 colima stop
 
 # Start with more memory
-COLIMA_MEMORY=16 ./manage-colima.sh start
+COLIMA_MEMORY=16 ./manage-devstack.sh start
 ```
 
 **Set Container Limits:**
@@ -253,7 +253,7 @@ docker volume prune
 docker system prune -a --volumes
 
 # Remove specific volume
-docker volume rm colima-services_prometheus_data
+docker volume rm devstack-core_prometheus_data
 ```
 
 ### Performance Tuning
@@ -299,7 +299,7 @@ maxmemory-policy allkeys-lru  # Eviction policy
 
 ```bash
 # Run backup command
-./manage-colima.sh backup
+./manage-devstack.sh backup
 
 # Creates timestamped backup in ./backups/
 # - backups/postgres_YYYYMMDD_HHMMSS.sql
@@ -369,7 +369,7 @@ tar czf vault-keys.tar.gz ~/.config/vault/
 gpg -c vault-keys.tar.gz
 
 # Check Vault seal status daily
-./manage-colima.sh vault-status
+./manage-devstack.sh vault-status
 
 # Rotate Vault token (optional, for enhanced security)
 vault token create -policy=admin -ttl=30d
@@ -676,4 +676,4 @@ Best practices ensure:
 - **Resource optimization** - Efficient use of system resources
 - **Clear integration patterns** - Consistent service usage
 
-Follow these patterns for a smooth development experience with the Colima Services infrastructure.
+Follow these patterns for a smooth development experience with the DevStack Core infrastructure.

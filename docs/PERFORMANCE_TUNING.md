@@ -1,6 +1,6 @@
 # Performance Tuning Guide
 
-Comprehensive guide for optimizing the Colima Services infrastructure for development and production workloads.
+Comprehensive guide for optimizing the DevStack Core infrastructure for development and production workloads.
 
 ---
 
@@ -72,13 +72,13 @@ disk: 60
 **Recommended for development (28 services):**
 ```bash
 # For smooth development experience
-COLIMA_CPU=6 COLIMA_MEMORY=12 COLIMA_DISK=100 ./manage-colima.sh start
+COLIMA_CPU=6 COLIMA_MEMORY=12 COLIMA_DISK=100 ./manage-devstack.sh start
 ```
 
 **Recommended for heavy workloads:**
 ```bash
 # For load testing, many concurrent users
-COLIMA_CPU=8 COLIMA_MEMORY=16 COLIMA_DISK=100 ./manage-colima.sh start
+COLIMA_CPU=8 COLIMA_MEMORY=16 COLIMA_DISK=100 ./manage-devstack.sh start
 ```
 
 **Monitoring Colima resources:**

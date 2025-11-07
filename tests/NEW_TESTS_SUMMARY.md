@@ -2,7 +2,7 @@
 
 ## Overview
 
-This document summarizes the new extended test suites that have been added to the Colima Services project. These tests provide comprehensive coverage of all services, containers, and API endpoints, adding **40+ new test cases** across **4 new test suites**.
+This document summarizes the new extended test suites that have been added to the DevStack Core project. These tests provide comprehensive coverage of all services, containers, and API endpoints, adding **40+ new test cases** across **4 new test suites**.
 
 ## Test Statistics
 
@@ -410,7 +410,7 @@ Potential areas for additional testing:
 All tests require the Colima environment to be running:
 
 ```bash
-./manage-colima.sh start
+./manage-devstack.sh start
 ```
 
 ### Credentials
@@ -436,7 +436,7 @@ Tests automatically retrieve credentials from Vault when available:
 
 ## Conclusion
 
-These extended test suites significantly enhance the testing infrastructure of the Colima Services project, providing:
+These extended test suites significantly enhance the testing infrastructure of the DevStack Core project, providing:
 - **+40 new test cases** across critical services
 - **Comprehensive coverage** of advanced features
 - **Observability validation** for the monitoring stack

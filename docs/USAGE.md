@@ -1,6 +1,6 @@
 # Usage Guide
 
-Complete guide for using the Colima Services development environment.
+Complete guide for using the DevStack Core development environment.
 
 ---
 
@@ -23,14 +23,14 @@ Complete guide for using the Colima Services development environment.
 
 ```bash
 # 1. Start everything
-./manage-colima.sh start
+./manage-devstack.sh start
 
 # 2. Initialize Vault (first time only)
-./manage-colima.sh vault-init
-./manage-colima.sh vault-bootstrap
+./manage-devstack.sh vault-init
+./manage-devstack.sh vault-bootstrap
 
 # 3. Verify everything is running
-./manage-colima.sh health
+./manage-devstack.sh health
 
 # 4. Run tests
 ./tests/run-all-tests.sh
@@ -73,7 +73,7 @@ brew install uv
 ```bash
 # Clone repository
 git clone <repository-url>
-cd colima-services
+cd devstack-core
 
 # Create environment file
 cp .env.example .env
@@ -97,7 +97,7 @@ colima start --cpu 4 --memory 8 --disk 100
 
 ```bash
 # Start all services
-./manage-colima.sh start
+./manage-devstack.sh start
 
 # This will:
 # - Start Colima VM (if not running)
@@ -118,10 +118,10 @@ colima start --cpu 4 --memory 8 --disk 100
 
 ```bash
 # Initialize Vault and save keys to ~/.config/vault/
-./manage-colima.sh vault-init
+./manage-devstack.sh vault-init
 
 # Bootstrap PKI and store service credentials
-./manage-colima.sh vault-bootstrap
+./manage-devstack.sh vault-bootstrap
 ```
 
 **Important:** Backup `~/.config/vault/` directory - contains unseal keys and root token!
@@ -130,10 +130,10 @@ colima start --cpu 4 --memory 8 --disk 100
 
 ```bash
 # Check all services are healthy
-./manage-colima.sh health
+./manage-devstack.sh health
 
 # Check specific service status
-./manage-colima.sh status
+./manage-devstack.sh status
 
 # Run tests to verify everything works
 ./tests/run-all-tests.sh
@@ -147,25 +147,25 @@ colima start --cpu 4 --memory 8 --disk 100
 
 ```bash
 # Check if VM is running
-./manage-colima.sh status
+./manage-devstack.sh status
 
 # If stopped, start everything
-./manage-colima.sh start
+./manage-devstack.sh start
 
 # Check health
-./manage-colima.sh health
+./manage-devstack.sh health
 ```
 
 ### Viewing Logs
 
 ```bash
 # View all service logs
-./manage-colima.sh logs
+./manage-devstack.sh logs
 
 # View specific service logs
-./manage-colima.sh logs postgres
-./manage-colima.sh logs vault
-./manage-colima.sh logs reference-api
+./manage-devstack.sh logs postgres
+./manage-devstack.sh logs vault
+./manage-devstack.sh logs reference-api
 
 # Follow logs in real-time
 docker compose logs -f postgres
@@ -175,7 +175,7 @@ docker compose logs -f postgres
 
 ```bash
 # Restart all services (keeps VM running)
-./manage-colima.sh restart
+./manage-devstack.sh restart
 
 # Restart specific service
 docker compose restart postgres
@@ -189,20 +189,20 @@ docker compose restart vault
 docker compose down
 
 # Stop everything including VM
-./manage-colima.sh stop
+./manage-devstack.sh stop
 ```
 
 ### Checking Status
 
 ```bash
 # Detailed status with resource usage
-./manage-colima.sh status
+./manage-devstack.sh status
 
 # Quick health check
-./manage-colima.sh health
+./manage-devstack.sh health
 
 # Vault status
-./manage-colima.sh vault-status
+./manage-devstack.sh vault-status
 
 # Individual service status
 docker compose ps
@@ -309,24 +309,24 @@ uv run pytest -v
 
 ```bash
 # Connect with Vault password
-PGPASSWORD=$(./manage-colima.sh vault-show-password postgres) \
+PGPASSWORD=$(./manage-devstack.sh vault-show-password postgres) \
   psql -h localhost -p 5432 -U dev_admin -d dev_database
 
 # Or get password first
-./manage-colima.sh vault-show-password postgres
+./manage-devstack.sh vault-show-password postgres
 
 # Query from command line
 docker exec dev-postgres psql -U dev_admin -d dev_database -c "SELECT version();"
 
 # Backup database
-./manage-colima.sh backup
+./manage-devstack.sh backup
 ```
 
 ### MySQL
 
 ```bash
 # Get password
-./manage-colima.sh vault-show-password mysql
+./manage-devstack.sh vault-show-password mysql
 
 # Connect
 mysql -h 127.0.0.1 -P 3306 -u dev_admin -p dev_database
@@ -339,7 +339,7 @@ docker exec -it dev-mysql mysql -u dev_admin -p dev_database
 
 ```bash
 # Get password
-./manage-colima.sh vault-show-password mongodb
+./manage-devstack.sh vault-show-password mongodb
 
 # Connect
 mongosh "mongodb://dev_admin:<password>@localhost:27017/dev_database"
@@ -375,7 +375,7 @@ open http://localhost:15672
 # Default: guest / guest (or get from Vault)
 
 # Get credentials
-./manage-colima.sh vault-show-password rabbitmq
+./manage-devstack.sh vault-show-password rabbitmq
 
 # Publish message via CLI
 docker exec dev-rabbitmq rabbitmqadmin publish exchange=amq.default \
@@ -414,9 +414,9 @@ open http://localhost:9090/targets
 
 ```bash
 # Using management script (easiest)
-./manage-colima.sh vault-show-password postgres
-./manage-colima.sh vault-show-password mysql
-./manage-colima.sh vault-show-password redis-1
+./manage-devstack.sh vault-show-password postgres
+./manage-devstack.sh vault-show-password mysql
+./manage-devstack.sh vault-show-password redis-1
 
 # Using Vault CLI
 export VAULT_ADDR=http://localhost:8200
@@ -457,7 +457,7 @@ docker compose restart postgres mysql redis-1 redis-2 redis-3 rabbitmq mongodb
 
 ```bash
 # Using management script
-./manage-colima.sh vault-status
+./manage-devstack.sh vault-status
 
 # Using Vault CLI
 vault status
@@ -472,7 +472,7 @@ Vault automatically unseals on container start using `~/.config/vault/keys.json`
 
 **If Vault is sealed manually:**
 ```bash
-./manage-colima.sh vault-unseal
+./manage-devstack.sh vault-unseal
 ```
 
 ---
@@ -647,7 +647,7 @@ docker exec dev-postgres psql -U dev_admin -d dev_database -f /tmp/migration.sql
 
 ```bash
 # Backup all databases
-./manage-colima.sh backup
+./manage-devstack.sh backup
 
 # Backups are stored in backups/ directory with timestamp
 
@@ -663,13 +663,13 @@ cp -r ~/.config/vault ~/vault-backup-$(date +%Y%m%d)
 
 ```bash
 # WARNING: This destroys all data!
-./manage-colima.sh reset
+./manage-devstack.sh reset
 
 # Confirm with 'yes'
 # Then re-initialize
-./manage-colima.sh start
-./manage-colima.sh vault-init
-./manage-colima.sh vault-bootstrap
+./manage-devstack.sh start
+./manage-devstack.sh vault-init
+./manage-devstack.sh vault-bootstrap
 ```
 
 ---
@@ -683,13 +683,13 @@ cp -r ~/.config/vault ~/vault-backup-$(date +%Y%m%d)
 curl http://localhost:8200/v1/sys/health
 
 # Check Vault status
-./manage-colima.sh vault-status
+./manage-devstack.sh vault-status
 
 # If sealed, unseal it
-./manage-colima.sh vault-unseal
+./manage-devstack.sh vault-unseal
 
 # Restart services
-./manage-colima.sh restart
+./manage-devstack.sh restart
 ```
 
 ### "Connection Refused" Errors
@@ -702,7 +702,7 @@ docker compose ps
 docker compose logs <service>
 
 # Check health
-./manage-colima.sh health
+./manage-devstack.sh health
 
 # Test network connectivity
 docker exec <service> ping vault
@@ -713,10 +713,10 @@ docker exec <service> nc -zv vault 8200
 
 ```bash
 # Check status
-./manage-colima.sh vault-status
+./manage-devstack.sh vault-status
 
 # Unseal
-./manage-colima.sh vault-unseal
+./manage-devstack.sh vault-unseal
 
 # If auto-unseal fails, check keys exist
 ls ~/.config/vault/keys.json
@@ -730,13 +730,13 @@ docker compose restart vault
 
 ```bash
 # 1. Check all services are healthy
-./manage-colima.sh health
+./manage-devstack.sh health
 
 # 2. Restart infrastructure
-./manage-colima.sh restart
+./manage-devstack.sh restart
 
 # 3. Check specific service
-./manage-colima.sh logs <service>
+./manage-devstack.sh logs <service>
 
 # 4. Re-run specific test
 ./tests/test-<service>.sh
@@ -754,12 +754,12 @@ docker compose up -d reference-api api-first
 ```bash
 # You must reset Vault
 docker compose down vault
-docker volume rm colima-services_vault-data
+docker volume rm devstack-core_vault-data
 docker compose up -d vault
 
 # Re-initialize
-./manage-colima.sh vault-init
-./manage-colima.sh vault-bootstrap
+./manage-devstack.sh vault-init
+./manage-devstack.sh vault-bootstrap
 ```
 
 **Prevention:** Always backup `~/.config/vault/`
@@ -776,7 +776,7 @@ lsof -i :8000  # Reference API
 nano .env
 
 # Restart services
-./manage-colima.sh restart
+./manage-devstack.sh restart
 ```
 
 ### Disk Space Issues
@@ -841,7 +841,7 @@ nano .env
 # - Modify IP addresses
 
 # Restart to apply
-./manage-colima.sh restart
+./manage-devstack.sh restart
 ```
 
 ### Using TLS/SSL
@@ -895,7 +895,7 @@ REDIS_MAXMEMORY_POLICY=allkeys-lru
 MYSQL_INNODB_BUFFER_POOL_SIZE=512M
 
 # Restart services
-./manage-colima.sh restart
+./manage-devstack.sh restart
 ```
 
 ### CI/CD Integration
@@ -922,8 +922,8 @@ jobs:
 
       - name: Initialize Vault
         run: |
-          ./manage-colima.sh vault-init
-          ./manage-colima.sh vault-bootstrap
+          ./manage-devstack.sh vault-init
+          ./manage-devstack.sh vault-bootstrap
 
       - name: Run tests
         run: ./tests/run-all-tests.sh
@@ -938,9 +938,9 @@ jobs:
 1. **Always use Vault for credentials** - Never hardcode passwords
 2. **Test locally before pushing** - Run `./tests/run-all-tests.sh`
 3. **Backup Vault keys** - Store `~/.config/vault/` safely
-4. **Monitor resource usage** - `./manage-colima.sh status`
+4. **Monitor resource usage** - `./manage-devstack.sh status`
 5. **Keep containers updated** - `docker compose pull && docker compose up -d`
-6. **Review logs regularly** - `./manage-colima.sh logs`
+6. **Review logs regularly** - `./manage-devstack.sh logs`
 
 ---
 
@@ -950,32 +950,32 @@ jobs:
 
 ```bash
 # Start everything
-./manage-colima.sh start
+./manage-devstack.sh start
 
 # Check health
-./manage-colima.sh health
+./manage-devstack.sh health
 
 # View logs
-./manage-colima.sh logs [service]
+./manage-devstack.sh logs [service]
 
 # Get password
-./manage-colima.sh vault-show-password <service>
+./manage-devstack.sh vault-show-password <service>
 
 # Run tests
 ./tests/run-all-tests.sh
 
 # Restart
-./manage-colima.sh restart
+./manage-devstack.sh restart
 
 # Stop
-./manage-colima.sh stop
+./manage-devstack.sh stop
 ```
 
 ### Important File Locations
 
 ```
-~/colima-services/
-├── manage-colima.sh              # Main management script
+~/devstack-core/
+├── manage-devstack.sh              # Main management script
 ├── docker-compose.yml            # Service definitions
 ├── .env                          # Configuration
 ├── tests/run-all-tests.sh        # Master test runner
@@ -994,11 +994,11 @@ jobs:
 
 ```bash
 # Management script help
-./manage-colima.sh --help
+./manage-devstack.sh --help
 
 # Service-specific help
 docker compose logs <service>
-./manage-colima.sh shell <service>
+./manage-devstack.sh shell <service>
 
 # View documentation
 cat README.md

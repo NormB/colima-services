@@ -1,6 +1,6 @@
 # Architecture Deep Dive
 
-Complete architectural documentation for the Colima Services infrastructure project.
+Complete architectural documentation for the DevStack Core infrastructure project.
 
 ---
 
@@ -21,7 +21,7 @@ Complete architectural documentation for the Colima Services infrastructure proj
 
 ## Overview
 
-Colima Services is a **container-native, infrastructure-as-code** project providing a complete local development environment optimized for Apple Silicon Macs.
+DevStack Core is a **container-native, infrastructure-as-code** project providing a complete local development environment optimized for Apple Silicon Macs.
 
 ### Core Characteristics
 
@@ -817,9 +817,9 @@ Docker Compose won't start dependent services until dependencies are healthy.
 - **Runtime:** Docker
 - **Networking:** Bridged (VZ framework)
 
-**Customizable via manage-colima.sh:**
+**Customizable via manage-devstack.sh:**
 ```bash
-COLIMA_CPU=8 COLIMA_MEMORY=16 COLIMA_DISK=100 ./manage-colima.sh start
+COLIMA_CPU=8 COLIMA_MEMORY=16 COLIMA_DISK=100 ./manage-devstack.sh start
 ```
 
 ### Volume Strategy

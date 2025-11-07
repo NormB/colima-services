@@ -7,7 +7,7 @@
   - [What Gets Backed Up](#what-gets-backed-up)
   - [Backup Frequency](#backup-frequency)
   - [Backup Location](#backup-location)
-- [Using manage-colima.sh backup](#using-manage-colimabackup)
+- [Using manage-devstack.sh backup](#using-manage-colimabackup)
   - [Basic Usage](#basic-usage)
   - [What Happens During Backup](#what-happens-during-backup)
   - [Backup Output](#backup-output)
@@ -49,7 +49,7 @@
 
 ## Overview
 
-Regular backups are essential for protecting your development environment data. The colima-services environment provides automated backup capabilities for all stateful services.
+Regular backups are essential for protecting your development environment data. The devstack-core environment provides automated backup capabilities for all stateful services.
 
 **Backup Philosophy:**
 - Automated daily backups
@@ -99,13 +99,13 @@ The backup system covers all stateful data:
 
 ```bash
 # Daily backups at 2 AM
-0 2 * * * /path/to/colima-services/manage-colima.sh backup
+0 2 * * * /path/to/devstack-core/manage-devstack.sh backup
 
 # Weekly full backups (Sunday 3 AM)
-0 3 * * 0 /path/to/colima-services/scripts/full-backup.sh
+0 3 * * 0 /path/to/devstack-core/scripts/full-backup.sh
 
 # Pre-upgrade backups (manual)
-./manage-colima.sh backup
+./manage-devstack.sh backup
 ```
 
 **Retention Policy:**
@@ -119,7 +119,7 @@ The backup system covers all stateful data:
 Default backup location:
 
 ```bash
-~/colima-services/backups/
+~/devstack-core/backups/
 ├── 2024-01-15_02-00-00/
 │   ├── postgres_devdb.sql
 │   ├── mysql_devdb.sql
@@ -135,19 +135,19 @@ Default backup location:
 BACKUP_DIR=/path/to/backups
 ```
 
-## Using manage-colima.sh backup
+## Using manage-devstack.sh backup
 
 ### Basic Usage
 
 ```bash
 # Create backup of all services
-./manage-colima.sh backup
+./manage-devstack.sh backup
 
 # Create backup with custom name
-./manage-colima.sh backup pre-upgrade
+./manage-devstack.sh backup pre-upgrade
 
 # Create backup and compress
-COMPRESS=true ./manage-colima.sh backup
+COMPRESS=true ./manage-devstack.sh backup
 ```
 
 ### What Happens During Backup
@@ -183,10 +183,10 @@ The backup process performs these steps:
 ### Backup Output
 
 ```bash
-$ ./manage-colima.sh backup
+$ ./manage-devstack.sh backup
 
-=== Colima Services Backup ===
-Backup directory: /Users/user/colima-services/backups/2024-01-15_14-30-00
+=== DevStack Core Backup ===
+Backup directory: /Users/user/devstack-core/backups/2024-01-15_14-30-00
 
 [1/8] Backing up PostgreSQL...
   ✓ Database: devdb (1.2 MB)
@@ -220,8 +220,8 @@ Backup directory: /Users/user/colima-services/backups/2024-01-15_14-30-00
   ✓ Archive: backup-2024-01-15_14-30-00.tar.gz (9.2 MB)
 
 Backup completed successfully!
-Location: /Users/user/colima-services/backups/2024-01-15_14-30-00
-Archive: /Users/user/colima-services/backups/backup-2024-01-15_14-30-00.tar.gz
+Location: /Users/user/devstack-core/backups/2024-01-15_14-30-00
+Archive: /Users/user/devstack-core/backups/backup-2024-01-15_14-30-00.tar.gz
 ```
 
 ## Critical Files to Backup
@@ -253,9 +253,9 @@ tar czf - ~/.config/vault/ | \
 
 ```bash
 # Essential configuration files
-~/colima-services/.env
-~/colima-services/docker-compose.yml
-~/colima-services/configs/
+~/devstack-core/.env
+~/devstack-core/docker-compose.yml
+~/devstack-core/configs/
 ```
 
 ### SSL Certificates
@@ -418,14 +418,14 @@ vault token lookup
 #!/bin/bash
 set -e
 
-BACKUP_DIR="/Users/user/colima-services/backups"
+BACKUP_DIR="/Users/user/devstack-core/backups"
 RETENTION_DAYS=7
 
 # Change to project directory
-cd /Users/user/colima-services
+cd /Users/user/devstack-core
 
 # Create backup
-./manage-colima.sh backup
+./manage-devstack.sh backup
 
 # Remove old backups
 find $BACKUP_DIR -type d -mtime +$RETENTION_DAYS -exec rm -rf {} \;
@@ -435,7 +435,7 @@ LATEST=$(readlink $BACKUP_DIR/latest)
 tar czf $BACKUP_DIR/$(basename $LATEST).tar.gz $BACKUP_DIR/$LATEST
 
 # Upload to S3 (requires awscli)
-aws s3 cp $BACKUP_DIR/$(basename $LATEST).tar.gz s3://my-backups/colima-services/
+aws s3 cp $BACKUP_DIR/$(basename $LATEST).tar.gz s3://my-backups/devstack-core/
 
 # Clean up compressed file
 rm $BACKUP_DIR/$(basename $LATEST).tar.gz
@@ -452,13 +452,13 @@ crontab -e
 # Add these lines:
 
 # Daily backup at 2 AM
-0 2 * * * /Users/user/colima-services/scripts/automated-backup.sh >> /var/log/colima-backup.log 2>&1
+0 2 * * * /Users/user/devstack-core/scripts/automated-backup.sh >> /var/log/colima-backup.log 2>&1
 
 # Weekly full backup at 3 AM on Sunday
-0 3 * * 0 /Users/user/colima-services/scripts/full-backup.sh >> /var/log/colima-backup.log 2>&1
+0 3 * * 0 /Users/user/devstack-core/scripts/full-backup.sh >> /var/log/colima-backup.log 2>&1
 
 # Monthly backup on 1st of month
-0 4 1 * * /Users/user/colima-services/scripts/monthly-backup.sh >> /var/log/colima-backup.log 2>&1
+0 4 1 * * /Users/user/devstack-core/scripts/monthly-backup.sh >> /var/log/colima-backup.log 2>&1
 ```
 
 ### Backup Retention Policy
@@ -469,7 +469,7 @@ crontab -e
 #!/bin/bash
 # scripts/cleanup-old-backups.sh
 
-BACKUP_DIR="/Users/user/colima-services/backups"
+BACKUP_DIR="/Users/user/devstack-core/backups"
 
 # Keep daily backups for 7 days
 find $BACKUP_DIR -type d -name "20*" -mtime +7 -exec rm -rf {} \;
@@ -698,7 +698,7 @@ echo "Starting all services..."
 docker compose up -d
 
 echo "Restore completed! Verifying..."
-./manage-colima.sh health
+./manage-devstack.sh health
 ```
 
 ## Disaster Recovery
@@ -711,7 +711,7 @@ If Vault keys are lost, Vault data CANNOT be recovered. Prevention is critical:
 
 ```bash
 # Immediate backup after initialization
-./manage-colima.sh vault-init
+./manage-devstack.sh vault-init
 cp -r ~/.config/vault/ ~/vault-backup-CRITICAL-$(date +%Y%m%d)/
 
 # Store in multiple locations
@@ -739,18 +739,18 @@ docker exec dev-postgres pg_waldump /var/lib/postgresql/data/pg_wal/
 # Prerequisites: Offsite backups available
 
 # 1. Reinstall Colima
-./manage-colima.sh reset
-./manage-colima.sh start
+./manage-devstack.sh reset
+./manage-devstack.sh start
 
 # 2. Restore from offsite backup
-aws s3 cp s3://my-backups/colima-services/latest.tar.gz ./
+aws s3 cp s3://my-backups/devstack-core/latest.tar.gz ./
 tar xzf latest.tar.gz
 
 # 3. Run full restore
 ./scripts/full-restore.sh backups/latest/
 
 # 4. Verify all services
-./manage-colima.sh health
+./manage-devstack.sh health
 ./tests/run-all-tests.sh
 ```
 
@@ -838,7 +838,7 @@ After restore, verify:
 
 ```bash
 # Automated validation
-./manage-colima.sh health
+./manage-devstack.sh health
 ./tests/run-all-tests.sh
 docker exec dev-postgres psql -U postgres -c "SELECT COUNT(*) FROM pg_database;"
 vault status
@@ -859,10 +859,10 @@ brew install awscli
 aws configure
 
 # Upload backup
-aws s3 cp backups/latest.tar.gz s3://my-backups/colima-services/backup-$(date +%Y%m%d).tar.gz
+aws s3 cp backups/latest.tar.gz s3://my-backups/devstack-core/backup-$(date +%Y%m%d).tar.gz
 
 # Download backup
-aws s3 cp s3://my-backups/colima-services/backup-20240115.tar.gz ./
+aws s3 cp s3://my-backups/devstack-core/backup-20240115.tar.gz ./
 ```
 
 **Google Cloud Storage:**
@@ -875,7 +875,7 @@ brew install google-cloud-sdk
 gcloud auth login
 
 # Upload backup
-gsutil cp backups/latest.tar.gz gs://my-backups/colima-services/
+gsutil cp backups/latest.tar.gz gs://my-backups/devstack-core/
 ```
 
 **Backblaze B2:**
@@ -902,10 +902,10 @@ CLOUD_PROVIDER=${CLOUD_PROVIDER:-s3}
 
 case $CLOUD_PROVIDER in
   s3)
-    aws s3 cp $BACKUP_FILE s3://my-backups/colima-services/
+    aws s3 cp $BACKUP_FILE s3://my-backups/devstack-core/
     ;;
   gcs)
-    gsutil cp $BACKUP_FILE gs://my-backups/colima-services/
+    gsutil cp $BACKUP_FILE gs://my-backups/devstack-core/
     ;;
   b2)
     b2 upload-file my-bucket $BACKUP_FILE $(basename $BACKUP_FILE)
@@ -981,7 +981,7 @@ sudo -u postgres ./scripts/restore-postgres.sh
 ```bash
 # Vault is already initialized, need to reset
 docker compose down vault
-docker volume rm colima-services_vault-data
+docker volume rm devstack-core_vault-data
 docker compose up -d vault
 
 # Then restore

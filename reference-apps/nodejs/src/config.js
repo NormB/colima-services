@@ -62,7 +62,7 @@ const config = {
 
   // Application Metadata
   app: {
-    name: 'Colima Services Node.js Reference API',
+    name: 'DevStack Core Node.js Reference API',
     version: '1.0.0',
     language: 'Node.js',
     framework: 'Express'

@@ -1,6 +1,6 @@
 # Network Debugging
 
-Advanced network troubleshooting techniques for Colima Services environment.
+Advanced network troubleshooting techniques for DevStack Core environment.
 
 ## Table of Contents
 
@@ -18,7 +18,7 @@ Advanced network troubleshooting techniques for Colima Services environment.
 
 ## Overview
 
-Network issues are common in containerized environments. This guide provides systematic approaches to diagnose and resolve network problems in Colima Services.
+Network issues are common in containerized environments. This guide provides systematic approaches to diagnose and resolve network problems in DevStack Core.
 
 **Network Setup:**
 - **Network**: dev-services (172.20.0.0/16)

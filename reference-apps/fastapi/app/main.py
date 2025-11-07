@@ -1,5 +1,5 @@
 """
-FastAPI Reference Application for Colima Services Infrastructure
+FastAPI Reference Application for DevStack Core Infrastructure
 
 This application demonstrates how to integrate with the infrastructure services:
 - HashiCorp Vault for secrets management
@@ -84,7 +84,7 @@ limiter = Limiter(key_func=get_remote_address)
 
 # Create FastAPI application
 app = FastAPI(
-    title="Colima Services - Reference API",
+    title="DevStack Core - Reference API",
     description="Reference implementation showing infrastructure integration patterns",
     version="1.1.0",
     docs_url="/docs",
@@ -307,7 +307,7 @@ async def root(request: Request):
     Rate Limit: 100 requests per minute per IP
     """
     return {
-        "name": "Colima Services Reference API",
+        "name": "DevStack Core Reference API",
         "version": "1.1.0",
         "description": "Reference implementation for infrastructure integration",
         "docs": "/docs",
@@ -371,7 +371,7 @@ async def startup_event():
         logger.warning("Application will continue without caching")
 
     logger.info(
-        "Starting Colima Services Reference API",
+        "Starting DevStack Core Reference API",
         extra={
             "vault_address": settings.VAULT_ADDR,
             "redis_cache_enabled": cache_manager.enabled,
@@ -386,4 +386,4 @@ async def shutdown_event():
     """Cleanup on shutdown"""
     # Close cache connection
     await cache_manager.close()
-    logger.info("Shutting down Colima Services Reference API")
+    logger.info("Shutting down DevStack Core Reference API")

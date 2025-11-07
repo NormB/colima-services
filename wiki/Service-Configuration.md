@@ -45,7 +45,7 @@
 
 ## Overview
 
-This page documents the configuration for all services in the colima-services environment. Each service follows the Vault-first architecture pattern where credentials are stored in Vault and fetched at runtime via wrapper scripts.
+This page documents the configuration for all services in the devstack-core environment. Each service follows the Vault-first architecture pattern where credentials are stored in Vault and fetched at runtime via wrapper scripts.
 
 **Configuration Principles:**
 - No hardcoded secrets in configuration files
@@ -497,7 +497,7 @@ docker exec dev-redis-1 redis-cli -p 6380 --tls \
   --cert /certs/cert.pem \
   --key /certs/key.pem \
   --cacert /certs/ca.pem \
-  -a $(./manage-colima.sh vault-show-password redis-1)
+  -a $(./manage-devstack.sh vault-show-password redis-1)
 ```
 
 ### Redis Cluster Configuration
@@ -801,14 +801,21 @@ ENABLED = false
 
 ### Forgejo Database Backend
 
-Forgejo uses PostgreSQL from the colima-services stack:
+Forgejo uses PostgreSQL from the devstack-core stack:
 
+**Automatic Database Creation:**
+The `forgejo` database is automatically created during:
+1. **Fresh Installation:** PostgreSQL initialization scripts (`configs/postgres/02-create-forgejo-db.sql`) create the database when the PostgreSQL container is first initialized
+2. **Existing Installations:** Running `./manage-devstack.sh vault-bootstrap` creates the database if it doesn't exist
+
+**Manual Database Creation (if needed):**
 ```bash
-# Create Forgejo database (automated via init script)
-docker exec dev-postgres psql -U postgres -c "CREATE DATABASE forgejo;"
-docker exec dev-postgres psql -U postgres -c "CREATE USER forgejo WITH PASSWORD 'vault-fetched-password';"
-docker exec dev-postgres psql -U postgres -c "GRANT ALL PRIVILEGES ON DATABASE forgejo TO forgejo;"
+# The database is created automatically, but if you need to create it manually:
+docker exec dev-postgres psql -U devuser -d postgres -c "CREATE DATABASE forgejo OWNER devuser;"
+docker exec dev-postgres psql -U devuser -d postgres -c "GRANT ALL PRIVILEGES ON DATABASE forgejo TO devuser;"
 ```
+
+**Note:** Forgejo uses the `devuser` PostgreSQL account with credentials fetched from Vault (`secret/postgres`), not a dedicated forgejo user.
 
 ### Forgejo SSH Configuration
 
@@ -952,7 +959,7 @@ SECRET_PATH="secret/${ENV:-dev}/postgres"
 docker exec <service> curl -v http://vault:8200/v1/sys/health
 
 # Check if credentials exist in Vault
-./manage-colima.sh vault-show-password <service>
+./manage-devstack.sh vault-show-password <service>
 
 # Check init script logs
 docker logs <service> 2>&1 | grep -i vault

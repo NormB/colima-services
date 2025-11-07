@@ -361,7 +361,7 @@ class TestMainEndpoints:
 
         result = read_root()
 
-        assert result["service"] == "Colima Services Reference API"
+        assert result["service"] == "DevStack Core Reference API"
         assert result["version"] == "1.1.0"
         assert "endpoints" in result
         assert "note" in result

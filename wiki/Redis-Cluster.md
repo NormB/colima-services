@@ -37,7 +37,7 @@
 
 ## Overview
 
-The colima-services environment includes a 3-node Redis cluster for distributed caching and data storage. This provides high availability, automatic sharding, and horizontal scalability.
+The devstack-core environment includes a 3-node Redis cluster for distributed caching and data storage. This provides high availability, automatic sharding, and horizontal scalability.
 
 **Cluster Configuration:**
 - 3 master nodes (no replicas in dev environment)
@@ -739,7 +739,7 @@ docker exec dev-redis-1 redis-cli CLUSTER FORGET <node-id>
 docker exec dev-redis-2 redis-cli CLUSTER MEET 172.20.0.13 6379
 
 # Or recreate cluster
-./manage-colima.sh restart
+./manage-devstack.sh restart
 ```
 
 ### Connection Issues

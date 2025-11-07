@@ -1,6 +1,6 @@
 # API Development Guide
 
-Building new APIs following reference patterns in Colima Services.
+Building new APIs following reference patterns in DevStack Core.
 
 ## Table of Contents
 
@@ -19,7 +19,7 @@ Building new APIs following reference patterns in Colima Services.
 
 ## Overview
 
-Colima Services includes 5 reference API implementations demonstrating best practices for building services that integrate with the infrastructure.
+DevStack Core includes 5 reference API implementations demonstrating best practices for building services that integrate with the infrastructure.
 
 **Reference APIs:**
 - **FastAPI (Code-First)**: Port 8000/8443

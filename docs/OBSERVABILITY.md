@@ -706,7 +706,7 @@ Update container metrics dashboards to:
 
 3. **Copy Binary to Custom Image:**
    ```bash
-   cp mysqld_exporter /Users/yourusername/colima-services/configs/exporters/mysql-custom/
+   cp mysqld_exporter /Users/yourusername/devstack-core/configs/exporters/mysql-custom/
    ```
 
 4. **Build Custom Docker Image:**
@@ -729,7 +729,7 @@ Update container metrics dashboards to:
 5. **Build and Test:**
    ```bash
    docker build -f Dockerfile.source -t dev-mysql-exporter:source .
-   docker run --rm --network colima-services_dev-services \
+   docker run --rm --network devstack-core_dev-services \
      -e DATA_SOURCE_NAME="user:pass@(mysql:3306)/" \
      dev-mysql-exporter:source
    ```

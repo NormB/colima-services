@@ -34,7 +34,7 @@
 
 ## Overview
 
-This document explains the **best practices** for running the 431 tests in the colima-services repository.
+This document explains the **best practices** for running the 431 tests in the devstack-core repository.
 
 ## Test Architecture
 
@@ -214,13 +214,13 @@ brew install uv
 ### Tests Fail
 ```bash
 # Check service health first
-./manage-colima.sh health
+./manage-devstack.sh health
 
 # Check specific container logs
 docker logs dev-reference-api
 
 # Restart infrastructure
-./manage-colima.sh restart
+./manage-devstack.sh restart
 ```
 
 ## Why Not Other Approaches?

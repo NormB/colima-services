@@ -112,7 +112,7 @@ psql -h localhost -p 5432 -U $POSTGRES_USER -d $POSTGRES_DB
 docker exec -it dev-postgres psql -U $POSTGRES_USER -d $POSTGRES_DB
 
 # Using management script
-./manage-colima.sh shell postgres
+./manage-devstack.sh shell postgres
 # Then: psql -U $POSTGRES_USER -d $POSTGRES_DB
 ```
 
@@ -133,7 +133,7 @@ docker exec dev-postgres pg_isready -U $POSTGRES_USER
 **Performance Tuning:**
 - Tuned for Git server workload (many small transactions)
 - Increased for dev workloads: adjust `max_connections`, `shared_buffers`
-- Monitor: `./manage-colima.sh status` shows CPU/memory usage
+- Monitor: `./manage-devstack.sh status` shows CPU/memory usage
 
 ### PgBouncer
 
@@ -322,7 +322,7 @@ curl http://localhost:8000/redis/nodes/redis-1/info
 **Common Operations:**
 ```bash
 # View logs
-./manage-colima.sh logs rabbitmq
+./manage-devstack.sh logs rabbitmq
 
 # Shell access
 docker exec -it dev-rabbitmq sh
@@ -458,8 +458,8 @@ vault kv put secret/myapp/config api_key=123456
 vault kv get secret/myapp/config
 
 # Use management script
-./manage-colima.sh vault-status
-./manage-colima.sh vault-token
+./manage-devstack.sh vault-status
+./manage-devstack.sh vault-token
 ```
 
 **Vault Workflow:**

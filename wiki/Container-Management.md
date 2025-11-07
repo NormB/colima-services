@@ -1,6 +1,6 @@
 # Container Management
 
-Comprehensive guide to Docker container operations in the Colima Services environment.
+Comprehensive guide to Docker container operations in the DevStack Core environment.
 
 ## Table of Contents
 
@@ -44,7 +44,7 @@ Comprehensive guide to Docker container operations in the Colima Services enviro
   - [Logging](#logging)
   - [Health Checks](#health-checks)
   - [Graceful Shutdown](#graceful-shutdown)
-- [Using manage-colima.sh](#using-manage-colimash)
+- [Using manage-devstack.sh](#using-manage-colimash)
   - [Start/Stop Operations](#startstop-operations)
   - [Status Monitoring](#status-monitoring)
   - [Log Management](#log-management)
@@ -58,10 +58,10 @@ Comprehensive guide to Docker container operations in the Colima Services enviro
 
 ## Overview
 
-The Colima Services environment uses Docker Compose to manage containers. All services run in the `dev-services` network with static IP addresses.
+The DevStack Core environment uses Docker Compose to manage containers. All services run in the `dev-services` network with static IP addresses.
 
 **Container Infrastructure:**
-- **Management**: Docker Compose + manage-colima.sh script
+- **Management**: Docker Compose + manage-devstack.sh script
 - **Network**: dev-services (172.20.0.0/16)
 - **Volume Storage**: Named Docker volumes
 - **Orchestration**: Dependencies managed via health checks
@@ -101,12 +101,12 @@ docker rm <container>
 docker compose down -v  # Include volumes
 
 # Using management script
-./manage-colima.sh start
-./manage-colima.sh stop
-./manage-colima.sh restart
-./manage-colima.sh status
-./manage-colima.sh logs <service>
-./manage-colima.sh shell <service>
+./manage-devstack.sh start
+./manage-devstack.sh stop
+./manage-devstack.sh restart
+./manage-devstack.sh status
+./manage-devstack.sh logs <service>
+./manage-devstack.sh shell <service>
 ```
 
 ## Container Lifecycle
@@ -143,7 +143,7 @@ docker compose pull
 docker compose up -d
 
 # Using management script
-./manage-colima.sh start  # Starts Colima VM + all services
+./manage-devstack.sh start  # Starts Colima VM + all services
 ```
 
 Start container with docker run:
@@ -196,7 +196,7 @@ docker compose down -v
 docker compose down --rmi all
 
 # Using management script
-./manage-colima.sh stop  # Stops all services + Colima VM
+./manage-devstack.sh stop  # Stops all services + Colima VM
 ```
 
 Stop container with docker:
@@ -235,7 +235,7 @@ docker compose down
 docker compose up -d --build
 
 # Using management script
-./manage-colima.sh restart  # Restarts services (VM stays running)
+./manage-devstack.sh restart  # Restarts services (VM stays running)
 ```
 
 Restart container with docker:
@@ -463,8 +463,8 @@ docker compose logs --tail 50 <service>  # Last 50 lines
 docker compose logs --since 10m  # Last 10 minutes
 
 # Using management script
-./manage-colima.sh logs  # All services
-./manage-colima.sh logs <service>  # Specific service
+./manage-devstack.sh logs  # All services
+./manage-devstack.sh logs <service>  # Specific service
 ```
 
 Filter logs:
@@ -587,10 +587,10 @@ docker compose exec <service> bash
 docker compose exec <service> sh
 
 # Using management script
-./manage-colima.sh shell <service>
-./manage-colima.sh shell postgres  # Opens psql shell
-./manage-colima.sh shell mysql     # Opens mysql shell
-./manage-colima.sh shell mongodb   # Opens mongosh shell
+./manage-devstack.sh shell <service>
+./manage-devstack.sh shell postgres  # Opens psql shell
+./manage-devstack.sh shell mysql     # Opens mysql shell
+./manage-devstack.sh shell mongodb   # Opens mongosh shell
 ```
 
 Database shells:
@@ -1282,24 +1282,24 @@ docker events --filter container=<container>
 # 5. Log shutdown process
 ```
 
-## Using manage-colima.sh
+## Using manage-devstack.sh
 
 ### Start/Stop Operations
 
 ```bash
 # Start entire environment
-./manage-colima.sh start
+./manage-devstack.sh start
 # - Starts Colima VM
 # - Starts all Docker Compose services
 # - Waits for health checks
 
 # Stop entire environment
-./manage-colima.sh stop
+./manage-devstack.sh stop
 # - Stops all services
 # - Stops Colima VM
 
 # Restart services (VM stays running)
-./manage-colima.sh restart
+./manage-devstack.sh restart
 # - Restarts Docker Compose services
 # - Faster than full stop/start
 ```
@@ -1308,7 +1308,7 @@ docker events --filter container=<container>
 
 ```bash
 # Check VM and service status
-./manage-colima.sh status
+./manage-devstack.sh status
 # Shows:
 # - Colima VM status
 # - Container status
@@ -1316,7 +1316,7 @@ docker events --filter container=<container>
 # - Uptime
 
 # Check health of all services
-./manage-colima.sh health
+./manage-devstack.sh health
 # Tests:
 # - Vault API
 # - PostgreSQL connection
@@ -1330,29 +1330,29 @@ docker events --filter container=<container>
 
 ```bash
 # View all service logs
-./manage-colima.sh logs
+./manage-devstack.sh logs
 
 # View specific service logs
-./manage-colima.sh logs postgres
-./manage-colima.sh logs vault
-./manage-colima.sh logs redis-1
+./manage-devstack.sh logs postgres
+./manage-devstack.sh logs vault
+./manage-devstack.sh logs redis-1
 
 # Follow logs (tail -f)
-./manage-colima.sh logs -f <service>
+./manage-devstack.sh logs -f <service>
 ```
 
 ### Shell Access
 
 ```bash
 # Open shell in service container
-./manage-colima.sh shell <service>
+./manage-devstack.sh shell <service>
 
 # Examples:
-./manage-colima.sh shell postgres  # Opens psql
-./manage-colima.sh shell mysql     # Opens mysql client
-./manage-colima.sh shell mongodb   # Opens mongosh
-./manage-colima.sh shell redis-1   # Opens redis-cli
-./manage-colima.sh shell vault     # Opens /bin/sh
+./manage-devstack.sh shell postgres  # Opens psql
+./manage-devstack.sh shell mysql     # Opens mysql client
+./manage-devstack.sh shell mongodb   # Opens mongosh
+./manage-devstack.sh shell redis-1   # Opens redis-cli
+./manage-devstack.sh shell vault     # Opens /bin/sh
 ```
 
 ## Docker Compose Operations
@@ -1406,7 +1406,7 @@ docker compose ps
 # Scale down
 docker compose up -d --scale redis-1=1
 
-# Note: Colima Services uses static IPs
+# Note: DevStack Core uses static IPs
 # Scaling requires network configuration changes
 ```
 
@@ -1499,12 +1499,12 @@ docker exec <container> <command>
 docker compose exec <service> <command>
 
 # Management Script
-./manage-colima.sh start
-./manage-colima.sh stop
-./manage-colima.sh restart
-./manage-colima.sh status
-./manage-colima.sh logs <service>
-./manage-colima.sh shell <service>
+./manage-devstack.sh start
+./manage-devstack.sh stop
+./manage-devstack.sh restart
+./manage-devstack.sh status
+./manage-devstack.sh logs <service>
+./manage-devstack.sh shell <service>
 
 # Troubleshooting
 docker logs <container>

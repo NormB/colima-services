@@ -73,7 +73,7 @@
 #   VAULT_TOKEN=hvs.CAESIJ... RABBITMQ_IP=192.168.1.14 ./init.sh rabbitmq-server
 #
 # AUTHORS:
-#   Colima Services Team
+#   DevStack Core Team
 #
 # VERSION:
 #   1.0.0

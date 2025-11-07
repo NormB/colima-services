@@ -77,7 +77,7 @@
 #   VAULT_TOKEN=hvs.CAESIJ... POSTGRES_IP=192.168.1.10 ./init.sh postgres
 #
 # AUTHORS:
-#   Colima Services Team
+#   DevStack Core Team
 #
 # VERSION:
 #   1.0.0

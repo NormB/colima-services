@@ -47,7 +47,7 @@ We take security vulnerabilities seriously. If you discover a security issue, pl
 ### 2. Report Privately
 
 Send a detailed report via **GitHub Security Advisories**:
-1. Go to the repository's [Security tab](https://github.com/NormB/colima-services/security)
+1. Go to the repository's [Security tab](https://github.com/NormB/devstack-core/security)
 2. Click "Report a vulnerability"
 3. Fill out the private vulnerability report form
 
@@ -108,7 +108,7 @@ openssl rand -base64 32
 **Initial Setup:**
 ```bash
 # Initialize Vault securely
-./manage-colima.sh vault-init
+./manage-devstack.sh vault-init
 
 # Store root token securely
 # NEVER commit vault-keys.json to git
@@ -171,7 +171,7 @@ docker compose pull
 docker scout cves [image-name]
 
 # Review container logs for suspicious activity
-./manage-colima.sh logs [service]
+./manage-devstack.sh logs [service]
 
 # Limit container resources to prevent DoS
 # (Already configured in docker-compose.yml)
@@ -182,7 +182,7 @@ docker scout cves [image-name]
 **Secure Your Backups:**
 ```bash
 # Create encrypted backups
-./manage-colima.sh backup
+./manage-devstack.sh backup
 
 # Encrypt backup files
 tar -czf - backups/ | openssl enc -aes-256-cbc -e > backups-encrypted.tar.gz.enc
@@ -318,7 +318,7 @@ brew upgrade colima
 brew upgrade docker docker-compose
 
 # Restart services
-./manage-colima.sh restart
+./manage-devstack.sh restart
 ```
 
 ## Security Tools
@@ -367,9 +367,9 @@ This repository includes GitHub Actions workflows for:
 ## Contact
 
 For security questions or concerns:
-- **Security Issues**: Use [GitHub Security Advisories](https://github.com/NormB/colima-services/security/advisories)
-- **General Questions**: Open a [GitHub Issue](https://github.com/NormB/colima-services/issues) with the "question" label
-- **Non-Security Bugs**: Open a [GitHub Issue](https://github.com/NormB/colima-services/issues)
+- **Security Issues**: Use [GitHub Security Advisories](https://github.com/NormB/devstack-core/security/advisories)
+- **General Questions**: Open a [GitHub Issue](https://github.com/NormB/devstack-core/issues) with the "question" label
+- **Non-Security Bugs**: Open a [GitHub Issue](https://github.com/NormB/devstack-core/issues)
 
 ## Acknowledgments
 

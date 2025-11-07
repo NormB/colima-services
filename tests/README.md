@@ -1,4 +1,4 @@
-# Colima Services Test Suite
+# DevStack Core Test Suite
 
 ## Table of Contents
 
@@ -241,7 +241,7 @@ Runs all 7 test suites and provides comprehensive summary.
 ## Continuous Testing
 
 Run tests after:
-- ✅ Initial setup (`./manage-colima.sh start`)
+- ✅ Initial setup (`./manage-devstack.sh start`)
 - ✅ Configuration changes
 - ✅ Certificate regeneration
 - ✅ Service restarts
@@ -295,7 +295,7 @@ curl http://localhost:8000/health/all
 **Database Tests Fail:**
 ```bash
 # Check Vault credentials
-./manage-colima.sh vault-show-password postgres
+./manage-devstack.sh vault-show-password postgres
 
 # Check container health
 docker ps

@@ -1,6 +1,6 @@
 # Wiki Setup Instructions
 
-This directory contains wiki content for the Colima Services GitHub repository.
+This directory contains wiki content for the DevStack Core GitHub repository.
 
 ## How to Upload to GitHub Wiki
 
@@ -10,13 +10,13 @@ GitHub wikis are **separate Git repositories**. Follow these steps to upload the
 
 ```bash
 # 1. Clone the wiki repository
-git clone https://github.com/NormB/colima-services.wiki.git
+git clone https://github.com/NormB/devstack-core.wiki.git
 
 # 2. Copy wiki files
-cp ~/colima-services/wiki/*.md colima-services.wiki/
+cp ~/devstack-core/wiki/*.md devstack-core.wiki/
 
 # 3. Commit and push
-cd colima-services.wiki/
+cd devstack-core.wiki/
 git add *.md
 git commit -m "Add comprehensive wiki documentation"
 git push origin master
@@ -24,7 +24,7 @@ git push origin master
 
 ### Method 2: Manual Upload via GitHub UI
 
-1. Go to https://github.com/NormB/colima-services/wiki
+1. Go to https://github.com/NormB/devstack-core/wiki
 2. Click "New Page" for each wiki page
 3. Copy content from each `.md` file
 4. Use the exact filename (without `.md`) as the page title
@@ -99,8 +99,8 @@ The wiki should be **supplementary** to the main repository documentation:
 
 ```bash
 # Update wiki
-cd colima-services.wiki/
-cp ~/colima-services/wiki/*.md .
+cd devstack-core.wiki/
+cp ~/devstack-core/wiki/*.md .
 git add *.md
 git commit -m "Update wiki documentation"
 git push origin master
@@ -118,7 +118,7 @@ git push origin master
 ```bash
 # If wiki doesn't exist yet, create first page via UI
 # Then clone will work
-git clone https://github.com/NormB/colima-services.wiki.git
+git clone https://github.com/NormB/devstack-core.wiki.git
 ```
 
 ### Links Not Working
@@ -148,15 +148,15 @@ If you have questions about the wiki:
 
 ```bash
 # Clone wiki
-git clone https://github.com/NormB/colima-services.wiki.git
+git clone https://github.com/NormB/devstack-core.wiki.git
 
 # Update wiki content
-cd colima-services.wiki/
-cp ~/colima-services/wiki/*.md .
+cd devstack-core.wiki/
+cp ~/devstack-core/wiki/*.md .
 git add *.md
 git commit -m "Update wiki"
 git push
 
 # View wiki
-open https://github.com/NormB/colima-services/wiki
+open https://github.com/NormB/devstack-core/wiki
 ```

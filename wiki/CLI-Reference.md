@@ -23,13 +23,13 @@
 
 ## Overview
 
-The `manage-colima.sh` script is the primary interface for managing the colima-services environment. This page documents all available commands and their usage.
+The `manage-devstack.sh` script is the primary interface for managing the devstack-core environment. This page documents all available commands and their usage.
 
-**Script Location:** `/Users/gator/colima-services/manage-colima.sh`
+**Script Location:** `/Users/gator/devstack-core/manage-devstack.sh`
 
 **Basic Usage:**
 ```bash
-./manage-colima.sh <command> [arguments]
+./manage-devstack.sh <command> [arguments]
 ```
 
 ## Start Command
@@ -37,7 +37,7 @@ The `manage-colima.sh` script is the primary interface for managing the colima-s
 **Start the entire environment (Colima VM + all services)**
 
 ```bash
-./manage-colima.sh start
+./manage-devstack.sh start
 ```
 
 **What it does:**
@@ -50,7 +50,7 @@ The `manage-colima.sh` script is the primary interface for managing the colima-s
 **Options:**
 ```bash
 # Start with custom Colima configuration
-COLIMA_CPU=8 COLIMA_MEM=16 COLIMA_DISK=100 ./manage-colima.sh start
+COLIMA_CPU=8 COLIMA_MEM=16 COLIMA_DISK=100 ./manage-devstack.sh start
 
 # Start specific services only
 docker compose up -d vault postgres redis-1
@@ -82,7 +82,7 @@ All services started successfully!
 **Stop all services and the Colima VM**
 
 ```bash
-./manage-colima.sh stop
+./manage-devstack.sh stop
 ```
 
 **What it does:**
@@ -123,7 +123,7 @@ Stopping Colima VM...
 **Restart all services (Colima VM stays running)**
 
 ```bash
-./manage-colima.sh restart
+./manage-devstack.sh restart
 ```
 
 **What it does:**
@@ -150,7 +150,7 @@ docker compose up -d --force-recreate
 **Display VM and service status with resource usage**
 
 ```bash
-./manage-colima.sh status
+./manage-devstack.sh status
 ```
 
 **Output:**
@@ -186,12 +186,12 @@ dev-reference-api   0.80%    78MB / 1GB            7.80%    2.5MB / 1.8MB     0B
 **Check health of all services**
 
 ```bash
-./manage-colima.sh health
+./manage-devstack.sh health
 ```
 
 **Output:**
 ```
-=== Colima Services Health Check ===
+=== DevStack Core Health Check ===
 
 Core Services:
 Vault:          ✓ healthy (unsealed)
@@ -229,28 +229,28 @@ Overall Status: ALL SERVICES HEALTHY ✓
 
 ```bash
 # All services
-./manage-colima.sh logs
+./manage-devstack.sh logs
 
 # Specific service
-./manage-colima.sh logs postgres
+./manage-devstack.sh logs postgres
 
 # Follow logs (tail -f)
-./manage-colima.sh logs vault -f
+./manage-devstack.sh logs vault -f
 
 # Last N lines
-./manage-colima.sh logs redis-1 --tail=100
+./manage-devstack.sh logs redis-1 --tail=100
 ```
 
 **Examples:**
 ```bash
 # View Vault logs
-./manage-colima.sh logs vault
+./manage-devstack.sh logs vault
 
 # Follow PostgreSQL logs
-./manage-colima.sh logs postgres -f
+./manage-devstack.sh logs postgres -f
 
 # View last 50 lines from MySQL
-./manage-colima.sh logs mysql --tail=50
+./manage-devstack.sh logs mysql --tail=50
 
 # Multiple services
 docker compose logs postgres mysql redis-1
@@ -261,19 +261,19 @@ docker compose logs postgres mysql redis-1
 **Open an interactive shell in a container**
 
 ```bash
-./manage-colima.sh shell <service>
+./manage-devstack.sh shell <service>
 ```
 
 **Examples:**
 ```bash
 # Shell into PostgreSQL container
-./manage-colima.sh shell postgres
+./manage-devstack.sh shell postgres
 
 # Shell into Vault container
-./manage-colima.sh shell vault
+./manage-devstack.sh shell vault
 
 # Shell into Redis node
-./manage-colima.sh shell redis-1
+./manage-devstack.sh shell redis-1
 ```
 
 **Inside container:**
@@ -299,7 +299,7 @@ $ redis-cli CLUSTER INFO
 **Initialize Vault (first-time setup only)**
 
 ```bash
-./manage-colima.sh vault-init
+./manage-devstack.sh vault-init
 ```
 
 **What it does:**
@@ -326,7 +326,7 @@ IMPORTANT: Backup these files immediately!
 **Set up PKI and store all service credentials**
 
 ```bash
-./manage-colima.sh vault-bootstrap
+./manage-devstack.sh vault-bootstrap
 ```
 
 **What it does:**
@@ -369,7 +369,7 @@ Bootstrap complete!
 **Check Vault seal status**
 
 ```bash
-./manage-colima.sh vault-status
+./manage-devstack.sh vault-status
 ```
 
 **Output (unsealed):**
@@ -396,7 +396,7 @@ Sealed          true
 Total Shares    5
 Threshold       3
 
-Vault is sealed. Run './manage-colima.sh vault-unseal' to unseal.
+Vault is sealed. Run './manage-devstack.sh vault-unseal' to unseal.
 ```
 
 ### vault-unseal
@@ -404,7 +404,7 @@ Vault is sealed. Run './manage-colima.sh vault-unseal' to unseal.
 **Manually unseal Vault**
 
 ```bash
-./manage-colima.sh vault-unseal
+./manage-devstack.sh vault-unseal
 ```
 
 **What it does:**
@@ -430,7 +430,7 @@ Unseal Progress    3/3
 **Display root token**
 
 ```bash
-./manage-colima.sh vault-token
+./manage-devstack.sh vault-token
 ```
 
 **Output:**
@@ -449,23 +449,23 @@ Or source the token file:
 **Get service password from Vault**
 
 ```bash
-./manage-colima.sh vault-show-password <service>
+./manage-devstack.sh vault-show-password <service>
 ```
 
 **Examples:**
 ```bash
 # PostgreSQL password
-./manage-colima.sh vault-show-password postgres
+./manage-devstack.sh vault-show-password postgres
 # Output: pg_s3cr3t_p4ssw0rd
 
 # MySQL password
-./manage-colima.sh vault-show-password mysql
+./manage-devstack.sh vault-show-password mysql
 
 # Redis password
-./manage-colima.sh vault-show-password redis-1
+./manage-devstack.sh vault-show-password redis-1
 
 # Use in scripts
-POSTGRES_PASSWORD=$(./manage-colima.sh vault-show-password postgres)
+POSTGRES_PASSWORD=$(./manage-devstack.sh vault-show-password postgres)
 psql "postgresql://devuser:$POSTGRES_PASSWORD@localhost/devdb"
 ```
 
@@ -474,19 +474,19 @@ psql "postgresql://devuser:$POSTGRES_PASSWORD@localhost/devdb"
 **Backup all databases and Vault data**
 
 ```bash
-./manage-colima.sh backup [name]
+./manage-devstack.sh backup [name]
 ```
 
 **Examples:**
 ```bash
 # Standard backup
-./manage-colima.sh backup
+./manage-devstack.sh backup
 
 # Named backup (e.g., pre-upgrade)
-./manage-colima.sh backup pre-upgrade
+./manage-devstack.sh backup pre-upgrade
 
 # Compressed backup
-COMPRESS=true ./manage-colima.sh backup
+COMPRESS=true ./manage-devstack.sh backup
 ```
 
 **What gets backed up:**
@@ -500,7 +500,7 @@ COMPRESS=true ./manage-colima.sh backup
 
 **Backup location:**
 ```
-~/colima-services/backups/
+~/devstack-core/backups/
 ├── 2024-01-15_14-30-00/
 │   ├── postgres_devdb.sql
 │   ├── mysql_devdb.sql
@@ -518,7 +518,7 @@ COMPRESS=true ./manage-colima.sh backup
 **Destroy and reset environment (DATA LOSS)**
 
 ```bash
-./manage-colima.sh reset
+./manage-devstack.sh reset
 ```
 
 **WARNING:** This command:
@@ -539,9 +539,9 @@ Removing Vault keys...
 Stopping Colima...
 
 Reset complete. To start fresh:
-  ./manage-colima.sh start
-  ./manage-colima.sh vault-init
-  ./manage-colima.sh vault-bootstrap
+  ./manage-devstack.sh start
+  ./manage-devstack.sh vault-init
+  ./manage-devstack.sh vault-bootstrap
 ```
 
 **Use when:**
@@ -553,10 +553,10 @@ Reset complete. To start fresh:
 **ALWAYS backup before reset!**
 ```bash
 # Backup first
-./manage-colima.sh backup pre-reset
+./manage-devstack.sh backup pre-reset
 
 # Then reset
-./manage-colima.sh reset
+./manage-devstack.sh reset
 ```
 
 ## Related Pages

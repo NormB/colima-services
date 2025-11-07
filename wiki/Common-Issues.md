@@ -1,6 +1,6 @@
 # Common Issues and Solutions
 
-Quick solutions to the most frequently encountered problems with Colima Services.
+Quick solutions to the most frequently encountered problems with DevStack Core.
 
 ## Table of Contents
 
@@ -31,7 +31,7 @@ colima restart
 docker ps
 
 # 4. View service logs
-./manage-colima.sh logs <service-name>
+./manage-devstack.sh logs <service-name>
 ```
 
 ### Vault is Sealed
@@ -42,14 +42,14 @@ docker ps
 
 ```bash
 # Check Vault status
-./manage-colima.sh vault-status
+./manage-devstack.sh vault-status
 
 # Vault auto-unseals, just restart it
 docker compose restart vault
 
 # Wait 30 seconds for unseal, then check again
 sleep 30
-./manage-colima.sh vault-status
+./manage-devstack.sh vault-status
 ```
 
 ### "depends_on" Services Won't Start
@@ -62,15 +62,15 @@ sleep 30
 
 ```bash
 # Check Vault logs
-./manage-colima.sh logs vault
+./manage-devstack.sh logs vault
 
 # Look for initialization or unseal issues
 # Vault must be unsealed for health check to pass
 
 # If Vault keys missing, reinitialize
 rm -rf ~/.config/vault/
-./manage-colima.sh vault-init
-./manage-colima.sh vault-bootstrap
+./manage-devstack.sh vault-init
+./manage-devstack.sh vault-bootstrap
 ```
 
 ## Vault Issues
@@ -83,7 +83,7 @@ rm -rf ~/.config/vault/
 
 ```bash
 # 1. Vault not initialized
-./manage-colima.sh vault-init
+./manage-devstack.sh vault-init
 
 # 2. Vault sealed
 docker compose restart vault
@@ -113,7 +113,7 @@ vault token lookup
 vault kv list secret/
 
 # 4. If empty, run bootstrap
-./manage-colima.sh vault-bootstrap
+./manage-devstack.sh vault-bootstrap
 ```
 
 ### Lost Vault Keys
@@ -130,10 +130,10 @@ cp ~/backup-vault/keys.json ~/.config/vault/
 docker compose restart vault
 
 # If no backup, complete reset (DATA LOSS)
-./manage-colima.sh reset
-./manage-colima.sh start
-./manage-colima.sh vault-init
-./manage-colima.sh vault-bootstrap
+./manage-devstack.sh reset
+./manage-devstack.sh start
+./manage-devstack.sh vault-init
+./manage-devstack.sh vault-bootstrap
 ```
 
 ## Database Issues
@@ -152,7 +152,7 @@ docker compose ps postgres
 docker compose ps --format json | jq '.[] | select(.Name=="dev-postgres")'
 
 # 3. Check logs for errors
-./manage-colima.sh logs postgres
+./manage-devstack.sh logs postgres
 
 # 4. Verify Vault credentials were fetched
 docker compose logs postgres | grep -i vault
@@ -169,7 +169,7 @@ docker compose restart postgres
 
 ```bash
 # 1. Get password from Vault
-./manage-colima.sh vault-show-password postgres
+./manage-devstack.sh vault-show-password postgres
 
 # 2. Try connecting with correct password
 export PGPASSWORD=$(vault kv get -field=password secret/postgres)
@@ -188,11 +188,11 @@ Same troubleshooting steps apply:
 
 ```bash
 # MySQL
-./manage-colima.sh vault-show-password mysql
+./manage-devstack.sh vault-show-password mysql
 docker compose restart mysql
 
 # MongoDB
-./manage-colima.sh vault-show-password mongodb
+./manage-devstack.sh vault-show-password mongodb
 docker compose restart mongodb
 ```
 
@@ -209,7 +209,7 @@ docker compose restart mongodb
 docker compose ps redis-1 redis-2 redis-3
 
 # 2. Check logs for errors
-./manage-colima.sh logs redis-1
+./manage-devstack.sh logs redis-1
 
 # 3. Recreate cluster
 docker compose restart redis-1 redis-2 redis-3
@@ -237,9 +237,9 @@ redis-cli cluster info | grep cluster_slots
 
 # If not, reinitialize cluster
 docker compose down redis-1 redis-2 redis-3
-docker volume rm colima-services_redis_1_data \
-                 colima-services_redis_2_data \
-                 colima-services_redis_3_data
+docker volume rm devstack-core_redis_1_data \
+                 devstack-core_redis_2_data \
+                 devstack-core_redis_3_data
 docker compose up -d redis-1 redis-2 redis-3
 ```
 
@@ -333,7 +333,7 @@ docker compose up -d
 **Solutions:**
 
 ```bash
-# 1. Increase Colima resources (edit manage-colima.sh line 42)
+# 1. Increase Colima resources (edit manage-devstack.sh line 42)
 # Change to: colima start --cpu 6 --memory 12 --disk 60
 
 # 2. Check disk space
@@ -344,7 +344,7 @@ docker system prune -a
 
 # 4. Restart Colima
 colima stop
-./manage-colima.sh start
+./manage-devstack.sh start
 ```
 
 ### High CPU/Memory Usage
@@ -459,9 +459,9 @@ docker images | grep "<none>" | awk '{print $3}' | xargs docker rmi
 
 ```bash
 # All-in-one diagnostic
-./manage-colima.sh status
-./manage-colima.sh health
-./manage-colima.sh vault-status
+./manage-devstack.sh status
+./manage-devstack.sh health
+./manage-devstack.sh vault-status
 docker compose ps
 ```
 
@@ -491,9 +491,9 @@ docker exec reference-api sh -c '
 
 If none of these solutions work:
 
-1. **Check full logs:** `./manage-colima.sh logs > debug.log`
-2. **Review documentation:** [docs/TROUBLESHOOTING.md](https://github.com/NormB/colima-services/blob/main/docs/TROUBLESHOOTING.md)
-3. **Search issues:** [GitHub Issues](https://github.com/NormB/colima-services/issues)
+1. **Check full logs:** `./manage-devstack.sh logs > debug.log`
+2. **Review documentation:** [docs/TROUBLESHOOTING.md](https://github.com/NormB/devstack-core/blob/main/docs/TROUBLESHOOTING.md)
+3. **Search issues:** [GitHub Issues](https://github.com/NormB/devstack-core/issues)
 4. **Open new issue:** Include:
    - macOS version
    - Colima version (`colima version`)

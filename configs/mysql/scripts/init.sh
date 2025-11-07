@@ -73,7 +73,7 @@
 #   VAULT_TOKEN=hvs.CAESIJ... MYSQL_IP=192.168.1.12 ./init.sh mysqld
 #
 # AUTHORS:
-#   Colima Services Team
+#   DevStack Core Team
 #
 # VERSION:
 #   1.0.0

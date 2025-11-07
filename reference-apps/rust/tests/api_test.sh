@@ -13,7 +13,7 @@ echo "================================"
 # Test root endpoint
 echo -n "GET / (API info)... "
 RESPONSE=$(curl -s "${BASE_URL}/")
-if echo "$RESPONSE" | grep -q "Colima Services Rust Reference API"; then
+if echo "$RESPONSE" | grep -q "DevStack Core Rust Reference API"; then
     echo "✓ PASSED"
 else
     echo "✗ FAILED"

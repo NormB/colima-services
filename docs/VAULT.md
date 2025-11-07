@@ -87,7 +87,7 @@ exec docker-entrypoint.sh postgres
 
 ```bash
 # Via management script
-./manage-colima.sh vault-show-password postgres
+./manage-devstack.sh vault-show-password postgres
 
 # Via Vault CLI
 export VAULT_ADDR=http://localhost:8200
@@ -292,26 +292,26 @@ mongosh "mongodb://$MONGO_USER:$MONGO_PASS@localhost:27017/dev_database"
 
 ```bash
 # Initialize Vault (first time only)
-./manage-colima.sh vault-init
+./manage-devstack.sh vault-init
 
 # Check Vault status
-./manage-colima.sh vault-status
+./manage-devstack.sh vault-status
 
 # Get root token
-./manage-colima.sh vault-token
+./manage-devstack.sh vault-token
 
 # Unseal Vault manually (if needed)
-./manage-colima.sh vault-unseal
+./manage-devstack.sh vault-unseal
 
 # Bootstrap PKI and service credentials
-./manage-colima.sh vault-bootstrap
+./manage-devstack.sh vault-bootstrap
 
 # Export CA certificates
-./manage-colima.sh vault-ca-cert
+./manage-devstack.sh vault-ca-cert
 
 # Show service password
-./manage-colima.sh vault-show-password postgres
-./manage-colima.sh vault-show-password mysql
+./manage-devstack.sh vault-show-password postgres
+./manage-devstack.sh vault-show-password mysql
 ```
 
 **Vault Bootstrap Process:**
@@ -410,7 +410,7 @@ with urllib.request.urlopen(req) as response:
 
 **When Credentials Are Loaded:**
 
-The `manage-colima.sh` script automatically loads credentials during startup:
+The `manage-devstack.sh` script automatically loads credentials during startup:
 
 1. Start Vault container
 2. Wait 5 seconds for Vault to be ready
@@ -469,7 +469,7 @@ entrypoint: >
 ```bash
 ./configs/vault/scripts/vault-init.sh
 # Or
-./manage-colima.sh vault-init
+./manage-devstack.sh vault-init
 ```
 
 **What Happens:**
@@ -527,7 +527,7 @@ while true; do sleep 3600; done
 
 **Check Vault Status:**
 ```bash
-./manage-colima.sh vault-status
+./manage-devstack.sh vault-status
 
 # Or directly
 export VAULT_ADDR=http://localhost:8200
@@ -537,7 +537,7 @@ vault status
 
 **Manually Unseal:**
 ```bash
-./manage-colima.sh vault-unseal
+./manage-devstack.sh vault-unseal
 
 # Or using vault CLI
 vault operator unseal  # Repeat 3 times with different keys
@@ -630,7 +630,7 @@ echo "Vault: $VAULT_ADDR"
 # Check Vault is unsealed
 if ! vault status > /dev/null 2>&1; then
   echo "❌ Error: Vault is not accessible or is sealed"
-  echo "Run: ./manage-colima.sh vault-unseal"
+  echo "Run: ./manage-devstack.sh vault-unseal"
   exit 1
 fi
 
@@ -657,7 +657,7 @@ done
 
 echo ""
 echo "🔄 Restarting services to load new certificates..."
-./manage-colima.sh restart
+./manage-devstack.sh restart
 
 echo ""
 echo "✅ Certificate renewal complete!"
@@ -687,7 +687,7 @@ cp -r ~/.config/vault/certs ~/.config/vault/certs-backup-$(date +%Y%m%d)
 ./scripts/generate-certificates.sh
 
 # 4. Restart services
-./manage-colima.sh restart
+./manage-devstack.sh restart
 
 # 5. Verify new certificates
 for service in postgres mysql redis-1; do
@@ -713,7 +713,7 @@ vault read pki_int/ca/pem | openssl x509 -noout -enddate
 
 # 3. Generate new intermediate CSR
 vault write -format=json pki_int/intermediate/generate/internal \
-  common_name="Colima Services Intermediate CA v2" \
+  common_name="DevStack Core Intermediate CA v2" \
   ttl="43800h" \
   key_type="rsa" \
   key_bits="4096" > pki_int_csr_v2.json
@@ -738,10 +738,10 @@ vault read pki_int/ca/pem | openssl x509 -noout -text | grep "Not After"
 ./scripts/generate-certificates.sh
 
 # 8. Restart all services
-./manage-colima.sh restart
+./manage-devstack.sh restart
 
 # 9. Verify everything works
-./manage-colima.sh health
+./manage-devstack.sh health
 ```
 
 **Post-Renewal Verification:**
@@ -755,7 +755,7 @@ vault write pki_int/issue/postgres-role \
   ttl=1h
 
 # Verify service health
-./manage-colima.sh health
+./manage-devstack.sh health
 ```
 
 ### Root CA Renewal
@@ -789,7 +789,7 @@ See [DISASTER_RECOVERY.md](DISASTER_RECOVERY.md) - "Vault Data Loss" section.
 ```bash
 # Add to crontab: crontab -e
 # Check certificate expiration daily at 9 AM
-0 9 * * * /Users/gator/colima-services/scripts/check-cert-expiry.sh 2>&1 | mail -s "Certificate Expiry Report" admin@example.com
+0 9 * * * /Users/gator/devstack-core/scripts/check-cert-expiry.sh 2>&1 | mail -s "Certificate Expiry Report" admin@example.com
 ```
 
 **Monitoring Script:** `scripts/check-cert-expiry.sh`
@@ -943,7 +943,7 @@ vault read pki_int/crl
 6. **Verify After Renewal:**
    - Check certificate dates with `openssl x509`
    - Verify services restart successfully
-   - Run health checks: `./manage-colima.sh health`
+   - Run health checks: `./manage-devstack.sh health`
    - Test TLS connections to services
 
 ### Troubleshooting Certificate Issues
@@ -989,7 +989,7 @@ openssl verify -verbose -CAfile ~/.config/vault/ca/ca.pem \
 vault list pki_int/roles
 
 # If missing, re-run vault-bootstrap
-./manage-colima.sh vault-bootstrap
+./manage-devstack.sh vault-bootstrap
 
 # Check intermediate CA is configured
 vault read pki_int/cert/ca
@@ -1009,8 +1009,8 @@ vault read pki_int/cert/ca
 - [ ] Backup `~/.config/vault/` directory
 - [ ] Run `renew-certificates.sh` script
 - [ ] Verify new certificate dates
-- [ ] Restart services: `./manage-colima.sh restart`
-- [ ] Verify services healthy: `./manage-colima.sh health`
+- [ ] Restart services: `./manage-devstack.sh restart`
+- [ ] Verify services healthy: `./manage-devstack.sh health`
 - [ ] Test TLS connections
 - [ ] Monitor service logs for TLS errors
 

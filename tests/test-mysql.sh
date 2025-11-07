@@ -61,7 +61,7 @@
 #   ./test-mysql.sh
 #
 #   # Run tests after starting services
-#   ../manage-colima.sh start mysql
+#   ../manage-devstack.sh start mysql
 #   ./test-mysql.sh
 #
 #   # Test with TLS enabled

@@ -14,8 +14,8 @@ import (
 	"go.mongodb.org/mongo-driver/mongo"
 	"go.mongodb.org/mongo-driver/mongo/options"
 
-	"github.com/normbrandinger/colima-services/reference-apps/golang/internal/config"
-	"github.com/normbrandinger/colima-services/reference-apps/golang/internal/services"
+	"github.com/normbrandinger/devstack-core/reference-apps/golang/internal/config"
+	"github.com/normbrandinger/devstack-core/reference-apps/golang/internal/services"
 )
 
 // DatabaseHandler handles database-related endpoints

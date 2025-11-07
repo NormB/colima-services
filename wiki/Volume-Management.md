@@ -1,6 +1,6 @@
 # Volume Management
 
-Comprehensive guide to Docker volume management and data persistence in the Colima Services environment.
+Comprehensive guide to Docker volume management and data persistence in the DevStack Core environment.
 
 ## Table of Contents
 
@@ -60,7 +60,7 @@ Comprehensive guide to Docker volume management and data persistence in the Coli
 
 ## Overview
 
-Docker volumes provide persistent data storage for containers. In Colima Services, volumes store all database data, configurations, and state.
+Docker volumes provide persistent data storage for containers. In DevStack Core, volumes store all database data, configurations, and state.
 
 **Volume Infrastructure:**
 - **Type**: Named Docker volumes (managed by Docker)
@@ -490,7 +490,7 @@ Complete backup script:
 
 set -euo pipefail
 
-BACKUP_DIR="/Users/gator/colima-services/backups"
+BACKUP_DIR="/Users/gator/devstack-core/backups"
 DATE=$(date +%Y%m%d_%H%M%S)
 RETENTION_DAYS=7
 
@@ -565,10 +565,10 @@ Schedule with cron:
 crontab -e
 
 # Add daily backup at 2 AM
-0 2 * * * /Users/gator/colima-services/comprehensive-backup.sh >> /Users/gator/colima-services/backups/backup.log 2>&1
+0 2 * * * /Users/gator/devstack-core/comprehensive-backup.sh >> /Users/gator/devstack-core/backups/backup.log 2>&1
 
 # Add weekly backup on Sunday at 3 AM
-0 3 * * 0 /Users/gator/colima-services/comprehensive-backup.sh >> /Users/gator/colima-services/backups/backup-weekly.log 2>&1
+0 3 * * 0 /Users/gator/devstack-core/comprehensive-backup.sh >> /Users/gator/devstack-core/backups/backup-weekly.log 2>&1
 ```
 
 ## Volume Restore
@@ -659,7 +659,7 @@ docker exec vault rm /tmp/vault-snapshot
 cp -r backups/vault/keys_20240115_120000 ~/.config/vault
 
 # Unseal Vault
-./manage-colima.sh vault-unseal
+./manage-devstack.sh vault-unseal
 
 # Verify
 docker exec vault vault status
@@ -1200,7 +1200,7 @@ chmod 600 backups/*.tar.gz
 chown $USER:$USER backups/*.tar.gz
 
 # Store backups off-site
-rsync -avz backups/ backup-server:/backups/colima-services/
+rsync -avz backups/ backup-server:/backups/devstack-core/
 
 # Verify backup integrity
 sha256sum postgres-data.tar.gz > postgres-data.tar.gz.sha256

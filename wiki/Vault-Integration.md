@@ -21,7 +21,7 @@ Comprehensive guide to HashiCorp Vault integration for secrets management, PKI i
 
 ## Overview
 
-HashiCorp Vault provides **centralized secrets management** and **Public Key Infrastructure (PKI)** for the entire Colima Services infrastructure. Instead of hardcoded passwords in `.env` files, all services fetch credentials from Vault at startup.
+HashiCorp Vault provides **centralized secrets management** and **Public Key Infrastructure (PKI)** for the entire DevStack Core infrastructure. Instead of hardcoded passwords in `.env` files, all services fetch credentials from Vault at startup.
 
 ### Key Benefits
 
@@ -106,12 +106,12 @@ Vault implements a **two-tier Public Key Infrastructure** for certificate manage
 
 ```
 Root CA (pki)
-├── Common Name: Colima Services Root CA
+├── Common Name: DevStack Core Root CA
 ├── Validity: 10 years (87600h)
 ├── Key Type: RSA 2048
 ├── Usage: CA, Certificate Signing
 └── Intermediate CA (pki_int)
-    ├── Common Name: Colima Services Intermediate CA
+    ├── Common Name: DevStack Core Intermediate CA
     ├── Validity: 5 years (43800h)
     ├── Key Type: RSA 2048
     ├── Signed by: Root CA
@@ -277,7 +277,7 @@ graph TD
 
 ```bash
 # 1. Ensure Vault is bootstrapped
-./manage-colima.sh vault-bootstrap
+./manage-devstack.sh vault-bootstrap
 
 # 2. Generate all certificates
 VAULT_ADDR=http://localhost:8200 \
@@ -423,7 +423,7 @@ This starts **two processes**:
 
 ```bash
 # Initialize Vault (creates keys and root token)
-./manage-colima.sh vault-init
+./manage-devstack.sh vault-init
 
 # Output:
 Unseal Key 1: K7k9mL2nP5qR8sT1vW4xY6zA...
@@ -687,7 +687,7 @@ $ curl http://localhost:8200/v1/sys/health
 docker restart dev-vault
 
 # Or manual unseal
-./manage-colima.sh vault-unseal
+./manage-devstack.sh vault-unseal
 ```
 
 ### Permission Denied
@@ -721,7 +721,7 @@ No value found at secret/data/postgres
 **Solution:**
 ```bash
 # Run Vault bootstrap to populate secrets
-./manage-colima.sh vault-bootstrap
+./manage-devstack.sh vault-bootstrap
 ```
 
 ### Service Can't Reach Vault
