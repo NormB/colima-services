@@ -1,6 +1,6 @@
 # Architecture Overview
 
-Comprehensive overview of the Colima Services system architecture, design principles, and component interactions.
+Comprehensive overview of the DevStack Core system architecture, design principles, and component interactions.
 
 ## Table of Contents
 
@@ -310,7 +310,7 @@ Vector     → Vector metrics → Prometheus
 
 ### 1. Colima VM Initialization
 ```
-manage-colima.sh start
+manage-devstack.sh start
     ↓
 colima start (4 CPU, 8GB RAM, 60GB disk)
     ↓
@@ -339,7 +339,7 @@ Docker Engine ready
 ### 3. Vault Bootstrap (First Time Only)
 
 ```
-manage-colima.sh vault-bootstrap
+manage-devstack.sh vault-bootstrap
     ↓
 1. Create Root CA
 2. Create Intermediate CA
@@ -363,7 +363,7 @@ manage-colima.sh vault-bootstrap
 - **Reproducible** - Same setup across machines
 
 ### 3. Developer Experience
-- **One command start** - `./manage-colima.sh start`
+- **One command start** - `./manage-devstack.sh start`
 - **Auto-unseal** - No manual Vault unlocking
 - **Health checks** - Automatic dependency management
 - **Observability** - Built-in metrics and logs

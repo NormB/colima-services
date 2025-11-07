@@ -48,7 +48,7 @@
 
 ## Overview
 
-Vault is the critical foundation of the colima-services environment. All services depend on Vault for credentials and certificates. This page provides troubleshooting guidance for common Vault issues.
+Vault is the critical foundation of the devstack-core environment. All services depend on Vault for credentials and certificates. This page provides troubleshooting guidance for common Vault issues.
 
 **Critical Understanding:**
 - Without Vault unsealed, no other services can start
@@ -87,7 +87,7 @@ vault status
 **Using management script:**
 
 ```bash
-./manage-colima.sh vault-unseal
+./manage-devstack.sh vault-unseal
 ```
 
 ### Check Unseal Keys
@@ -200,7 +200,7 @@ aws s3 ls s3://my-backups/vault/
 gsutil ls gs://my-backups/vault/
 
 # Project backups
-ls -la ~/colima-services/backups/*/vault/
+ls -la ~/devstack-core/backups/*/vault/
 ```
 
 ### Prevention Strategies
@@ -209,7 +209,7 @@ ls -la ~/colima-services/backups/*/vault/
 
 ```bash
 # After vault-init
-./manage-colima.sh vault-init
+./manage-devstack.sh vault-init
 
 # IMMEDIATELY backup keys
 mkdir -p ~/vault-backup-CRITICAL-$(date +%Y%m%d)
@@ -272,7 +272,7 @@ crontab -e
 docker compose down
 
 # Remove Vault data
-docker volume rm colima-services_vault-data
+docker volume rm devstack-core_vault-data
 
 # Start Vault
 docker compose up -d vault
@@ -281,16 +281,16 @@ docker compose up -d vault
 sleep 10
 
 # Initialize Vault
-./manage-colima.sh vault-init
+./manage-devstack.sh vault-init
 
 # IMMEDIATELY backup new keys
 cp -r ~/.config/vault/ ~/vault-backup-NEW-$(date +%Y%m%d)/
 
 # Bootstrap Vault with new credentials
-./manage-colima.sh vault-bootstrap
+./manage-devstack.sh vault-bootstrap
 
 # Restart all services
-./manage-colima.sh start
+./manage-devstack.sh start
 ```
 
 ## Services Can't Reach Vault
@@ -339,7 +339,7 @@ docker inspect dev-postgres | jq '.[0].NetworkSettings.Networks["dev-services"].
 
 ```bash
 # Via management script
-./manage-colima.sh vault-status
+./manage-devstack.sh vault-status
 
 # Via API
 curl -s http://localhost:8200/v1/sys/health | jq
@@ -392,7 +392,7 @@ vault secrets list
 # pki_int/  pki
 
 # If missing, run bootstrap
-./manage-colima.sh vault-bootstrap
+./manage-devstack.sh vault-bootstrap
 ```
 
 ### Expired Certificates
@@ -536,10 +536,10 @@ vault token revoke hvs.CAESIJ...
 
 ```bash
 # Stop all services
-./manage-colima.sh stop
+./manage-devstack.sh stop
 
 # Remove Vault data and keys
-docker volume rm colima-services_vault-data
+docker volume rm devstack-core_vault-data
 rm -rf ~/.config/vault/*
 
 # Start Vault
@@ -549,7 +549,7 @@ docker compose up -d vault
 sleep 10
 
 # Initialize
-./manage-colima.sh vault-init
+./manage-devstack.sh vault-init
 
 # Verify keys created
 ls -la ~/.config/vault/keys.json
@@ -559,10 +559,10 @@ ls -la ~/.config/vault/root-token
 cp -r ~/.config/vault/ ~/vault-backup-$(date +%Y%m%d)/
 
 # Bootstrap (create PKI, store credentials)
-./manage-colima.sh vault-bootstrap
+./manage-devstack.sh vault-bootstrap
 
 # Start services
-./manage-colima.sh start
+./manage-devstack.sh start
 ```
 
 ### Data Loss Warning
@@ -592,7 +592,7 @@ docker cp dev-vault:/tmp/vault-snapshot.snap ./vault-snapshot-$(date +%Y%m%d).sn
 
 1. **Bootstrap Vault:**
    ```bash
-   ./manage-colima.sh vault-bootstrap
+   ./manage-devstack.sh vault-bootstrap
    ```
 
 2. **Verify secrets:**
@@ -608,12 +608,12 @@ docker cp dev-vault:/tmp/vault-snapshot.snap ./vault-snapshot-$(date +%Y%m%d).sn
 
 4. **Restart all services:**
    ```bash
-   ./manage-colima.sh restart
+   ./manage-devstack.sh restart
    ```
 
 5. **Verify health:**
    ```bash
-   ./manage-colima.sh health
+   ./manage-devstack.sh health
    ```
 
 6. **Run tests:**
@@ -633,7 +633,7 @@ Error: Vault is sealed
 
 ```bash
 # Unseal Vault
-./manage-colima.sh vault-unseal
+./manage-devstack.sh vault-unseal
 
 # Or manually
 vault operator unseal $(jq -r '.unseal_keys_b64[0]' < ~/.config/vault/keys.json)
@@ -720,7 +720,7 @@ vault secrets list
 vault secrets enable -path=secret kv-v2
 
 # Or re-run bootstrap
-./manage-colima.sh vault-bootstrap
+./manage-devstack.sh vault-bootstrap
 ```
 
 ## Vault Health Check Failures
@@ -779,7 +779,7 @@ docker exec dev-vault ls -la /vault/data
 docker exec dev-vault cat /vault-keys/keys.json
 
 # Check for storage issues
-docker volume inspect colima-services_vault-data
+docker volume inspect devstack-core_vault-data
 ```
 
 ## Debugging Vault Integration

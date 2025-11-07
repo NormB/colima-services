@@ -48,9 +48,9 @@ Related to # (issue)
 ### Test Cases
 <!-- Mark completed tests with an 'x' -->
 
-- [ ] Clean installation test (`./manage-colima.sh clean && ./manage-colima.sh start`)
+- [ ] Clean installation test (`./manage-devstack.sh clean && ./manage-devstack.sh start`)
 - [ ] All services start successfully
-- [ ] Health checks pass (`./manage-colima.sh health`)
+- [ ] Health checks pass (`./manage-devstack.sh health`)
 - [ ] Vault initialization works
 - [ ] Vault bootstrap works
 - [ ] Tested affected services individually

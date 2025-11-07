@@ -214,7 +214,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - PostgreSQL metrics collection via Vector
 - MongoDB metrics collection via Vector
 - MySQL metrics exporter capabilities
-- Comprehensive management script (manage-colima.sh) with 20+ commands
+- Comprehensive management script (manage-devstack.sh) with 20+ commands
 - Automated health checks for all services
 - Custom network configuration with static IP assignments
 - Volume persistence for all stateful services
@@ -260,7 +260,7 @@ When releasing a new version, move changes from [Unreleased] to a new version se
 - PostgreSQL 15 with SSL/TLS support
 - HashiCorp Vault integration with auto-unseal
 - Redis cluster with 6 nodes (3 primary, 3 replica)
-- Comprehensive management script (manage-colima.sh)
+- Comprehensive management script (manage-devstack.sh)
 - Automated Vault PKI bootstrapping
 - Health check system for all services
 - FastAPI reference application with SSL/TLS
@@ -320,10 +320,10 @@ For breaking changes, consider adding a migration guide:
 - Redis cluster configuration format updated
 
 **Migration Steps:**
-1. Backup your data: `./manage-colima.sh backup`
+1. Backup your data: `./manage-devstack.sh backup`
 2. Update your .env file with new configuration
-3. Restart services: `./manage-colima.sh restart`
-4. Verify: `./manage-colima.sh health`
+3. Restart services: `./manage-devstack.sh restart`
+4. Verify: `./manage-devstack.sh health`
 ```
 
 ---

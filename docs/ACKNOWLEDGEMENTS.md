@@ -413,7 +413,7 @@ We would like to extend special thanks to:
 
 ## License Information
 
-This project (Colima Services) is released under the **MIT License**. However, please note that the individual software components acknowledged above are distributed under their respective licenses. Users and contributors should review and comply with the licenses of all dependencies.
+This project (DevStack Core) is released under the **MIT License**. However, please note that the individual software components acknowledged above are distributed under their respective licenses. Users and contributors should review and comply with the licenses of all dependencies.
 
 For license details of specific dependencies, please refer to their respective project repositories and documentation.
 
@@ -426,4 +426,4 @@ If you use this project and wish to acknowledge additional software or libraries
 ---
 
 **Last Updated**: October 28, 2025
-**Repository**: https://github.com/NormB/colima-services
+**Repository**: https://github.com/NormB/devstack-core

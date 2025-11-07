@@ -18,7 +18,7 @@
 
 ## Overview
 
-This document provides comprehensive disaster recovery procedures for the Colima Services infrastructure. It covers complete environment loss, partial failures, data corruption, and network issues.
+This document provides comprehensive disaster recovery procedures for the DevStack Core infrastructure. It covers complete environment loss, partial failures, data corruption, and network issues.
 
 **Recovery Objectives:**
 - **RTO (Recovery Time Objective):** 30 minutes
@@ -39,7 +39,7 @@ Before disaster strikes, ensure you have:
 
 - [ ] **Vault keys backed up** - `~/.config/vault/keys.json`
 - [ ] **Vault root token backed up** - `~/.config/vault/root-token`
-- [ ] **Database backups** - Run `./manage-colima.sh backup` regularly
+- [ ] **Database backups** - Run `./manage-devstack.sh backup` regularly
 - [ ] **Configuration files** - `.env`, `docker-compose.yml`
 - [ ] **Service configs** - All files in `configs/*/`
 - [ ] **Certificates** - `~/.config/vault/certs/` and `~/.config/vault/ca/`
@@ -48,14 +48,14 @@ Before disaster strikes, ensure you have:
 **Backup Checklist:**
 ```bash
 # Create comprehensive backup
-BACKUP_DIR=~/colima-services-backup-$(date +%Y%m%d)
+BACKUP_DIR=~/devstack-core-backup-$(date +%Y%m%d)
 mkdir -p $BACKUP_DIR
 
 # Vault data (CRITICAL)
 cp -r ~/.config/vault $BACKUP_DIR/
 
 # Databases
-./manage-colima.sh backup
+./manage-devstack.sh backup
 cp -r backups/ $BACKUP_DIR/
 
 # Configuration
@@ -97,14 +97,14 @@ ls -lh $BACKUP_DIR/
 
 ```bash
 # Check for backups
-ls -lh ~/colima-services-backup-*/
+ls -lh ~/devstack-core-backup-*/
 
 # Verify Vault keys exist
-cat ~/colima-services-backup-*/vault/keys.json
-cat ~/colima-services-backup-*/vault/root-token
+cat ~/devstack-core-backup-*/vault/keys.json
+cat ~/devstack-core-backup-*/vault/root-token
 
 # Verify database backups
-ls -lh ~/colima-services-backup-*/backups/
+ls -lh ~/devstack-core-backup-*/backups/
 ```
 
 #### 2. Reinstall Colima (5 minutes)
@@ -125,13 +125,13 @@ docker ps
 
 ```bash
 # If repository is intact, just update configs
-cd colima-services
+cd devstack-core
 
 # Restore .env from backup
-cp ~/colima-services-backup-latest/.env .env
+cp ~/devstack-core-backup-latest/.env .env
 
 # Restore service configs if needed
-cp -r ~/colima-services-backup-latest/configs/* configs/
+cp -r ~/devstack-core-backup-latest/configs/* configs/
 
 # Verify
 cat .env | head -20
@@ -144,14 +144,14 @@ cat .env | head -20
 mkdir -p ~/.config/vault
 
 # Restore Vault keys and token
-cp ~/colima-services-backup-latest/vault/keys.json ~/.config/vault/
-cp ~/colima-services-backup-latest/vault/root-token ~/.config/vault/
+cp ~/devstack-core-backup-latest/vault/keys.json ~/.config/vault/
+cp ~/devstack-core-backup-latest/vault/root-token ~/.config/vault/
 
 # Restore CA certificates
-cp -r ~/colima-services-backup-latest/vault/ca ~/.config/vault/
+cp -r ~/devstack-core-backup-latest/vault/ca ~/.config/vault/
 
 # Restore service certificates
-cp -r ~/colima-services-backup-latest/vault/certs ~/.config/vault/
+cp -r ~/devstack-core-backup-latest/vault/certs ~/.config/vault/
 
 # Verify
 cat ~/.config/vault/root-token
@@ -162,7 +162,7 @@ ls ~/.config/vault/certs/
 
 ```bash
 # Start all services
-./manage-colima.sh start
+./manage-devstack.sh start
 
 # This will:
 # - Start Vault first
@@ -201,7 +201,7 @@ docker exec postgres psql -U dev_admin -d dev_database -c "\dt"
 
 # Restore from backup
 docker exec -i postgres psql -U dev_admin -d dev_database < \
-  ~/colima-services-backup-latest/backups/postgres_backup_*.sql
+  ~/devstack-core-backup-latest/backups/postgres_backup_*.sql
 
 # Verify restoration
 docker exec postgres psql -U dev_admin -d dev_database -c "\dt"
@@ -215,7 +215,7 @@ MYSQL_PASS=$(vault kv get -field=password secret/mysql)
 
 # Restore from backup
 docker exec -i mysql mysql -u dev_admin -p$MYSQL_PASS dev_database < \
-  ~/colima-services-backup-latest/backups/mysql_backup_*.sql
+  ~/devstack-core-backup-latest/backups/mysql_backup_*.sql
 
 # Verify
 docker exec mysql mysql -u dev_admin -p$MYSQL_PASS dev_database -e "SHOW TABLES;"
@@ -227,7 +227,7 @@ docker exec mysql mysql -u dev_admin -p$MYSQL_PASS dev_database -e "SHOW TABLES;
 MONGO_PASS=$(vault kv get -field=password secret/mongodb)
 
 # Copy backup into container
-docker cp ~/colima-services-backup-latest/backups/mongodb \
+docker cp ~/devstack-core-backup-latest/backups/mongodb \
   mongodb:/tmp/mongodb_restore
 
 # Restore
@@ -247,7 +247,7 @@ docker exec mongodb mongosh \
 
 ```bash
 # Check service health
-./manage-colima.sh health
+./manage-devstack.sh health
 
 # Expected output: All services should be "healthy"
 # If any service is unhealthy, check logs:
@@ -298,7 +298,7 @@ open http://localhost:3000
 
 ```bash
 # Immediately after initial setup, backup Vault keys
-./manage-colima.sh vault-init
+./manage-devstack.sh vault-init
 
 # Backup keys to multiple locations
 cp -r ~/.config/vault ~/Dropbox/vault-backup-$(date +%Y%m%d)
@@ -316,10 +316,10 @@ cat ~/Dropbox/vault-backup-*/root-token
 docker compose stop vault
 
 # 2. Remove corrupted data
-docker volume rm colima-services_vault-data
+docker volume rm devstack-core_vault-data
 
 # 3. Recreate volume
-docker volume create colima-services_vault-data
+docker volume create devstack-core_vault-data
 
 # 4. Restore Vault keys
 cp ~/vault-backup-*/keys.json ~/.config/vault/
@@ -332,10 +332,10 @@ docker compose start vault
 vault status
 
 # 7. Re-bootstrap secrets
-./manage-colima.sh vault-bootstrap
+./manage-devstack.sh vault-bootstrap
 
 # 8. Restart all services to pick up new credentials
-./manage-colima.sh restart
+./manage-devstack.sh restart
 ```
 
 ### Recovery If Keys Are LOST
@@ -344,29 +344,29 @@ vault status
 
 ```bash
 # 1. Stop everything
-./manage-colima.sh stop
+./manage-devstack.sh stop
 
 # 2. Remove Vault data
-docker volume rm colima-services_vault-data
+docker volume rm devstack-core_vault-data
 rm -rf ~/.config/vault
 
 # 3. Start infrastructure
-./manage-colima.sh start
+./manage-devstack.sh start
 
 # 4. Initialize new Vault
-./manage-colima.sh vault-init
+./manage-devstack.sh vault-init
 
 # NEW keys and token will be generated
 
 # 5. Bootstrap new secrets
-./manage-colima.sh vault-bootstrap
+./manage-devstack.sh vault-bootstrap
 
 # 6. Regenerate certificates
 export VAULT_TOKEN=$(cat ~/.config/vault/root-token)
 ./scripts/generate-certificates.sh
 
 # 7. Restart all services
-./manage-colima.sh restart
+./manage-devstack.sh restart
 
 # 8. MANUALLY UPDATE:
 # - All applications using Vault credentials
@@ -393,14 +393,14 @@ export VAULT_TOKEN=$(cat ~/.config/vault/root-token)
 docker compose stop postgres
 
 # 2. Backup current state (even if corrupted)
-docker run --rm -v colima-services_postgres-data:/data -v $(pwd):/backup \
+docker run --rm -v devstack-core_postgres-data:/data -v $(pwd):/backup \
   alpine tar czf /backup/postgres-corrupted-$(date +%Y%m%d-%H%M%S).tar.gz /data
 
 # 3. Remove corrupted volume
-docker volume rm colima-services_postgres-data
+docker volume rm devstack-core_postgres-data
 
 # 4. Recreate volume
-docker volume create colima-services_postgres-data
+docker volume create devstack-core_postgres-data
 
 # 5. Start PostgreSQL (will create fresh database)
 docker compose start postgres
@@ -431,11 +431,11 @@ docker exec postgres psql -U dev_admin -d dev_database -c "VACUUM ANALYZE;"
 docker compose stop mysql
 
 # 2. Backup corrupted state
-docker run --rm -v colima-services_mysql-data:/data -v $(pwd):/backup \
+docker run --rm -v devstack-core_mysql-data:/data -v $(pwd):/backup \
   alpine tar czf /backup/mysql-corrupted-$(date +%Y%m%d-%H%M%S).tar.gz /data
 
 # 3. Remove volume
-docker volume rm colima-services_mysql-data
+docker volume rm devstack-core_mysql-data
 
 # 4. Start MySQL
 docker compose start mysql
@@ -458,11 +458,11 @@ docker exec mysql mysql -u dev_admin -p$MYSQL_PASS dev_database -e \
 docker compose stop mongodb
 
 # 2. Backup corrupted state
-docker run --rm -v colima-services_mongodb-data:/data -v $(pwd):/backup \
+docker run --rm -v devstack-core_mongodb-data:/data -v $(pwd):/backup \
   alpine tar czf /backup/mongodb-corrupted-$(date +%Y%m%d-%H%M%S).tar.gz /data
 
 # 3. Remove volume
-docker volume rm colima-services_mongodb-data
+docker volume rm devstack-core_mongodb-data
 
 # 4. Start MongoDB
 docker compose start mongodb
@@ -496,13 +496,13 @@ docker network ls | grep dev-services
 # If missing:
 
 # 1. Stop all services
-./manage-colima.sh stop
+./manage-devstack.sh stop
 
 # 2. Recreate network
 docker network create --driver bridge --subnet 172.20.0.0/16 dev-services
 
 # 3. Restart services
-./manage-colima.sh start
+./manage-devstack.sh start
 
 # 4. Verify connectivity
 docker exec reference-api ping -c 3 vault
@@ -535,7 +535,7 @@ lsof -i :3306  # MySQL
 kill -9 <PID>
 
 # Then restart
-./manage-colima.sh restart
+./manage-devstack.sh restart
 ```
 
 ---
@@ -566,7 +566,7 @@ docker exec redis-1 redis-cli -a $(vault kv get -field=password secret/redis-1) 
 
 # Reset cluster
 docker compose stop redis-1 redis-2 redis-3
-docker volume rm colima-services_redis-1-data colima-services_redis-2-data colima-services_redis-3-data
+docker volume rm devstack-core_redis-1-data devstack-core_redis-2-data devstack-core_redis-3-data
 docker compose up -d redis-1 redis-2 redis-3
 
 # Reinitialize cluster
@@ -585,7 +585,7 @@ docker compose logs rabbitmq
 
 # Reset RabbitMQ
 docker compose stop rabbitmq
-docker volume rm colima-services_rabbitmq-data
+docker volume rm devstack-core_rabbitmq-data
 docker compose start rabbitmq
 
 # Recreate vhost and user
@@ -608,7 +608,7 @@ docker exec rabbitmq rabbitmqctl set_permissions -p dev_vhost dev_admin ".*" ".*
 
 set -e
 
-BACKUP_ROOT=~/colima-services-backups
+BACKUP_ROOT=~/devstack-core-backups
 BACKUP_DIR=$BACKUP_ROOT/$(date +%Y%m%d-%H%M%S)
 
 echo "Starting backup to $BACKUP_DIR"
@@ -621,8 +621,8 @@ cp -r ~/.config/vault $BACKUP_DIR/
 
 # 2. Databases
 echo "Backing up databases..."
-cd ~/colima-services
-./manage-colima.sh backup
+cd ~/devstack-core
+./manage-devstack.sh backup
 cp -r backups/ $BACKUP_DIR/
 
 # 3. Configuration
@@ -634,7 +634,7 @@ cp -r configs/ $BACKUP_DIR/
 # 4. Create tarball
 echo "Creating compressed archive..."
 cd $BACKUP_ROOT
-tar czf colima-services-backup-$(date +%Y%m%d).tar.gz $(date +%Y%m%d-*)/
+tar czf devstack-core-backup-$(date +%Y%m%d).tar.gz $(date +%Y%m%d-*)/
 
 # 5. Retention: keep last 7 daily backups
 echo "Cleaning old backups..."
@@ -646,7 +646,7 @@ BACKUP_SIZE=$(du -sh $BACKUP_DIR | cut -f1)
 echo "Backup complete: $BACKUP_SIZE"
 
 # Optional: Copy to remote location
-# rsync -avz $BACKUP_ROOT/ user@backup-server:/backups/colima-services/
+# rsync -avz $BACKUP_ROOT/ user@backup-server:/backups/devstack-core/
 ```
 
 **Install cron job:**
@@ -657,14 +657,14 @@ chmod +x scripts/automated-backup.sh
 # Add to crontab (daily at 2 AM)
 crontab -e
 # Add line:
-0 2 * * * /Users/gator/colima-services/scripts/automated-backup.sh >> /Users/gator/colima-backup.log 2>&1
+0 2 * * * /Users/gator/devstack-core/scripts/automated-backup.sh >> /Users/gator/colima-backup.log 2>&1
 ```
 
 ### Manual Backup
 
 ```bash
 # Quick backup before making changes
-./manage-colima.sh backup
+./manage-devstack.sh backup
 
 # Full backup including configs
 ./scripts/automated-backup.sh
@@ -678,20 +678,20 @@ crontab -e
 
 ```bash
 # 1. Create test backup
-./manage-colima.sh backup
+./manage-devstack.sh backup
 cp -r ~/.config/vault ~/vault-test-backup
 
 # 2. Stop environment
-./manage-colima.sh stop
+./manage-devstack.sh stop
 
 # 3. Simulate data loss
-docker volume rm colima-services_postgres-data
+docker volume rm devstack-core_postgres-data
 
 # 4. Follow recovery procedures
 # (see "Database Corruption" section)
 
 # 5. Verify recovery
-./manage-colima.sh health
+./manage-devstack.sh health
 curl http://localhost:8000/health/all
 
 # 6. Document any issues found
@@ -728,7 +728,7 @@ After any disaster recovery, verify:
 # Post-recovery verification
 
 echo "=== Service Health ==="
-./manage-colima.sh health
+./manage-devstack.sh health
 
 echo "\n=== API Health Check ==="
 curl -s http://localhost:8000/health/all | jq '.services | to_entries[] | "\(.key): \(.value.status)"'
@@ -754,7 +754,7 @@ echo "\n=== Verification Complete ==="
 | Role | Contact | Availability |
 |------|---------|--------------|
 | Infrastructure Owner | [Your Name/Email] | 24/7 |
-| Backup System | ~/colima-services-backups | Local |
+| Backup System | ~/devstack-core-backups | Local |
 | Off-site Backup | [Cloud storage location] | Always |
 | Documentation | docs/DISASTER_RECOVERY.md | Always |
 

@@ -39,7 +39,7 @@
 
 ## Overview
 
-The colima-services environment includes comprehensive health monitoring and observability features to ensure all services are running correctly and performing optimally.
+The devstack-core environment includes comprehensive health monitoring and observability features to ensure all services are running correctly and performing optimally.
 
 **Monitoring Components:**
 - Docker health checks with automatic restart policies
@@ -135,8 +135,8 @@ Start Attempt
 docker compose up -d && docker compose logs -f
 
 # Check specific service startup
-./manage-colima.sh logs vault
-./manage-colima.sh logs postgres
+./manage-devstack.sh logs vault
+./manage-devstack.sh logs postgres
 ```
 
 ## Health Command
@@ -147,16 +147,16 @@ The management script provides a comprehensive health check command:
 
 ```bash
 # Check health of all services
-./manage-colima.sh health
+./manage-devstack.sh health
 
 # Check status (includes resource usage)
-./manage-colima.sh status
+./manage-devstack.sh status
 ```
 
 **Sample Output:**
 
 ```
-=== Colima Services Health Check ===
+=== DevStack Core Health Check ===
 
 Vault:          healthy (unsealed)
 PostgreSQL:     healthy
@@ -193,7 +193,7 @@ Overall Status: ALL SERVICES HEALTHY
 
 ```bash
 # View service logs
-./manage-colima.sh logs <service>
+./manage-devstack.sh logs <service>
 
 # Check container details
 docker inspect <service> | jq '.[0].State.Health'
@@ -211,21 +211,21 @@ Create a monitoring script to check health periodically:
 ```bash
 #!/bin/bash
 
-LOGFILE="/var/log/colima-services-health.log"
+LOGFILE="/var/log/devstack-core-health.log"
 ALERT_EMAIL="admin@example.com"
 
 check_health() {
-  ./manage-colima.sh health > /tmp/health-check.txt
+  ./manage-devstack.sh health > /tmp/health-check.txt
 
   if grep -q "unhealthy" /tmp/health-check.txt; then
     echo "$(date): UNHEALTHY SERVICES DETECTED" >> $LOGFILE
     cat /tmp/health-check.txt >> $LOGFILE
 
     # Send alert (requires mail configured)
-    mail -s "Colima Services Alert: Unhealthy Services" $ALERT_EMAIL < /tmp/health-check.txt
+    mail -s "DevStack Core Alert: Unhealthy Services" $ALERT_EMAIL < /tmp/health-check.txt
 
     # Attempt automatic recovery
-    ./manage-colima.sh restart
+    ./manage-devstack.sh restart
   else
     echo "$(date): All services healthy" >> $LOGFILE
   fi
@@ -241,7 +241,7 @@ check_health
 crontab -e
 
 # Check health every 5 minutes
-*/5 * * * * /path/to/colima-services/scripts/monitor-health.sh
+*/5 * * * * /path/to/devstack-core/scripts/monitor-health.sh
 ```
 
 ## Prometheus Monitoring
@@ -678,7 +678,7 @@ redis-1:
 
 ```bash
 # Check cluster status
-docker exec dev-redis-1 redis-cli -a $(./manage-colima.sh vault-show-password redis-1) cluster info
+docker exec dev-redis-1 redis-cli -a $(./manage-devstack.sh vault-show-password redis-1) cluster info
 
 # Expected output:
 # cluster_state:ok
@@ -781,7 +781,7 @@ async def get_data():
 
 ```bash
 # Check recent logs
-./manage-colima.sh logs <service> | tail -50
+./manage-devstack.sh logs <service> | tail -50
 
 # Check health check command
 docker inspect <service> | jq '.[0].State.Health'
@@ -797,7 +797,7 @@ docker exec <service> <health-check-command>
 docker exec <service> curl -v http://vault:8200/v1/sys/health
 
 # Check Vault is unsealed
-./manage-colima.sh vault-status
+./manage-devstack.sh vault-status
 
 # Check network connectivity
 docker exec <service> ping vault
@@ -824,7 +824,7 @@ docker compose ps
 **Step 2: Review Logs**
 
 ```bash
-./manage-colima.sh logs <service>
+./manage-devstack.sh logs <service>
 
 # Look for:
 # - Startup errors
@@ -879,27 +879,27 @@ docker compose up -d --force-recreate <service>
 **Full Environment Restart:**
 
 ```bash
-./manage-colima.sh restart
+./manage-devstack.sh restart
 ```
 
 **Reset and Rebuild:**
 
 ```bash
 # WARNING: This deletes all data
-./manage-colima.sh reset
-./manage-colima.sh start
-./manage-colima.sh vault-init
-./manage-colima.sh vault-bootstrap
+./manage-devstack.sh reset
+./manage-devstack.sh start
+./manage-devstack.sh vault-init
+./manage-devstack.sh vault-bootstrap
 ```
 
 **Check After Recovery:**
 
 ```bash
 # Verify service is healthy
-./manage-colima.sh health
+./manage-devstack.sh health
 
 # Check logs for errors
-./manage-colima.sh logs <service>
+./manage-devstack.sh logs <service>
 
 # Run service-specific tests
 ./tests/test-<service>.sh

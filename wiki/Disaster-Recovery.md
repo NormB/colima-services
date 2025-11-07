@@ -1,6 +1,6 @@
 # Disaster Recovery
 
-Comprehensive guide to disaster recovery procedures, backup strategies, and restoration processes for the Colima Services environment.
+Comprehensive guide to disaster recovery procedures, backup strategies, and restoration processes for the DevStack Core environment.
 
 ## Table of Contents
 
@@ -64,7 +64,7 @@ Comprehensive guide to disaster recovery procedures, backup strategies, and rest
 
 ## Overview
 
-Disaster recovery (DR) is the process of restoring services and data after a catastrophic failure. This guide provides step-by-step procedures for recovering from various disaster scenarios in the Colima Services environment.
+Disaster recovery (DR) is the process of restoring services and data after a catastrophic failure. This guide provides step-by-step procedures for recovering from various disaster scenarios in the DevStack Core environment.
 
 **Key Principles:**
 - **Backup everything:** Databases, Vault keys, configurations, volumes
@@ -85,7 +85,7 @@ Disaster recovery (DR) is the process of restoring services and data after a cat
 
 **RTO:** Maximum acceptable time to restore service after disaster.
 
-**Colima Services RTO Targets:**
+**DevStack Core RTO Targets:**
 
 | Service | RTO Target | Justification |
 |---------|-----------|---------------|
@@ -102,7 +102,7 @@ Disaster recovery (DR) is the process of restoring services and data after a cat
 
 **RPO:** Maximum acceptable data loss (time between backups).
 
-**Colima Services RPO Targets:**
+**DevStack Core RPO Targets:**
 
 | Data Type | RPO Target | Backup Frequency |
 |-----------|-----------|------------------|
@@ -225,11 +225,11 @@ DELETE FROM orders;
 
 ```bash
 #!/bin/bash
-# Save as: /Users/gator/colima-services/scripts/automated-backup.sh
+# Save as: /Users/gator/devstack-core/scripts/automated-backup.sh
 
 set -e
 
-BACKUP_ROOT="/Users/gator/colima-services/backups"
+BACKUP_ROOT="/Users/gator/devstack-core/backups"
 DATE=$(date +%Y%m%d_%H%M%S)
 BACKUP_DIR="$BACKUP_ROOT/$DATE"
 
@@ -277,9 +277,9 @@ docker run --rm -v mongodb_data:/data -v "$BACKUP_DIR:/backup" alpine tar czf /b
 
 # Backup configuration files
 echo "Backing up configurations..."
-cp -r /Users/gator/colima-services/configs "$BACKUP_DIR/"
-cp /Users/gator/colima-services/.env "$BACKUP_DIR/"
-cp /Users/gator/colima-services/docker-compose.yml "$BACKUP_DIR/"
+cp -r /Users/gator/devstack-core/configs "$BACKUP_DIR/"
+cp /Users/gator/devstack-core/.env "$BACKUP_DIR/"
+cp /Users/gator/devstack-core/docker-compose.yml "$BACKUP_DIR/"
 
 # Create backup manifest
 cat > "$BACKUP_DIR/MANIFEST.txt" << EOF
@@ -312,11 +312,11 @@ echo "Backup size: $(du -h $BACKUP_ROOT/backup_$DATE.tar.gz | cut -f1)"
 **Make script executable and schedule:**
 
 ```bash
-chmod +x /Users/gator/colima-services/scripts/automated-backup.sh
+chmod +x /Users/gator/devstack-core/scripts/automated-backup.sh
 
 # Add to crontab (daily at 2 AM)
 crontab -e
-# Add: 0 2 * * * /Users/gator/colima-services/scripts/automated-backup.sh >> ~/backup.log 2>&1
+# Add: 0 2 * * * /Users/gator/devstack-core/scripts/automated-backup.sh >> ~/backup.log 2>&1
 ```
 
 ### Offsite Storage
@@ -326,13 +326,13 @@ crontab -e
 ```bash
 # Sync to external drive
 EXTERNAL_DRIVE="/Volumes/BackupDrive"
-rsync -av --delete /Users/gator/colima-services/backups/ "$EXTERNAL_DRIVE/colima-backups/"
+rsync -av --delete /Users/gator/devstack-core/backups/ "$EXTERNAL_DRIVE/colima-backups/"
 
 # Or sync to cloud storage (AWS S3 example)
-aws s3 sync /Users/gator/colima-services/backups/ s3://my-backup-bucket/colima-backups/
+aws s3 sync /Users/gator/devstack-core/backups/ s3://my-backup-bucket/colima-backups/
 
 # Or sync to remote server
-rsync -av -e ssh /Users/gator/colima-services/backups/ user@backup-server:/backups/colima/
+rsync -av -e ssh /Users/gator/devstack-core/backups/ user@backup-server:/backups/colima/
 ```
 
 ### Backup Verification
@@ -341,9 +341,9 @@ rsync -av -e ssh /Users/gator/colima-services/backups/ user@backup-server:/backu
 
 ```bash
 #!/bin/bash
-# Save as: /Users/gator/colima-services/scripts/verify-backups.sh
+# Save as: /Users/gator/devstack-core/scripts/verify-backups.sh
 
-BACKUP_FILE="/Users/gator/colima-services/backups/backup_$(date +%Y%m%d)_*.tar.gz"
+BACKUP_FILE="/Users/gator/devstack-core/backups/backup_$(date +%Y%m%d)_*.tar.gz"
 
 echo "=== Backup Verification ==="
 
@@ -422,9 +422,9 @@ Example:
 
 ```bash
 #!/bin/bash
-# Save as: /Users/gator/colima-services/scripts/backup-retention.sh
+# Save as: /Users/gator/devstack-core/scripts/backup-retention.sh
 
-BACKUP_DIR="/Users/gator/colima-services/backups"
+BACKUP_DIR="/Users/gator/devstack-core/backups"
 
 # Keep daily backups for 7 days
 find "$BACKUP_DIR" -name "backup_*.tar.gz" -mtime +7 -type f -delete
@@ -451,7 +451,7 @@ echo "Backup retention policy applied"
 echo "=== PostgreSQL Restore Procedure ==="
 
 # 1. Identify backup file
-BACKUP_FILE="/Users/gator/colima-services/backups/backup_20241027_020000.tar.gz"
+BACKUP_FILE="/Users/gator/devstack-core/backups/backup_20241027_020000.tar.gz"
 TEMP_DIR=$(mktemp -d)
 
 # 2. Extract backup
@@ -515,7 +515,7 @@ rm -rf "$TEMP_DIR"
 #!/bin/bash
 # Restore single database (forgejo example)
 
-BACKUP_FILE="/Users/gator/colima-services/backups/backup_20241027_020000.tar.gz"
+BACKUP_FILE="/Users/gator/devstack-core/backups/backup_20241027_020000.tar.gz"
 DATABASE="forgejo"
 
 # Extract backup
@@ -547,7 +547,7 @@ rm -rf "$TEMP_DIR"
 
 echo "=== MySQL Restore Procedure ==="
 
-BACKUP_FILE="/Users/gator/colima-services/backups/backup_20241027_020000.tar.gz"
+BACKUP_FILE="/Users/gator/devstack-core/backups/backup_20241027_020000.tar.gz"
 TEMP_DIR=$(mktemp -d)
 
 # Extract backup
@@ -584,7 +584,7 @@ rm -rf "$TEMP_DIR"
 
 echo "=== MongoDB Restore Procedure ==="
 
-BACKUP_FILE="/Users/gator/colima-services/backups/backup_20241027_020000.tar.gz"
+BACKUP_FILE="/Users/gator/devstack-core/backups/backup_20241027_020000.tar.gz"
 TEMP_DIR=$(mktemp -d)
 
 # Extract backup
@@ -729,10 +729,10 @@ docker compose up -d vault
 sleep 10
 
 # Initialize Vault
-./manage-colima.sh vault-init
+./manage-devstack.sh vault-init
 
 # Bootstrap Vault (PKI, secrets)
-./manage-colima.sh vault-bootstrap
+./manage-devstack.sh vault-bootstrap
 
 # Restore secrets from backup (if available)
 export VAULT_ADDR=http://localhost:8200
@@ -765,7 +765,7 @@ echo "=== Vault Re-initialization Complete ==="
 export VAULT_ADDR=http://localhost:8200
 export VAULT_TOKEN=$(cat ~/.config/vault/root-token)
 
-BACKUP_DIR="/Users/gator/colima-services/backups/20241027_020000/vault"
+BACKUP_DIR="/Users/gator/devstack-core/backups/20241027_020000/vault"
 
 # Restore each secret
 for SECRET_FILE in "$BACKUP_DIR"/secrets_*.json; do
@@ -799,7 +799,7 @@ docker start dev-vault
 sleep 10
 
 # Unseal Vault if needed
-./manage-colima.sh vault-status
+./manage-devstack.sh vault-status
 # If sealed: ./scripts/unseal-vault.sh
 
 # 2. Start databases
@@ -922,7 +922,7 @@ echo "Scenario: Complete data loss"
 # 1. Document current state
 echo "1. Documenting current state..."
 docker ps > /tmp/dr-drill-services-before.txt
-./manage-colima.sh health > /tmp/dr-drill-health-before.txt
+./manage-devstack.sh health > /tmp/dr-drill-health-before.txt
 
 # 2. Create test data
 echo "2. Creating test data..."
@@ -954,7 +954,7 @@ docker exec dev-postgres psql -U postgres -c "SELECT * FROM dr_drill_test ORDER 
 # 7. Document results
 echo "7. Documenting results..."
 docker ps > /tmp/dr-drill-services-after.txt
-./manage-colima.sh health > /tmp/dr-drill-health-after.txt
+./manage-devstack.sh health > /tmp/dr-drill-health-after.txt
 
 echo "=== DR Drill Complete ==="
 echo "Review: Compare /tmp/dr-drill-*.txt files"
@@ -993,7 +993,7 @@ echo "Review: Compare /tmp/dr-drill-*.txt files"
 
 ```bash
 # Example: Restore only "forgejo" database
-BACKUP_FILE="/Users/gator/colima-services/backups/backup_20241027_020000.tar.gz"
+BACKUP_FILE="/Users/gator/devstack-core/backups/backup_20241027_020000.tar.gz"
 
 # Extract backup
 tar xzf "$BACKUP_FILE" -C /tmp
@@ -1162,7 +1162,7 @@ curl http://localhost:8000/api/rabbitmq/publish
 
 **Status updates:**
 ```
-Subject: [INCIDENT] Colima Services - PostgreSQL Data Loss
+Subject: [INCIDENT] DevStack Core - PostgreSQL Data Loss
 
 Status: RECOVERING
 Time: 2024-10-28 14:30 UTC
@@ -1335,7 +1335,7 @@ mysqlbinlog --stop-datetime="2024-10-28 14:00:00" mysql-bin.000001 | mysql -u ro
 #!/bin/bash
 # Monitor backup health
 
-BACKUP_DIR="/Users/gator/colima-services/backups"
+BACKUP_DIR="/Users/gator/devstack-core/backups"
 LATEST_BACKUP=$(ls -t "$BACKUP_DIR"/backup_*.tar.gz | head -1)
 
 # Check if backup exists today
@@ -1368,7 +1368,7 @@ echo "✓ Backup health OK"
 
 ```bash
 # Add to crontab (check every hour)
-0 * * * * /Users/gator/colima-services/scripts/check-backup-health.sh || echo "Backup health check failed" | mail -s "ALERT: Backup Issue" admin@example.com
+0 * * * * /Users/gator/devstack-core/scripts/check-backup-health.sh || echo "Backup health check failed" | mail -s "ALERT: Backup Issue" admin@example.com
 ```
 
 ### Redundancy Strategies
@@ -1397,7 +1397,7 @@ echo "✓ Backup health OK"
 echo "=== Complete System Recovery ==="
 echo "This will rebuild the entire environment from backups"
 
-BACKUP_FILE="/Users/gator/colima-services/backups/backup_20241027_020000.tar.gz"
+BACKUP_FILE="/Users/gator/devstack-core/backups/backup_20241027_020000.tar.gz"
 
 # 1. Extract backup
 echo "Step 1: Extracting backup..."
@@ -1407,7 +1407,7 @@ BACKUP_DIR=$(find "$TEMP_DIR" -type d -name "202*" | head -1)
 
 # 2. Stop and remove all containers/volumes
 echo "Step 2: Cleaning environment..."
-cd /Users/gator/colima-services
+cd /Users/gator/devstack-core
 docker compose down -v
 
 # 3. Restore Vault keys
@@ -1417,9 +1417,9 @@ cp -r "$BACKUP_DIR/vault" ~/.config/
 
 # 4. Restore configurations
 echo "Step 4: Restoring configurations..."
-cp -r "$BACKUP_DIR/configs/"* /Users/gator/colima-services/configs/
-cp "$BACKUP_DIR/.env" /Users/gator/colima-services/
-cp "$BACKUP_DIR/docker-compose.yml" /Users/gator/colima-services/
+cp -r "$BACKUP_DIR/configs/"* /Users/gator/devstack-core/configs/
+cp "$BACKUP_DIR/.env" /Users/gator/devstack-core/
+cp "$BACKUP_DIR/docker-compose.yml" /Users/gator/devstack-core/
 
 # 5. Start Vault
 echo "Step 5: Starting Vault..."
@@ -1428,7 +1428,7 @@ sleep 15
 
 # 6. Unseal Vault
 echo "Step 6: Unsealing Vault..."
-./manage-colima.sh vault-status
+./manage-devstack.sh vault-status
 # Vault should auto-unseal using restored keys
 
 # 7. Start databases
@@ -1459,7 +1459,7 @@ sleep 30
 
 # 13. Verify recovery
 echo "Step 13: Verifying recovery..."
-./manage-colima.sh health
+./manage-devstack.sh health
 
 # 14. Run tests
 echo "Step 14: Running tests..."
@@ -1486,7 +1486,7 @@ rm -rf "$TEMP_DIR"
 ### DR Scripts Location
 
 ```
-/Users/gator/colima-services/scripts/
+/Users/gator/devstack-core/scripts/
 ├── automated-backup.sh              # Daily automated backup
 ├── verify-backups.sh                # Backup verification
 ├── backup-retention.sh              # Retention policy
@@ -1518,7 +1518,7 @@ Escalation: CTO
 ### Backup Locations
 
 ```
-Primary: /Users/gator/colima-services/backups/
+Primary: /Users/gator/devstack-core/backups/
 Secondary: /Volumes/BackupDrive/colima-backups/
 Offsite: s3://my-backup-bucket/colima-backups/
 Vault Keys: ~/.config/vault/ (CRITICAL - always backup)

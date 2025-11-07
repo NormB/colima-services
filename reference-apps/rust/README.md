@@ -72,7 +72,7 @@ curl http://localhost:8004/health/vault
 ```bash
 cd reference-apps/rust
 cargo build --release
-./target/release/colima-services-rust-api
+./target/release/devstack-core-rust-api
 ```
 
 ## Note

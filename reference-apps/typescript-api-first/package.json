@@ -1,5 +1,5 @@
 {
-  "name": "colima-services-typescript-api-first",
+  "name": "devstack-core-typescript-api-first",
   "version": "1.0.0",
   "description": "TypeScript API-First reference implementation using OpenAPI code generation",
   "main": "dist/index.js",
@@ -11,7 +11,7 @@
     "generate": "openapi-generator-cli generate -i ../shared/openapi.yaml -g typescript-express-server -o ./generated"
   },
   "keywords": ["typescript", "openapi", "api-first", "vault", "microservices"],
-  "author": "Colima Services Team",
+  "author": "DevStack Core Team",
   "license": "MIT",
   "dependencies": {
     "express": "^5.1.0",

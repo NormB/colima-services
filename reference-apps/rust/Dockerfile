@@ -29,7 +29,7 @@ WORKDIR /app
 RUN apk --no-cache add wget ca-certificates libgcc
 
 # Copy binary
-COPY --from=builder /app/target/release/colima-services-rust-api .
+COPY --from=builder /app/target/release/devstack-core-rust-api .
 
 # Create non-root user and set ownership
 RUN addgroup -g 1001 -S appgroup && \
@@ -47,4 +47,4 @@ HEALTHCHECK --interval=30s --timeout=10s --retries=3 \
   CMD wget --no-verbose --tries=1 --spider http://localhost:8004/health/ || exit 1
 
 # Run
-CMD ["./colima-services-rust-api"]
+CMD ["./devstack-core-rust-api"]

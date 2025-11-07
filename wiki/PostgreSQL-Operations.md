@@ -1,6 +1,6 @@
 # PostgreSQL Operations
 
-Comprehensive guide to PostgreSQL database operations, performance tuning, and troubleshooting in the Colima Services environment.
+Comprehensive guide to PostgreSQL database operations, performance tuning, and troubleshooting in the DevStack Core environment.
 
 ## Table of Contents
 
@@ -58,7 +58,7 @@ Comprehensive guide to PostgreSQL database operations, performance tuning, and t
 
 ## Overview
 
-PostgreSQL is the primary relational database in the Colima Services environment, running in the `dev-postgres` container at `172.20.0.10:5432`. This guide covers essential operational procedures, performance optimization, and troubleshooting.
+PostgreSQL is the primary relational database in the DevStack Core environment, running in the `dev-postgres` container at `172.20.0.10:5432`. This guide covers essential operational procedures, performance optimization, and troubleshooting.
 
 **Key Information:**
 - **Container Name:** `dev-postgres`
@@ -91,7 +91,7 @@ docker exec -it dev-postgres psql -U postgres
 docker exec -it dev-postgres psql -U postgres -d myapp
 
 # Connect with Vault credentials
-export POSTGRES_PASSWORD=$(./manage-colima.sh vault-show-password postgres)
+export POSTGRES_PASSWORD=$(./manage-devstack.sh vault-show-password postgres)
 docker exec -e PGPASSWORD=$POSTGRES_PASSWORD -it dev-postgres psql -U postgres
 ```
 
@@ -1369,9 +1369,9 @@ docker exec dev-postgres pg_dump -U postgres myapp > myapp_backup.sql
 
 ```bash
 #!/bin/bash
-# Save as: /Users/gator/colima-services/scripts/backup-postgres.sh
+# Save as: /Users/gator/devstack-core/scripts/backup-postgres.sh
 
-BACKUP_DIR="/Users/gator/colima-services/backups/postgres"
+BACKUP_DIR="/Users/gator/devstack-core/backups/postgres"
 DATE=$(date +%Y%m%d_%H%M%S)
 RETENTION_DAYS=7
 

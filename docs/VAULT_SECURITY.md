@@ -13,7 +13,7 @@
 
 ## Overview
 
-This document outlines security best practices for HashiCorp Vault in the colima-services environment. The default configuration is optimized for **local development only** and should never be used in production environments.
+This document outlines security best practices for HashiCorp Vault in the devstack-core environment. The default configuration is optimized for **local development only** and should never be used in production environments.
 
 ## Critical Security Warning
 
@@ -41,7 +41,7 @@ VAULT_TOKEN=$(cat ~/.config/vault/root-token)
 
 ### Development Environment (Current Setup)
 
-The colima-services environment is configured for local development with:
+The devstack-core environment is configured for local development with:
 
 - Root token stored in `~/.config/vault/root-token`
 - Auto-unseal on container start

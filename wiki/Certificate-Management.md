@@ -1,6 +1,6 @@
 # Certificate Management
 
-Comprehensive guide to managing TLS certificates in the Colima Services environment using Vault PKI.
+Comprehensive guide to managing TLS certificates in the DevStack Core environment using Vault PKI.
 
 ## Table of Contents
 
@@ -67,7 +67,7 @@ Comprehensive guide to managing TLS certificates in the Colima Services environm
 
 ## Overview
 
-Certificate management in Colima Services uses Vault's PKI secrets engine to generate and manage TLS certificates. All service certificates are signed by a Vault-managed Certificate Authority (CA), enabling secure TLS communications.
+Certificate management in DevStack Core uses Vault's PKI secrets engine to generate and manage TLS certificates. All service certificates are signed by a Vault-managed Certificate Authority (CA), enabling secure TLS communications.
 
 **Key Information:**
 - **PKI Root CA:** `pki` (10-year validity)
@@ -191,12 +191,12 @@ vault list pki_int/roles
 
 ```
 Root CA (pki)
-├── Common Name: Colima Services Root CA
+├── Common Name: DevStack Core Root CA
 ├── Validity: 10 years
 └── Key: RSA 4096
     |
     └── Intermediate CA (pki_int)
-        ├── Common Name: Colima Services Intermediate CA
+        ├── Common Name: DevStack Core Intermediate CA
         ├── Validity: 5 years
         ├── Key: RSA 2048
         └── Signed by: Root CA
@@ -222,7 +222,7 @@ Root CA (pki)
 
 ```bash
 # Using the provided script
-cd /Users/gator/colima-services
+cd /Users/gator/devstack-core
 ./scripts/generate-certificates.sh
 
 # Script performs:
@@ -609,14 +609,14 @@ done
 
 ```bash
 # Add to crontab (monthly renewal)
-0 3 1 * * /Users/gator/colima-services/scripts/renew-certificates.sh >> ~/cert-renewal.log 2>&1
+0 3 1 * * /Users/gator/devstack-core/scripts/renew-certificates.sh >> ~/cert-renewal.log 2>&1
 ```
 
 **Renewal script with expiration check:**
 
 ```bash
 #!/bin/bash
-# Save as: /Users/gator/colima-services/scripts/renew-certificates.sh
+# Save as: /Users/gator/devstack-core/scripts/renew-certificates.sh
 
 RENEWAL_THRESHOLD=60  # Renew if < 60 days until expiration
 
@@ -692,7 +692,7 @@ sleep 10
 
 # 3. Verify all services
 echo "Step 3: Verifying services..."
-./manage-colima.sh health
+./manage-devstack.sh health
 
 # 4. Test TLS connections
 echo "Step 4: Testing TLS connections..."
@@ -812,7 +812,7 @@ done
 
 ```bash
 #!/bin/bash
-# Save as: /Users/gator/colima-services/scripts/monitor-certificates.sh
+# Save as: /Users/gator/devstack-core/scripts/monitor-certificates.sh
 
 ALERT_THRESHOLD=60  # Alert if < 60 days until expiration
 CRITICAL_THRESHOLD=30  # Critical if < 30 days
@@ -867,10 +867,10 @@ fi
 
 ```bash
 # Add to crontab (check daily at 9 AM)
-0 9 * * * /Users/gator/colima-services/scripts/monitor-certificates.sh | mail -s "Certificate Expiration Report" admin@example.com
+0 9 * * * /Users/gator/devstack-core/scripts/monitor-certificates.sh | mail -s "Certificate Expiration Report" admin@example.com
 
 # Or send to Slack
-0 9 * * * /Users/gator/colima-services/scripts/monitor-certificates.sh | /usr/local/bin/slack-cli -t "Certificate Report"
+0 9 * * * /Users/gator/devstack-core/scripts/monitor-certificates.sh | /usr/local/bin/slack-cli -t "Certificate Report"
 ```
 
 ## Trusting Certificates
@@ -894,7 +894,7 @@ security verify-cert -c ~/.config/vault/certs/postgres/cert.pem
 CERT_HASH=$(openssl x509 -in ~/.config/vault/ca/ca.pem -noout -hash)
 
 # Remove from keychain
-sudo security delete-certificate -c "Colima Services Root CA" /Library/Keychains/System.keychain
+sudo security delete-certificate -c "DevStack Core Root CA" /Library/Keychains/System.keychain
 ```
 
 ### Application Trust
@@ -987,7 +987,7 @@ func main() {
 sudo security add-trusted-cert -d -r trustRoot -k /Library/Keychains/System.keychain ~/.config/vault/ca/ca.pem
 
 # Linux (Debian/Ubuntu)
-sudo cp ~/.config/vault/ca/ca.pem /usr/local/share/ca-certificates/colima-services-ca.crt
+sudo cp ~/.config/vault/ca/ca.pem /usr/local/share/ca-certificates/devstack-core-ca.crt
 sudo update-ca-certificates
 
 # Linux (RHEL/CentOS)
@@ -1011,7 +1011,7 @@ cat ~/.config/vault/certs/postgres/cert.pem
 # -----END CERTIFICATE-----
 ```
 
-**PEM is the default format used by Colima Services.**
+**PEM is the default format used by DevStack Core.**
 
 ### DER Format
 
@@ -1287,7 +1287,7 @@ openssl crl -in crl.pem -noout -text
 
 ### OCSP Configuration
 
-**Online Certificate Status Protocol** (not implemented by default in Colima Services):
+**Online Certificate Status Protocol** (not implemented by default in DevStack Core):
 
 ```bash
 # Configure OCSP responder (Vault PKI supports OCSP)
@@ -1339,13 +1339,13 @@ openssl ocsp \
 7. **Rotate certificates annually:**
    ```bash
    # Schedule annual rotation
-   0 3 1 1 * /Users/gator/colima-services/scripts/rotate-certificates.sh
+   0 3 1 1 * /Users/gator/devstack-core/scripts/rotate-certificates.sh
    ```
 
 8. **Monitor certificate expiration:**
    ```bash
    # Daily checks
-   0 9 * * * /Users/gator/colima-services/scripts/monitor-certificates.sh
+   0 9 * * * /Users/gator/devstack-core/scripts/monitor-certificates.sh
    ```
 
 9. **Test certificate deployment:**
@@ -1365,7 +1365,7 @@ openssl ocsp \
 
 ```bash
 #!/bin/bash
-# Save as: /Users/gator/colima-services/scripts/cert-automation.sh
+# Save as: /Users/gator/devstack-core/scripts/cert-automation.sh
 
 # Automated certificate lifecycle management
 
@@ -1428,7 +1428,7 @@ echo "=== Automation Complete ==="
 
 ```bash
 # Add to crontab (run daily)
-0 3 * * * /Users/gator/colima-services/scripts/cert-automation.sh >> ~/cert-automation.log 2>&1
+0 3 * * * /Users/gator/devstack-core/scripts/cert-automation.sh >> ~/cert-automation.log 2>&1
 ```
 
 ## Reference

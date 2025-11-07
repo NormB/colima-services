@@ -74,7 +74,7 @@
 #   VAULT_TOKEN=hvs.CAESIJ... MONGODB_IP=192.168.1.15 ./init.sh mongod
 #
 # AUTHORS:
-#   Colima Services Team
+#   DevStack Core Team
 #
 # VERSION:
 #   1.0.0

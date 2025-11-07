@@ -40,7 +40,7 @@
 
 **⚠️ This is a reference implementation for learning and testing. Not intended for production use.**
 
-A Node.js/Express application demonstrating infrastructure integration patterns with the Colima Services stack.
+A Node.js/Express application demonstrating infrastructure integration patterns with the DevStack Core stack.
 
 ## Features
 

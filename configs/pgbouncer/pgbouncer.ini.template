@@ -3,6 +3,9 @@
 # Main development database
 dev_database = host=POSTGRES_HOST port=POSTGRES_PORT auth_user=POSTGRES_USER
 
+# Alias for devdb (same as dev_database)
+devdb = host=POSTGRES_HOST port=POSTGRES_PORT auth_user=POSTGRES_USER
+
 # Default postgres database (for testing and admin tasks)
 postgres = host=POSTGRES_HOST port=POSTGRES_PORT dbname=postgres auth_user=POSTGRES_USER
 

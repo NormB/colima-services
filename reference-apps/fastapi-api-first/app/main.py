@@ -65,7 +65,7 @@ limiter = Limiter(key_func=get_remote_address)
 
 # Create FastAPI app
 app = FastAPI(
-    title="Colima Services - Reference API (API-First)",
+    title="DevStack Core - Reference API (API-First)",
     version="1.0.0",
     description="API-First implementation generated from OpenAPI specification",
     docs_url="/docs",
@@ -177,7 +177,7 @@ async def root(request: Request):
     Rate Limit: 100 requests per minute per IP
     """
     return {
-        "name": "Colima Services Reference API",
+        "name": "DevStack Core Reference API",
         "version": "1.0.0",
         "description": "Reference implementation for infrastructure integration",
         "docs": "/docs",

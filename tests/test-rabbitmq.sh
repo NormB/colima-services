@@ -55,7 +55,7 @@
 #   DOCKER_VERBOSE=1 ./test-rabbitmq.sh
 #
 # AUTHOR:
-#   Colima Services Project
+#   DevStack Core Project
 #
 # SEE ALSO:
 #   - lib/rabbitmq_client.py - Python RabbitMQ client used for testing

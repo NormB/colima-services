@@ -1,6 +1,6 @@
 # Quick Start Guide
 
-Get Colima Services running in **5 minutes** with this streamlined guide.
+Get DevStack Core running in **5 minutes** with this streamlined guide.
 
 ## Prerequisites
 
@@ -20,8 +20,8 @@ brew install colima docker docker-compose
 
 ```bash
 # Clone to your home directory
-git clone https://github.com/NormB/colima-services.git ~/colima-services
-cd ~/colima-services
+git clone https://github.com/NormB/devstack-core.git ~/devstack-core
+cd ~/devstack-core
 ```
 
 ## Step 3: Configure Environment
@@ -40,7 +40,7 @@ cp .env.example .env
 
 ```bash
 # This starts Colima VM and all services
-./manage-colima.sh start
+./manage-devstack.sh start
 ```
 
 **What happens:**
@@ -54,7 +54,7 @@ cp .env.example .env
 
 ```bash
 # Initialize Vault PKI and store all service credentials
-./manage-colima.sh vault-bootstrap
+./manage-devstack.sh vault-bootstrap
 ```
 
 **What happens:**
@@ -69,10 +69,10 @@ cp .env.example .env
 
 ```bash
 # Check service status
-./manage-colima.sh status
+./manage-devstack.sh status
 
 # Run health checks
-./manage-colima.sh health
+./manage-devstack.sh health
 ```
 
 **Expected output:** All services should show as "running" and "healthy"
@@ -97,7 +97,7 @@ cp .env.example .env
 psql postgresql://dev_admin@localhost:5432/dev_database
 
 # Get password from Vault
-./manage-colima.sh vault-show-password postgres
+./manage-devstack.sh vault-show-password postgres
 
 # MySQL
 mysql -h 127.0.0.1 -u dev_admin -p dev_database
@@ -122,20 +122,20 @@ Now that you're up and running:
 
 ```bash
 # View all commands
-./manage-colima.sh help
+./manage-devstack.sh help
 
 # View logs
-./manage-colima.sh logs vault
-./manage-colima.sh logs postgres
+./manage-devstack.sh logs vault
+./manage-devstack.sh logs postgres
 
 # Restart a service
-./manage-colima.sh restart redis-1
+./manage-devstack.sh restart redis-1
 
 # Stop everything
-./manage-colima.sh stop
+./manage-devstack.sh stop
 
 # Backup databases
-./manage-colima.sh backup
+./manage-devstack.sh backup
 ```
 
 ## Troubleshooting
@@ -144,7 +144,7 @@ Now that you're up and running:
 
 ```bash
 # Check Vault status
-./manage-colima.sh vault-status
+./manage-devstack.sh vault-status
 
 # If Vault is sealed, restart
 docker compose restart vault
@@ -157,14 +157,14 @@ docker compose restart vault
 docker compose ps
 
 # Check logs for errors
-./manage-colima.sh logs <service-name>
+./manage-devstack.sh logs <service-name>
 ```
 
 ### Need to Reset Everything?
 
 ```bash
 # Complete reset (destroys all data)
-./manage-colima.sh reset
+./manage-devstack.sh reset
 ```
 
 **⚠️ Warning:** This deletes ALL data including databases, Vault keys, and configuration.
@@ -173,16 +173,16 @@ docker compose ps
 
 | Issue | Solution |
 |-------|----------|
-| Colima won't start | `colima delete && ./manage-colima.sh start` |
+| Colima won't start | `colima delete && ./manage-devstack.sh start` |
 | Vault sealed | `docker compose restart vault` (auto-unseals) |
 | Port already in use | Stop conflicting service or change port in `.env` |
-| Out of memory | Increase Colima RAM: edit `manage-colima.sh` line 42 |
+| Out of memory | Increase Colima RAM: edit `manage-devstack.sh` line 42 |
 
 ## Getting Help
 
-- 📖 Full documentation: [docs/](https://github.com/NormB/colima-services/tree/main/docs)
+- 📖 Full documentation: [docs/](https://github.com/NormB/devstack-core/tree/main/docs)
 - 🐛 Common problems: [Common Issues](Common-Issues)
-- 💬 Ask questions: [GitHub Issues](https://github.com/NormB/colima-services/issues)
+- 💬 Ask questions: [GitHub Issues](https://github.com/NormB/devstack-core/issues)
 
 ---
 

@@ -558,7 +558,7 @@ git commit -m "Fix API synchronization"
 openapi: 3.0.0
 
 info:
-  title: Colima Services Reference API
+  title: DevStack Core Reference API
   version: 1.0.0
   description: |
     Reference implementation demonstrating infrastructure integration patterns.
@@ -685,7 +685,7 @@ inputSpec: ../shared/openapi.yaml
 outputDir: ./generated
 additionalProperties:
   packageName: app
-  projectName: colima-services-api-first
+  projectName: devstack-core-api-first
   packageVersion: 1.0.0
 
 globalProperties:
@@ -720,7 +720,7 @@ warn() { echo -e "${YELLOW}⚠${NC} $1"; }
 # Step 1: Start services
 info "Starting services..."
 cd "$PROJECT_ROOT"
-./manage-colima.sh start
+./manage-devstack.sh start
 sleep 30
 
 # Step 2: Wait for both APIs
@@ -873,7 +873,7 @@ jobs:
 
       - name: Start infrastructure
         run: |
-          ./manage-colima.sh start
+          ./manage-devstack.sh start
           sleep 30
 
       - name: Wait for services

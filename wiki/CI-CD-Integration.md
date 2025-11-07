@@ -1,6 +1,6 @@
 # CI/CD Integration
 
-Forgejo Actions and automation workflows for Colima Services.
+Forgejo Actions and automation workflows for DevStack Core.
 
 ## Table of Contents
 
@@ -117,7 +117,7 @@ volumes:
 Create `.forgejo/workflows/` directory:
 
 ```bash
-cd ~/colima-services
+cd ~/devstack-core
 mkdir -p .forgejo/workflows
 
 # Create workflow file
@@ -319,11 +319,11 @@ jobs:
     steps:
       - uses: actions/checkout@v3
       
-      - name: Start Colima Services
+      - name: Start DevStack Core
         run: |
           docker compose up -d
-          ./manage-colima.sh vault-init
-          ./manage-colima.sh vault-bootstrap
+          ./manage-devstack.sh vault-init
+          ./manage-devstack.sh vault-bootstrap
       
       - name: Wait for services
         run: |
@@ -498,7 +498,7 @@ jobs:
       
       - name: Backup database
         run: |
-          ./manage-colima.sh backup
+          ./manage-devstack.sh backup
       
       - name: Deploy
         run: |

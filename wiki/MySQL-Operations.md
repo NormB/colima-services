@@ -1,6 +1,6 @@
 # MySQL Operations
 
-Comprehensive guide to MySQL database operations in the Colima Services environment.
+Comprehensive guide to MySQL database operations in the DevStack Core environment.
 
 ## Table of Contents
 
@@ -77,7 +77,7 @@ Comprehensive guide to MySQL database operations in the Colima Services environm
 
 ## Overview
 
-MySQL is configured in the Colima Services environment with:
+MySQL is configured in the DevStack Core environment with:
 
 - **Version**: MySQL 8.0
 - **Host Port**: 3306
@@ -1732,7 +1732,7 @@ Complete backup script:
 #!/bin/bash
 # MySQL backup script
 
-BACKUP_DIR="/Users/gator/colima-services/backups/mysql"
+BACKUP_DIR="/Users/gator/devstack-core/backups/mysql"
 DATE=$(date +%Y%m%d_%H%M%S)
 MYSQL_USER="root"
 MYSQL_PASS=$(vault kv get -field=password secret/mysql)
@@ -1771,7 +1771,7 @@ MySQL replication types:
 - **Semi-synchronous**: Master waits for at least one slave acknowledgment
 - **Group Replication**: Multi-master with conflict detection
 
-**Note:** Replication is optional for development. The default Colima Services setup is single-instance.
+**Note:** Replication is optional for development. The default DevStack Core setup is single-instance.
 
 ### Master-Slave Setup
 

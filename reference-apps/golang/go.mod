@@ -1,4 +1,4 @@
-module github.com/normbrandinger/colima-services/reference-apps/golang
+module github.com/normbrandinger/devstack-core/reference-apps/golang
 
 go 1.24.0
 

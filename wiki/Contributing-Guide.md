@@ -34,19 +34,19 @@ We welcome contributions! Here are ways to help:
 **Development setup:**
 ```bash
 # Fork repository
-gh repo fork colima-services
+gh repo fork devstack-core
 
 # Clone your fork
-git clone https://github.com/your-username/colima-services.git
-cd colima-services
+git clone https://github.com/your-username/devstack-core.git
+cd devstack-core
 
 # Add upstream remote
-git remote add upstream https://github.com/original/colima-services.git
+git remote add upstream https://github.com/original/devstack-core.git
 
 # Start environment
-./manage-colima.sh start
-./manage-colima.sh vault-init
-./manage-colima.sh vault-bootstrap
+./manage-devstack.sh start
+./manage-devstack.sh vault-init
+./manage-devstack.sh vault-bootstrap
 ```
 
 ## Documentation Improvements

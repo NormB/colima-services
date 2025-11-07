@@ -267,7 +267,7 @@ print_summary() {
 #   Order: Infrastructure -> Databases -> Cache -> Messaging -> Apps
 #######################################
 main() {
-    header "Colima Services - Test Suite"
+    header "DevStack Core - Test Suite"
 
     info "Starting all test suites..."
     echo

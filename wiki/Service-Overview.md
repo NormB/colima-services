@@ -1,6 +1,6 @@
 # Service Overview
 
-Complete reference for all services in the Colima Services infrastructure.
+Complete reference for all services in the DevStack Core infrastructure.
 
 ## Table of Contents
 
@@ -60,13 +60,13 @@ Complete reference for all services in the Colima Services infrastructure.
 **Common Operations:**
 ```bash
 # Check Vault status
-./manage-colima.sh vault-status
+./manage-devstack.sh vault-status
 
 # View root token
-./manage-colima.sh vault-token
+./manage-devstack.sh vault-token
 
 # Get service password
-./manage-colima.sh vault-show-password postgres
+./manage-devstack.sh vault-show-password postgres
 
 # Access UI
 open http://localhost:8200/ui
@@ -76,13 +76,13 @@ open http://localhost:8200/ui
 **First-Time Setup:**
 ```bash
 # 1. Start services
-./manage-colima.sh start
+./manage-devstack.sh start
 
 # 2. Initialize Vault (auto-creates keys + token)
-./manage-colima.sh vault-init
+./manage-devstack.sh vault-init
 
 # 3. Bootstrap PKI + store all credentials
-./manage-colima.sh vault-bootstrap
+./manage-devstack.sh vault-bootstrap
 ```
 
 ⚠️ **CRITICAL:** Backup `~/.config/vault/` immediately! Data cannot be recovered without these files.
@@ -115,13 +115,13 @@ work_mem: 8MB
 psql -h localhost -p 5432 -U dev_admin -d dev_database
 
 # Get password first
-./manage-colima.sh vault-show-password postgres
+./manage-devstack.sh vault-show-password postgres
 
 # From Docker network
 psql -h postgres -p 5432 -U dev_admin -d dev_database
 
 # Using management script
-./manage-colima.sh shell postgres
+./manage-devstack.sh shell postgres
 ```
 
 **Health Check:**
@@ -198,7 +198,7 @@ psql -h localhost -p 5432 -U dev_admin -d dev_database
 mysql -h 127.0.0.1 -u dev_admin -p
 
 # Non-interactive (use carefully)
-mysql -h 127.0.0.1 -u dev_admin -p$(./manage-colima.sh vault-show-password mysql) dev_database
+mysql -h 127.0.0.1 -u dev_admin -p$(./manage-devstack.sh vault-show-password mysql) dev_database
 
 # From container
 docker exec -it dev-mysql mysql -u dev_admin -p
@@ -239,7 +239,7 @@ mysqladmin -u dev_admin -p$(cat ~/.config/vault/password) ping
 **Connection:**
 ```bash
 # ALWAYS use -c flag for cluster mode!
-redis-cli -c -a $(./manage-colima.sh vault-show-password redis-1) -p 6379
+redis-cli -c -a $(./manage-devstack.sh vault-show-password redis-1) -p 6379
 
 # Connect to specific nodes
 redis-cli -c -a $REDIS_PASSWORD -p 6380  # Node 2
@@ -324,7 +324,7 @@ docker exec dev-rabbitmq rabbitmqctl list_exchanges
 docker exec dev-rabbitmq rabbitmqctl list_connections
 
 # View logs
-./manage-colima.sh logs rabbitmq
+./manage-devstack.sh logs rabbitmq
 ```
 
 **Use Cases:**
@@ -357,7 +357,7 @@ docker exec dev-rabbitmq rabbitmqctl list_connections
 # Using mongosh (MongoDB Shell)
 mongosh --host localhost --port 27017 \
   --username dev_admin \
-  --password $(./manage-colima.sh vault-show-password mongodb) \
+  --password $(./manage-devstack.sh vault-show-password mongodb) \
   --authenticationDatabase admin
 
 # Connection string
@@ -867,4 +867,4 @@ colima start --cpu 6 --memory 12 --disk 100
 
 ---
 
-**Questions?** See [FAQ](FAQ) or [open an issue](https://github.com/NormB/colima-services/issues).
+**Questions?** See [FAQ](FAQ) or [open an issue](https://github.com/NormB/devstack-core/issues).

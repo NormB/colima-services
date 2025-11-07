@@ -22,7 +22,7 @@ Comprehensive guide to the 370+ test suites, testing philosophy, running tests, 
 
 ## Overview
 
-The Colima Services project includes **comprehensive test coverage** with 370+ tests across multiple test suites validating infrastructure, services, and applications.
+The DevStack Core project includes **comprehensive test coverage** with 370+ tests across multiple test suites validating infrastructure, services, and applications.
 
 ### Test Coverage Summary
 
@@ -616,7 +616,7 @@ Error: No value found at secret/data/postgres
 **Solution:**
 ```bash
 # Bootstrap Vault with service credentials
-./manage-colima.sh vault-bootstrap
+./manage-devstack.sh vault-bootstrap
 
 # Restart failing services
 docker compose restart postgres mysql mongodb redis-1 redis-2 redis-3
@@ -638,7 +638,7 @@ docker ps -a | grep -v "Up"
 docker compose up -d
 
 # Check health
-./manage-colima.sh health
+./manage-devstack.sh health
 ```
 
 #### 3. Network Connectivity Issues
@@ -674,7 +674,7 @@ docker compose restart
 **Solution:**
 ```bash
 # Get correct password from Vault
-./manage-colima.sh vault-show-password postgres
+./manage-devstack.sh vault-show-password postgres
 
 # Verify password is correct
 export VAULT_TOKEN=$(cat ~/.config/vault/root-token)

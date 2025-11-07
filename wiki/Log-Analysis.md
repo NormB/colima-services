@@ -1,6 +1,6 @@
 # Log Analysis
 
-Analyzing logs with Loki and troubleshooting in the Colima Services environment.
+Analyzing logs with Loki and troubleshooting in the DevStack Core environment.
 
 ## Table of Contents
 
@@ -18,7 +18,7 @@ Analyzing logs with Loki and troubleshooting in the Colima Services environment.
 
 ## Overview
 
-Loki provides centralized log aggregation for all Colima Services. Logs are collected by Vector, stored in Loki, and queried via Grafana.
+Loki provides centralized log aggregation for all DevStack Core. Logs are collected by Vector, stored in Loki, and queried via Grafana.
 
 **Log Stack:**
 - **Collection**: Vector (unified observability pipeline)

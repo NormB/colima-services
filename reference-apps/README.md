@@ -38,7 +38,7 @@
 
 ---
 
-**Purpose:** Educational example applications demonstrating how to integrate with the Colima Services infrastructure.
+**Purpose:** Educational example applications demonstrating how to integrate with the DevStack Core infrastructure.
 
 ## ⚠️ Important: Not Production Code
 

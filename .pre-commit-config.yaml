@@ -1,4 +1,4 @@
-# Pre-commit hooks for colima-services
+# Pre-commit hooks for devstack-core
 # See https://pre-commit.com for more information
 # Install: pip install pre-commit && pre-commit install
 

@@ -62,7 +62,7 @@ echo ""
 
 # Test 4: Script executable permissions
 echo "Test 4: Checking script executable permissions..."
-SCRIPTS=("manage-colima.sh" "configs/vault/scripts/vault-init.sh" "configs/vault/scripts/vault-bootstrap.sh" "configs/forgejo/scripts/init.sh" "configs/pgbouncer/scripts/init.sh")
+SCRIPTS=("manage-devstack.sh" "configs/vault/scripts/vault-init.sh" "configs/vault/scripts/vault-bootstrap.sh" "configs/forgejo/scripts/init.sh" "configs/pgbouncer/scripts/init.sh")
 NON_EXEC=0
 for script in "${SCRIPTS[@]}"; do
     if [ -f "$script" ] && [ ! -x "$script" ]; then

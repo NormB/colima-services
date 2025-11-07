@@ -10,8 +10,8 @@ import (
 	"github.com/gin-gonic/gin"
 	amqp "github.com/rabbitmq/amqp091-go"
 
-	"github.com/normbrandinger/colima-services/reference-apps/golang/internal/config"
-	"github.com/normbrandinger/colima-services/reference-apps/golang/internal/services"
+	"github.com/normbrandinger/devstack-core/reference-apps/golang/internal/config"
+	"github.com/normbrandinger/devstack-core/reference-apps/golang/internal/services"
 )
 
 // MessagingHandler handles messaging-related endpoints

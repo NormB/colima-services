@@ -1,7 +1,7 @@
 {
-  "name": "colima-services-nodejs-reference",
+  "name": "devstack-core-nodejs-reference",
   "version": "1.0.0",
-  "description": "Node.js reference implementation for Colima Services infrastructure integration",
+  "description": "Node.js reference implementation for DevStack Core infrastructure integration",
   "main": "src/index.js",
   "scripts": {
     "start": "node src/index.js",
@@ -21,7 +21,7 @@
     "microservices",
     "reference-implementation"
   ],
-  "author": "Colima Services Team",
+  "author": "DevStack Core Team",
   "license": "MIT",
   "dependencies": {
     "express": "^5.1.0",
@@ -36,7 +36,7 @@
     "cors": "^2.8.5",
     "helmet": "^8.1.0",
     "express-rate-limit": "^8.2.1",
-    "uuid": "^13.0.0"
+    "uuid": "^9.0.1"
   },
   "devDependencies": {
     "jest": "^30.2.0",

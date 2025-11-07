@@ -15,7 +15,7 @@ Complete guide to the six reference API implementations demonstrating infrastruc
 
 ## Overview
 
-The reference applications are **production-ready examples** demonstrating how to integrate with all Colima Services infrastructure components. They showcase:
+The reference applications are **production-ready examples** demonstrating how to integrate with all DevStack Core infrastructure components. They showcase:
 
 - Language-agnostic patterns
 - Best practices for each ecosystem

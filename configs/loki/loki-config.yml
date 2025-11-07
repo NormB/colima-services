@@ -1,4 +1,4 @@
-# Loki Configuration for Colima Services
+# Loki Configuration for DevStack Core
 
 auth_enabled: false
 

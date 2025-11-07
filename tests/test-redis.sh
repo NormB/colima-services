@@ -54,7 +54,7 @@
 #   DOCKER_VERBOSE=1 ./test-redis.sh
 #
 # AUTHOR:
-#   Colima Services Project
+#   DevStack Core Project
 #
 # SEE ALSO:
 #   - lib/redis_client.py - Python Redis client used for testing

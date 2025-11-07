@@ -21,10 +21,10 @@ Guide for keeping the wiki directory and GitHub Wiki in sync.
 
 ## Overview
 
-The Colima Services documentation exists in two places:
+The DevStack Core documentation exists in two places:
 
-1. **Local wiki directory**: `/Users/gator/colima-services/wiki/` (tracked in main repo)
-2. **GitHub Wiki**: `https://github.com/NormB/colima-services.wiki.git` (separate git repo)
+1. **Local wiki directory**: `/Users/gator/devstack-core/wiki/` (tracked in main repo)
+2. **GitHub Wiki**: `https://github.com/NormB/devstack-core.wiki.git` (separate git repo)
 
 **Why two locations?**
 - **Local directory** allows version control with main codebase, easy editing, AI assistant integration
@@ -37,7 +37,7 @@ The Colima Services documentation exists in two places:
 ## Documentation Architecture
 
 ```
-colima-services/                    # Main repository
+devstack-core/                    # Main repository
 ├── wiki/                           # Local wiki directory (source of truth)
 │   ├── Home.md
 │   ├── Installation.md
@@ -46,7 +46,7 @@ colima-services/                    # Main repository
     └── workflows/
         └── sync-wiki.yml           # Automation (optional)
 
-colima-services.wiki/               # Separate GitHub Wiki repository
+devstack-core.wiki/               # Separate GitHub Wiki repository
 ├── Home.md
 ├── Installation.md
 └── ... (same 55 files)
@@ -66,28 +66,28 @@ colima-services.wiki/               # Separate GitHub Wiki repository
 
 ```bash
 # 1. Make changes in local wiki directory
-cd ~/colima-services/wiki
+cd ~/devstack-core/wiki
 nano Installation.md  # Edit files
 
 # 2. Clone GitHub Wiki
 cd /tmp
-git clone https://github.com/NormB/colima-services.wiki.git
+git clone https://github.com/NormB/devstack-core.wiki.git
 
 # 3. Copy updated files
-cp ~/colima-services/wiki/*.md /tmp/colima-services.wiki/
+cp ~/devstack-core/wiki/*.md /tmp/devstack-core.wiki/
 
 # 4. Commit and push to wiki
-cd /tmp/colima-services.wiki
+cd /tmp/devstack-core.wiki
 git add .
 git commit -m "docs: sync wiki updates"
 git push origin master
 
 # 5. Cleanup
 cd ~
-rm -rf /tmp/colima-services.wiki
+rm -rf /tmp/devstack-core.wiki
 
 # 6. Commit changes to main repo
-cd ~/colima-services
+cd ~/devstack-core
 git add wiki/
 git commit -m "docs: update wiki documentation"
 git push origin main
@@ -202,11 +202,11 @@ git push origin main
 
 ```bash
 # 1. Remove local wiki directory
-cd ~/colima-services
+cd ~/devstack-core
 rm -rf wiki/
 
 # 2. Add wiki as submodule
-git submodule add https://github.com/NormB/colima-services.wiki.git wiki
+git submodule add https://github.com/NormB/devstack-core.wiki.git wiki
 
 # 3. Initialize submodule
 git submodule update --init --recursive
@@ -221,7 +221,7 @@ git push origin main
 
 ```bash
 # 1. Enter wiki directory (submodule)
-cd ~/colima-services/wiki
+cd ~/devstack-core/wiki
 
 # 2. Make changes
 nano Installation.md
@@ -232,7 +232,7 @@ git commit -m "docs: update installation guide"
 git push origin master
 
 # 4. Update main repo to reference new commit
-cd ~/colima-services
+cd ~/devstack-core
 git add wiki/
 git commit -m "docs: update wiki submodule reference"
 git push origin main
@@ -268,7 +268,7 @@ if git diff --cached --name-only | grep -q '^wiki/'; then
 
     # Clone wiki repo
     WIKI_TEMP=$(mktemp -d)
-    git clone https://github.com/NormB/colima-services.wiki.git "$WIKI_TEMP" 2>/dev/null
+    git clone https://github.com/NormB/devstack-core.wiki.git "$WIKI_TEMP" 2>/dev/null
 
     # Copy wiki files
     cp -r wiki/* "$WIKI_TEMP/"
@@ -334,8 +334,8 @@ Create `scripts/sync-wiki.sh`:
 
 set -e
 
-WIKI_DIR="$HOME/colima-services/wiki"
-WIKI_REPO="https://github.com/NormB/colima-services.wiki.git"
+WIKI_DIR="$HOME/devstack-core/wiki"
+WIKI_REPO="https://github.com/NormB/devstack-core.wiki.git"
 TEMP_DIR=$(mktemp -d)
 
 echo "📝 Syncing wiki to GitHub..."
@@ -407,14 +407,14 @@ git push origin main
 
 ```bash
 # 1. Check local wiki files
-ls -l ~/colima-services/wiki/*.md | wc -l
+ls -l ~/devstack-core/wiki/*.md | wc -l
 
 # 2. Clone and check GitHub Wiki
-git clone https://github.com/NormB/colima-services.wiki.git /tmp/wiki-check
+git clone https://github.com/NormB/devstack-core.wiki.git /tmp/wiki-check
 ls -l /tmp/wiki-check/*.md | wc -l
 
 # 3. Compare counts (should match)
-diff <(ls ~/colima-services/wiki/*.md | xargs -n1 basename | sort) \
+diff <(ls ~/devstack-core/wiki/*.md | xargs -n1 basename | sort) \
      <(ls /tmp/wiki-check/*.md | xargs -n1 basename | sort)
 
 # 4. Cleanup
@@ -428,10 +428,10 @@ rm -rf /tmp/wiki-check
 WIKI_FILE="Installation.md"
 
 # Get local file hash
-LOCAL_HASH=$(md5 -q ~/colima-services/wiki/$WIKI_FILE)
+LOCAL_HASH=$(md5 -q ~/devstack-core/wiki/$WIKI_FILE)
 
 # Get GitHub Wiki file hash
-git clone https://github.com/NormB/colima-services.wiki.git /tmp/wiki-verify
+git clone https://github.com/NormB/devstack-core.wiki.git /tmp/wiki-verify
 WIKI_HASH=$(md5 -q /tmp/wiki-verify/$WIKI_FILE)
 
 if [ "$LOCAL_HASH" = "$WIKI_HASH" ]; then
@@ -454,8 +454,8 @@ rm -rf /tmp/wiki-verify
 ./scripts/sync-wiki.sh
 
 # Option 2: Manual sync
-git clone https://github.com/NormB/colima-services.wiki.git /tmp/wiki-fix
-cp ~/colima-services/wiki/*.md /tmp/wiki-fix/
+git clone https://github.com/NormB/devstack-core.wiki.git /tmp/wiki-fix
+cp ~/devstack-core/wiki/*.md /tmp/wiki-fix/
 cd /tmp/wiki-fix
 git add .
 git commit -m "docs: fix wiki sync"
@@ -467,7 +467,7 @@ rm -rf /tmp/wiki-fix
 
 ```bash
 # Clone wiki
-git clone https://github.com/NormB/colima-services.wiki.git /tmp/wiki-conflict
+git clone https://github.com/NormB/devstack-core.wiki.git /tmp/wiki-conflict
 
 # Manual merge
 cd /tmp/wiki-conflict
@@ -480,10 +480,10 @@ git commit -m "docs: resolve wiki merge conflict"
 git push origin master
 
 # Update local copy
-cp /tmp/wiki-conflict/Installation.md ~/colima-services/wiki/
+cp /tmp/wiki-conflict/Installation.md ~/devstack-core/wiki/
 
 # Commit to main repo
-cd ~/colima-services
+cd ~/devstack-core
 git add wiki/Installation.md
 git commit -m "docs: sync wiki conflict resolution"
 git push origin main
@@ -517,7 +517,7 @@ rm -rf /tmp/wiki-conflict
 
 ```bash
 # ✅ CORRECT: Edit local, sync to GitHub
-nano ~/colima-services/wiki/Installation.md
+nano ~/devstack-core/wiki/Installation.md
 ./scripts/sync-wiki.sh
 git add wiki/ && git commit -m "docs: update"
 
@@ -574,7 +574,7 @@ git diff --cached wiki/
 
 ```bash
 # Clone wiki repo for backup
-git clone https://github.com/NormB/colima-services.wiki.git ~/wiki-backup
+git clone https://github.com/NormB/devstack-core.wiki.git ~/wiki-backup
 
 # Create backup archive
 tar czf wiki-backup-$(date +%Y%m%d).tar.gz ~/wiki-backup
@@ -624,13 +624,13 @@ git push  # Automatically syncs!
 
 **Verify Sync:**
 ```bash
-diff <(ls ~/colima-services/wiki/*.md | xargs -n1 basename | sort) \
-     <(git clone --quiet https://github.com/NormB/colima-services.wiki.git /tmp/w && ls /tmp/w/*.md | xargs -n1 basename | sort)
+diff <(ls ~/devstack-core/wiki/*.md | xargs -n1 basename | sort) \
+     <(git clone --quiet https://github.com/NormB/devstack-core.wiki.git /tmp/w && ls /tmp/w/*.md | xargs -n1 basename | sort)
 ```
 
 ### Recommended Setup
 
-For Colima Services:
+For DevStack Core:
 
 1. ✅ Keep `wiki/` directory in main repo as source of truth
 2. ✅ Use `scripts/sync-wiki.sh` for manual syncs
@@ -648,4 +648,4 @@ For Colima Services:
 
 ---
 
-**Questions?** Open an issue at [colima-services/issues](https://github.com/NormB/colima-services/issues)
+**Questions?** Open an issue at [devstack-core/issues](https://github.com/NormB/devstack-core/issues)

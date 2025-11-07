@@ -1,6 +1,6 @@
 # FAQ (Frequently Asked Questions)
 
-Common questions and answers about Colima Services.
+Common questions and answers about DevStack Core.
 
 ## Table of Contents
 
@@ -13,9 +13,9 @@ Common questions and answers about Colima Services.
 
 ## General Questions
 
-### What is Colima Services?
+### What is DevStack Core?
 
-Colima Services is a complete Docker Compose-based development infrastructure optimized for Apple Silicon Macs. It provides databases (PostgreSQL, MySQL, MongoDB), caching (Redis cluster), messaging (RabbitMQ), secrets management (Vault), Git hosting (Forgejo), and observability tools (Prometheus, Grafana, Loki).
+DevStack Core is a complete Docker Compose-based development infrastructure optimized for Apple Silicon Macs. It provides databases (PostgreSQL, MySQL, MongoDB), caching (Redis cluster), messaging (RabbitMQ), secrets management (Vault), Git hosting (Forgejo), and observability tools (Prometheus, Grafana, Loki).
 
 ### Why use Colima instead of Docker Desktop?
 
@@ -37,11 +37,11 @@ This environment is designed for **local development and testing**. For producti
 - Implement proper security hardening (see [Security Hardening](Security-Hardening))
 - Use Vault AppRole authentication instead of root token
 - Enable network firewalls and access controls
-- Review [docs/SECURITY_ASSESSMENT.md](https://github.com/NormB/colima-services/blob/main/docs/SECURITY_ASSESSMENT.md)
+- Review [docs/SECURITY_ASSESSMENT.md](https://github.com/NormB/devstack-core/blob/main/docs/SECURITY_ASSESSMENT.md)
 
 ### What's the difference between this and Docker Desktop?
 
-| Feature | Colima Services | Docker Desktop |
+| Feature | DevStack Core | Docker Desktop |
 |---------|-----------------|----------------|
 | **License** | Free (MIT) | Free for personal, paid for business |
 | **Performance** | Optimized for Apple Silicon | Good, but heavier |
@@ -71,7 +71,7 @@ This guide is optimized for **Apple Silicon** (M Series Processors). While Colim
 
 ```bash
 # Stop and remove all services
-./manage-colima.sh reset
+./manage-devstack.sh reset
 
 # Stop Colima
 colima stop
@@ -82,7 +82,7 @@ brew uninstall colima docker docker-compose
 
 # Remove configuration
 rm -rf ~/.config/vault
-rm -rf ~/colima-services
+rm -rf ~/devstack-core
 ```
 
 ### What if I already have PostgreSQL/MySQL installed?
@@ -130,7 +130,7 @@ docker compose restart postgres
 
 ```bash
 # Get password
-./manage-colima.sh vault-show-password postgres
+./manage-devstack.sh vault-show-password postgres
 
 # Connect
 psql postgresql://dev_admin@localhost:5432/dev_database
@@ -144,17 +144,17 @@ psql postgresql://dev_admin@localhost:5432/dev_database
 - **Port:** 5432 (PostgreSQL), 3306 (MySQL), 27017 (MongoDB)
 - **Username:** dev_admin
 - **Database:** dev_database
-- **Password:** Get from Vault using `./manage-colima.sh vault-show-password <service>`
+- **Password:** Get from Vault using `./manage-devstack.sh vault-show-password <service>`
 
 ### Are databases persistent across restarts?
 
-**Yes** - All data is stored in Docker volumes that persist across restarts. Data is only lost if you run `./manage-colima.sh reset` or manually delete volumes.
+**Yes** - All data is stored in Docker volumes that persist across restarts. Data is only lost if you run `./manage-devstack.sh reset` or manually delete volumes.
 
 ### How do I backup databases?
 
 ```bash
 # Backup all databases
-./manage-colima.sh backup
+./manage-devstack.sh backup
 
 # Backups saved to: ./backups/YYYY-MM-DD_HH-MM-SS/
 ```
@@ -270,21 +270,21 @@ security verify-cert -c ~/.config/vault/ca/ca-chain.pem
 colima status
 
 # 2. Is Vault healthy?
-./manage-colima.sh vault-status
+./manage-devstack.sh vault-status
 
 # 3. Check service logs
-./manage-colima.sh logs <service-name>
+./manage-devstack.sh logs <service-name>
 
 # 4. Run health checks
-./manage-colima.sh health
+./manage-devstack.sh health
 ```
 
 ### Where can I get more help?
 
 1. **[Common Issues](Common-Issues)** - Quick fixes
-2. **[Troubleshooting](https://github.com/NormB/colima-services/blob/main/docs/TROUBLESHOOTING.md)** - Detailed guide
-3. **[GitHub Issues](https://github.com/NormB/colima-services/issues)** - Community support
-4. **Documentation** - Check [docs/](https://github.com/NormB/colima-services/tree/main/docs)
+2. **[Troubleshooting](https://github.com/NormB/devstack-core/blob/main/docs/TROUBLESHOOTING.md)** - Detailed guide
+3. **[GitHub Issues](https://github.com/NormB/devstack-core/issues)** - Community support
+4. **Documentation** - Check [docs/](https://github.com/NormB/devstack-core/tree/main/docs)
 
 ### What's the best way to report a bug?
 
@@ -293,11 +293,11 @@ Open a GitHub issue with:
 - **Steps to reproduce:** What you did
 - **Expected behavior:** What should happen
 - **Actual behavior:** What actually happened
-- **Logs:** Output from `./manage-colima.sh logs <service>`
+- **Logs:** Output from `./manage-devstack.sh logs <service>`
 
 ### Can I contribute to this project?
 
-**Yes!** See [Contributing Guide](https://github.com/NormB/colima-services/blob/main/.github/CONTRIBUTING.md) for:
+**Yes!** See [Contributing Guide](https://github.com/NormB/devstack-core/blob/main/.github/CONTRIBUTING.md) for:
 - Code contribution guidelines
 - Documentation improvements
 - Bug reports and feature requests
@@ -312,4 +312,4 @@ Open a GitHub issue with:
 
 ---
 
-**Don't see your question?** [Open an issue](https://github.com/NormB/colima-services/issues) to ask!
+**Don't see your question?** [Open an issue](https://github.com/NormB/devstack-core/issues) to ask!

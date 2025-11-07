@@ -63,7 +63,7 @@
 #   ./test-mongodb.sh
 #
 #   # Run tests after starting services
-#   ../manage-colima.sh start mongodb
+#   ../manage-devstack.sh start mongodb
 #   ./test-mongodb.sh
 #
 #   # Test with TLS enabled

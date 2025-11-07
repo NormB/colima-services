@@ -50,7 +50,7 @@
 
 **📝 Note:** This implementation follows the **API-First** development approach where the OpenAPI specification is the source of truth, and server code is generated from it.
 
-A TypeScript/Express application demonstrating API-First development patterns with the Colima Services infrastructure stack, featuring full type safety and code generation from OpenAPI specifications.
+A TypeScript/Express application demonstrating API-First development patterns with the DevStack Core infrastructure stack, featuring full type safety and code generation from OpenAPI specifications.
 
 ## Overview
 
@@ -203,7 +203,7 @@ The API contract is defined in `openapi/spec.yaml`:
 ```yaml
 openapi: 3.0.3
 info:
-  title: Colima Services TypeScript API-First Reference
+  title: DevStack Core TypeScript API-First Reference
   version: 1.0.0
   description: API-First reference implementation with full type safety
 

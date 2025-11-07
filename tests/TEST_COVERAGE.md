@@ -155,11 +155,11 @@
 
 ---
 
-This document describes the comprehensive test coverage for the Colima Services infrastructure and reference applications.
+This document describes the comprehensive test coverage for the DevStack Core infrastructure and reference applications.
 
 ## Overview
 
-The Colima Services project has four distinct test suites and implementations:
+The DevStack Core project has four distinct test suites and implementations:
 1. **Infrastructure Tests** (Shell scripts) - Test Docker containers, services, and integration
 2. **FastAPI Application Tests** (Pytest) - Test Python FastAPI reference application code
 3. **Shared Test Suite** (Pytest) - Validate code-first and API-first implementation parity
@@ -1519,7 +1519,7 @@ curl http://localhost:8002/redis/cluster/nodes | jq .
 ## Continuous Testing
 
 Run tests after:
-- Initial infrastructure setup (`./manage-colima.sh start`)
+- Initial infrastructure setup (`./manage-devstack.sh start`)
 - Service configuration changes
 - Certificate regeneration
 - Vault bootstrap
@@ -1560,7 +1560,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - Install Docker/Colima
-      - ./manage-colima.sh start
+      - ./manage-devstack.sh start
       - ./tests/run-all-tests.sh
 
   application-tests:

@@ -19,9 +19,9 @@
 
 ## Daily Usage
 
-1. Start services in morning: `./manage-colima.sh start`
+1. Start services in morning: `./manage-devstack.sh start`
 2. Work on projects
-3. Leave running overnight (or stop: `./manage-colima.sh stop`)
+3. Leave running overnight (or stop: `./manage-devstack.sh stop`)
 4. Weekly: Check resource usage and backup
 
 ## Development Workflow
@@ -43,7 +43,7 @@ vault kv put secret/myapp/config api_key=xyz
 ## Resource Management
 ```bash
 # Check resource usage weekly
-./manage-colima.sh status
+./manage-devstack.sh status
 
 # Clean up unused containers/images monthly
 docker system prune -a
@@ -56,7 +56,7 @@ docker system df
 ```bash
 # Daily: Git commits (auto-backed up by Forgejo)
 # Weekly: Full backup
-./manage-colima.sh backup
+./manage-devstack.sh backup
 
 # Store backups offsite
 # Keep 4 weekly backups, 3 monthly backups

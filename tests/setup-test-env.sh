@@ -3,7 +3,7 @@
 # Test Environment Setup Script
 #
 # Sets up Python environment using uv package manager and installs all
-# dependencies required for the Colima Services test suite. Validates
+# dependencies required for the DevStack Core test suite. Validates
 # installation and provides usage instructions.
 #
 # Globals:
@@ -32,7 +32,7 @@
 #
 # Examples:
 #   # Initial setup
-#   cd /path/to/colima-services
+#   cd /path/to/devstack-core
 #   ./tests/setup-test-env.sh
 #
 #   # Re-run after updating dependencies

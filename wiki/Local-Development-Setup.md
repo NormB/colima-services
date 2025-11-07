@@ -1,6 +1,6 @@
 # Local Development Setup
 
-Complete guide to setting up your local development environment for Colima Services.
+Complete guide to setting up your local development environment for DevStack Core.
 
 ## Table of Contents
 
@@ -55,7 +55,7 @@ Complete guide to setting up your local development environment for Colima Servi
 
 ## Overview
 
-This guide walks through setting up a complete local development environment for Colima Services, including IDE configuration, database clients, debugging tools, and development workflows.
+This guide walks through setting up a complete local development environment for DevStack Core, including IDE configuration, database clients, debugging tools, and development workflows.
 
 **Development Stack:**
 - **Container Runtime**: Colima (Docker on macOS)
@@ -173,10 +173,10 @@ alias vault-login='export VAULT_ADDR=http://localhost:8200 && export VAULT_TOKEN
 alias vault-status='vault status'
 
 # Navigation
-alias cds='cd ~/colima-services'
+alias cdd='cd ~/devstack-core'
 
 # Load Vault environment
-source ~/colima-services/scripts/load-vault-env.sh
+source ~/devstack-core/scripts/load-vault-env.sh
 
 # Reload configuration
 source ~/.zshrc  # or source ~/.bashrc
@@ -191,8 +191,8 @@ Clone and configure the repository:
 ```bash
 # Clone repository
 cd ~
-git clone https://github.com/yourusername/colima-services.git
-cd colima-services
+git clone https://github.com/yourusername/devstack-core.git
+cd devstack-core
 
 # Create .env from template
 cp .env.example .env
@@ -246,15 +246,15 @@ Initialize Vault and configure authentication:
 
 ```bash
 # Start Colima and services
-./manage-colima.sh start
+./manage-devstack.sh start
 
 # Initialize Vault (first time only)
-./manage-colima.sh vault-init
+./manage-devstack.sh vault-init
 # Saves keys to ~/.config/vault/keys.json
 # Saves root token to ~/.config/vault/root-token
 
 # Bootstrap Vault (create secrets and PKI)
-./manage-colima.sh vault-bootstrap
+./manage-devstack.sh vault-bootstrap
 
 # Verify Vault token
 export VAULT_ADDR=http://localhost:8200
@@ -384,7 +384,7 @@ Develop inside containers using Remote-Containers extension:
 
 ```json
 {
-  "name": "Colima Services Dev",
+  "name": "DevStack Core Dev",
   "dockerComposeFile": "../docker-compose.yml",
   "service": "reference-api",
   "workspaceFolder": "/app",
@@ -592,7 +592,7 @@ CMD ["air", "-c", ".air.toml"]
 
 ```bash
 # 1. Start environment
-./manage-colima.sh start
+./manage-devstack.sh start
 
 # 2. Enable hot reload (if using override)
 docker compose -f docker-compose.yml -f docker-compose.override.yml up -d
@@ -808,7 +808,7 @@ docker logs --since 10m -f dev-reference-api
 docker logs dev-reference-api 2>&1 | grep ERROR
 
 # Using management script
-./manage-colima.sh logs reference-api
+./manage-devstack.sh logs reference-api
 ```
 
 ### Remote Debugging
@@ -920,11 +920,11 @@ Configure Git remotes:
 
 ```bash
 # Add Forgejo remote
-cd ~/colima-services
-git remote add forgejo git@forgejo:organization/colima-services.git
+cd ~/devstack-core
+git remote add forgejo git@forgejo:organization/devstack-core.git
 
 # Or use HTTPS
-git remote add forgejo http://localhost:3000/organization/colima-services.git
+git remote add forgejo http://localhost:3000/organization/devstack-core.git
 
 # Push to Forgejo
 git push forgejo main
@@ -1051,9 +1051,9 @@ docker exec dev-reference-api pytest tests/ --cov=app --cov-fail-under=80
 
 ```bash
 # Morning startup
-cd ~/colima-services
-./manage-colima.sh start
-./manage-colima.sh status
+cd ~/devstack-core
+./manage-devstack.sh start
+./manage-devstack.sh status
 
 # Load Vault credentials
 source scripts/load-vault-env.sh
@@ -1070,16 +1070,16 @@ docker compose up -d --build
 
 ```bash
 # Full stack
-./manage-colima.sh start
+./manage-devstack.sh start
 
 # Or individual services
 docker compose up -d vault postgres redis-1
 
 # Verify health
-./manage-colima.sh health
+./manage-devstack.sh health
 
 # View logs
-./manage-colima.sh logs
+./manage-devstack.sh logs
 ```
 
 ### Making Changes
@@ -1155,7 +1155,7 @@ git push origin feature/new-endpoint
 
 ```bash
 # Daily Startup
-./manage-colima.sh start
+./manage-devstack.sh start
 source scripts/load-vault-env.sh
 
 # Development

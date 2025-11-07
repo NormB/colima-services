@@ -1,6 +1,6 @@
-# Contributing to Colima Services
+# Contributing to DevStack Core
 
-Thank you for your interest in contributing to Colima Services! This document provides guidelines and instructions for contributing to this project.
+Thank you for your interest in contributing to DevStack Core! This document provides guidelines and instructions for contributing to this project.
 
 ## Table of Contents
 
@@ -22,14 +22,14 @@ This project adheres to a Code of Conduct that all contributors are expected to 
 1. **Fork the repository** on GitHub
 2. **Clone your fork** locally:
    ```bash
-   git clone https://github.com/YOUR_USERNAME/colima-services.git
-   cd colima-services
+   git clone https://github.com/YOUR_USERNAME/devstack-core.git
+   cd devstack-core
    ```
 3. **Set up the development environment**:
    ```bash
    cp .env.example .env
    # Edit .env with appropriate values
-   ./manage-colima.sh start
+   ./manage-devstack.sh start
    ```
 
 ### Setting Up SSH and GPG Keys for Forgejo
@@ -108,7 +108,7 @@ Before creating bug reports, please check existing issues to avoid duplicates. W
 - **Steps to reproduce** the issue
 - **Expected vs actual behavior**
 - **Environment details**: OS version, Colima version, Docker version
-- **Relevant logs** from `./manage-colima.sh logs` or Docker logs
+- **Relevant logs** from `./manage-devstack.sh logs` or Docker logs
 - **Screenshots** if applicable
 
 ### Suggesting Enhancements
@@ -148,15 +148,15 @@ We welcome code contributions! Here are the types of contributions we're looking
 3. **Test your changes**:
    ```bash
    # Start fresh environment
-   ./manage-colima.sh stop
-   ./manage-colima.sh clean
-   ./manage-colima.sh start
+   ./manage-devstack.sh stop
+   ./manage-devstack.sh clean
+   ./manage-devstack.sh start
 
    # Run tests
    ./scripts/run-tests.sh
 
    # Verify health
-   ./manage-colima.sh health
+   ./manage-devstack.sh health
    ```
 
 4. **Commit your changes**:
@@ -251,19 +251,19 @@ Before submitting a PR, verify:
 
 1. **Clean installation works**:
    ```bash
-   ./manage-colima.sh clean
-   ./manage-colima.sh start
+   ./manage-devstack.sh clean
+   ./manage-devstack.sh start
    ```
 
 2. **All services start healthy**:
    ```bash
-   ./manage-colima.sh health
+   ./manage-devstack.sh health
    ```
 
 3. **Vault operations work**:
    ```bash
-   ./manage-colima.sh vault-init
-   ./manage-colima.sh vault-bootstrap
+   ./manage-devstack.sh vault-init
+   ./manage-devstack.sh vault-bootstrap
    ```
 
 4. **Service-specific tests**:
@@ -273,7 +273,7 @@ Before submitting a PR, verify:
 
 5. **No regressions**:
    - Test existing functionality still works
-   - Check logs for errors: `./manage-colima.sh logs`
+   - Check logs for errors: `./manage-devstack.sh logs`
 
 ### Test Coverage
 
@@ -313,4 +313,4 @@ Contributors will be recognized in:
 - CHANGELOG.md for significant contributions
 - Special thanks in release notes
 
-Thank you for contributing to Colima Services!
+Thank you for contributing to DevStack Core!

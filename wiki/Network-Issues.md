@@ -443,7 +443,7 @@ colima start \
   --network-address
 
 # Recreate containers
-cd ~/colima-services
+cd ~/devstack-core
 docker compose up -d
 ```
 
@@ -512,7 +512,7 @@ sudo /usr/libexec/ApplicationFirewall/socketfilterfw --setglobalstate on
 
 ### IP Address Ranges
 
-**Allocated IP ranges in colima-services:**
+**Allocated IP ranges in devstack-core:**
 
 ```
 172.20.0.0/16 - dev-services network

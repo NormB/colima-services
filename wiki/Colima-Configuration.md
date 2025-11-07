@@ -55,7 +55,7 @@ colima start \
 | Workload | CPU | Memory | Disk |
 |----------|-----|--------|------|
 | Light development | 2-4 | 4-6 GB | 30 GB |
-| Standard (colima-services) | 4-6 | 8-12 GB | 50 GB |
+| Standard (devstack-core) | 4-6 | 8-12 GB | 50 GB |
 | Heavy workloads | 8+ | 16+ GB | 100+ GB |
 
 ## Starting Colima

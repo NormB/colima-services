@@ -1,6 +1,6 @@
-# Colima Services Wiki
+# DevStack Core Wiki
 
-Welcome to the **Colima Services** wiki! This is your comprehensive guide to setting up, configuring, and using the complete Docker Compose-based development infrastructure for Apple Silicon Macs.
+Welcome to the **DevStack Core** wiki! This is your comprehensive guide to setting up, configuring, and using the complete Docker Compose-based development infrastructure for Apple Silicon Macs.
 
 ## 🚀 Quick Navigation
 
@@ -22,7 +22,7 @@ Welcome to the **Colima Services** wiki! This is your comprehensive guide to set
 - **[Best Practices](Best-Practices)** - Development patterns and conventions
 
 ### Operations
-- **[Management Commands](Management-Commands)** - Using manage-colima.sh
+- **[Management Commands](Management-Commands)** - Using manage-devstack.sh
 - **[Service Configuration](Service-Configuration)** - Configuring individual services
 - **[Health Monitoring](Health-Monitoring)** - Health checks and observability
 - **[Backup and Restore](Backup-and-Restore)** - Data backup procedures
@@ -53,9 +53,9 @@ Welcome to the **Colima Services** wiki! This is your comprehensive guide to set
 - **[Code of Conduct](Code-of-Conduct)** - Community standards
 - **[Acknowledgements](Acknowledgements)** - Credits and gratitude
 
-## 📚 What is Colima Services?
+## 📚 What is DevStack Core?
 
-Colima Services is a **complete, self-contained development environment** that provides:
+DevStack Core is a **complete, self-contained development environment** that provides:
 
 - **Databases**: PostgreSQL, MySQL, MongoDB
 - **Caching**: Redis 3-node cluster
@@ -79,7 +79,7 @@ All running on **Apple Silicon** (M Series Processors) using **Colima** for opti
 
 ## 🔗 External Links
 
-- **[GitHub Repository](https://github.com/NormB/colima-services)** - Source code and issues
+- **[GitHub Repository](https://github.com/NormB/devstack-core)** - Source code and issues
 - **[Colima Documentation](https://github.com/abiosoft/colima)** - Container runtime
 - **[HashiCorp Vault](https://www.vaultproject.io/docs)** - Secrets management
 - **[Docker Compose](https://docs.docker.com/compose/)** - Container orchestration
@@ -88,7 +88,7 @@ All running on **Apple Silicon** (M Series Processors) using **Colima** for opti
 
 - 📖 Start with the [Quick Start Guide](Quick-Start-Guide)
 - 🐛 Check [Common Issues](Common-Issues) for troubleshooting
-- 💬 [Open an issue](https://github.com/NormB/colima-services/issues) on GitHub
+- 💬 [Open an issue](https://github.com/NormB/devstack-core/issues) on GitHub
 - 📧 Review the [FAQ](FAQ) for frequently asked questions
 
 ## 📝 Wiki Maintenance

@@ -1,6 +1,6 @@
 # Installation Guide
 
-Complete step-by-step guide to installing Colima Services on macOS (Apple Silicon).
+Complete step-by-step guide to installing DevStack Core on macOS (Apple Silicon).
 
 ## Table of Contents
 
@@ -122,12 +122,12 @@ pwd
 
 **Clone the repository:**
 ```bash
-git clone https://github.com/NormB/colima-services.git ~/colima-services
+git clone https://github.com/NormB/devstack-core.git ~/devstack-core
 ```
 
 **Expected output:**
 ```
-Cloning into '/Users/yourusername/colima-services'...
+Cloning into '/Users/yourusername/devstack-core'...
 remote: Enumerating objects: ...
 Receiving objects: 100% (...), done.
 ```
@@ -139,9 +139,9 @@ brew install git
 
 **Navigate to project:**
 ```bash
-cd ~/colima-services
+cd ~/devstack-core
 ls -la
-# Should see: .env.example, docker-compose.yml, manage-colima.sh, etc.
+# Should see: .env.example, docker-compose.yml, manage-devstack.sh, etc.
 ```
 
 ### Step 4: Configure Environment
@@ -153,12 +153,12 @@ cp .env.example .env
 
 **Make management script executable:**
 ```bash
-chmod +x manage-colima.sh
+chmod +x manage-devstack.sh
 ```
 
 **Verify:**
 ```bash
-ls -l manage-colima.sh
+ls -l manage-devstack.sh
 # Should show: -rwxr-xr-x (note the 'x' for executable)
 ```
 
@@ -174,13 +174,13 @@ cat .env | head -30
 
 **Start Colima and all services:**
 ```bash
-./manage-colima.sh start
+./manage-devstack.sh start
 ```
 
 **Expected output:**
 ```
 ============================================
-  Colima Services - Management Script
+  DevStack Core - Management Script
 ============================================
 
 [✓] Checking environment file...
@@ -232,7 +232,7 @@ INFO[0155] done
 ### Check Service Status
 
 ```bash
-./manage-colima.sh status
+./manage-devstack.sh status
 ```
 
 **Expected output:**
@@ -260,7 +260,7 @@ dev-reference-api running   healthy   0.10%    55.2MB
 ### Run Health Checks
 
 ```bash
-./manage-colima.sh health
+./manage-devstack.sh health
 ```
 
 **Expected output:**
@@ -311,7 +311,7 @@ curl http://localhost:8000/health/
 ```bash
 # Complete reset
 colima delete
-./manage-colima.sh start
+./manage-devstack.sh start
 ```
 
 ### Services Won't Start
@@ -321,14 +321,14 @@ colima delete
 **Solution:**
 ```bash
 # Check Vault status (all services depend on Vault)
-./manage-colima.sh vault-status
+./manage-devstack.sh vault-status
 
 # If Vault sealed, restart it
 docker compose restart vault
 sleep 30
 
 # Restart all services
-./manage-colima.sh restart
+./manage-devstack.sh restart
 ```
 
 ### Port Conflicts
@@ -357,7 +357,7 @@ docker compose up -d postgres
 # Stop Colima
 colima stop
 
-# Start with more resources (edit manage-colima.sh or):
+# Start with more resources (edit manage-devstack.sh or):
 colima start --cpu 6 --memory 12 --disk 100 --network-address
 ```
 
@@ -387,7 +387,7 @@ Now that installation is complete, proceed to:
 
 ✅ Installed Colima (lightweight Docker runtime)
 ✅ Installed Docker and Docker Compose
-✅ Cloned Colima Services repository
+✅ Cloned DevStack Core repository
 ✅ Configured environment
 ✅ Started all services
 ✅ Verified everything is running
@@ -406,14 +406,14 @@ See [First Time Setup](First-Time-Setup) for the next steps.
 - **[Common Issues](Common-Issues)** - Troubleshooting guide
 - **[Architecture Overview](Architecture-Overview)** - How everything works
 - **[Service Configuration](Service-Configuration)** - Configure individual services
-- **Full Documentation** - [docs/INSTALLATION.md](https://github.com/NormB/colima-services/blob/main/docs/INSTALLATION.md)
+- **Full Documentation** - [docs/INSTALLATION.md](https://github.com/NormB/devstack-core/blob/main/docs/INSTALLATION.md)
 
 ## Getting Help
 
 If you encounter issues not covered here:
 
 1. Check [Common Issues](Common-Issues)
-2. Search [GitHub Issues](https://github.com/NormB/colima-services/issues)
+2. Search [GitHub Issues](https://github.com/NormB/devstack-core/issues)
 3. Open a new issue with:
    - macOS version (`sw_vers`)
    - Colima version (`colima version`)

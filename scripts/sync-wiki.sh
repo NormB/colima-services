@@ -18,7 +18,7 @@ NC='\033[0m' # No Color
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 PROJECT_ROOT="$(cd "$SCRIPT_DIR/.." && pwd)"
 WIKI_DIR="$PROJECT_ROOT/wiki"
-WIKI_REPO="https://github.com/NormB/colima-services.wiki.git"
+WIKI_REPO="https://github.com/NormB/devstack-core.wiki.git"
 TEMP_DIR=$(mktemp -d)
 
 # Cleanup on exit
@@ -46,7 +46,7 @@ echo -e "${BLUE}1/5 Cloning wiki repository...${NC}"
 if ! git clone "$WIKI_REPO" "$TEMP_DIR" --depth 1 --quiet; then
     echo -e "${RED}❌ Error: Failed to clone wiki repository${NC}"
     echo -e "${YELLOW}💡 Make sure the wiki is initialized on GitHub${NC}"
-    echo -e "${YELLOW}   Visit: https://github.com/NormB/colima-services/wiki${NC}"
+    echo -e "${YELLOW}   Visit: https://github.com/NormB/devstack-core/wiki${NC}"
     exit 1
 fi
 
@@ -92,7 +92,7 @@ echo -e "${BLUE}4/5 Committing changes...${NC}"
 echo -e "${BLUE}   Message: \"$COMMIT_MSG\"${NC}"
 
 git config user.name "Wiki Sync Script"
-git config user.email "wiki-sync@colima-services"
+git config user.email "wiki-sync@devstack-core"
 git commit -m "$COMMIT_MSG" --quiet
 
 # Push to GitHub
@@ -100,7 +100,7 @@ echo -e "${BLUE}5/5 Pushing to GitHub Wiki...${NC}"
 if git push origin master --quiet; then
     echo ""
     echo -e "${GREEN}✅ Wiki synced successfully!${NC}"
-    echo -e "${GREEN}   View at: https://github.com/NormB/colima-services/wiki${NC}"
+    echo -e "${GREEN}   View at: https://github.com/NormB/devstack-core/wiki${NC}"
 else
     echo -e "${RED}❌ Error: Failed to push to GitHub${NC}"
     echo -e "${YELLOW}💡 Check your network connection and GitHub credentials${NC}"

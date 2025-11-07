@@ -2,7 +2,7 @@
 
 **⚠️ This is a reference implementation for learning and testing. Not intended for production use.**
 
-This Go application demonstrates production-grade best practices for integrating with the Colima Services infrastructure using the Gin web framework. It showcases secure credential management, concurrent patterns, observability, and idiomatic Go code.
+This Go application demonstrates production-grade best practices for integrating with the DevStack Core infrastructure using the Gin web framework. It showcases secure credential management, concurrent patterns, observability, and idiomatic Go code.
 
 ## Table of Contents
 
@@ -58,7 +58,7 @@ This Go application demonstrates production-grade best practices for integrating
 **Response:**
 ```json
 {
-  "name": "Colima Services Reference API",
+  "name": "DevStack Core Reference API",
   "version": "1.0.0",
   "language": "Go",
   "framework": "Gin",
@@ -667,4 +667,4 @@ Main Go dependencies:
 
 ## License
 
-This reference implementation is part of the Colima Services project. See the main project README for license information.
+This reference implementation is part of the DevStack Core project. See the main project README for license information.

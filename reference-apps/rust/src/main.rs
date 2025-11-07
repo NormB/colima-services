@@ -21,7 +21,7 @@ struct HealthResponse {
 #[get("/")]
 async fn root() -> impl Responder {
     let info = ApiInfo {
-        name: "Colima Services Rust Reference API".to_string(),
+        name: "DevStack Core Rust Reference API".to_string(),
         version: "1.0.0".to_string(),
         language: "Rust".to_string(),
         framework: "Actix-web".to_string(),

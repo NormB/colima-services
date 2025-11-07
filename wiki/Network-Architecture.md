@@ -1,6 +1,6 @@
 # Network Architecture
 
-Comprehensive guide to the Docker network configuration, IP assignments, and service-to-service communication in the Colima Services infrastructure.
+Comprehensive guide to the Docker network configuration, IP assignments, and service-to-service communication in the DevStack Core infrastructure.
 
 ---
 
@@ -21,7 +21,7 @@ Comprehensive guide to the Docker network configuration, IP assignments, and ser
 
 ## Overview
 
-The Colima Services infrastructure uses a **single Docker bridge network** with static IP assignments for predictable, reliable service communication. All 28+ containers run within this isolated network, communicating via DNS service names and internal IPs.
+The DevStack Core infrastructure uses a **single Docker bridge network** with static IP assignments for predictable, reliable service communication. All 28+ containers run within this isolated network, communicating via DNS service names and internal IPs.
 
 ### Key Architecture Principles
 

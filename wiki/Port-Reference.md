@@ -16,7 +16,7 @@
 
 ## Overview
 
-This page provides a complete reference of all ports used in the colima-services environment, including HTTP, HTTPS, database, and internal cluster communication ports.
+This page provides a complete reference of all ports used in the devstack-core environment, including HTTP, HTTPS, database, and internal cluster communication ports.
 
 ## Complete Port Listing
 

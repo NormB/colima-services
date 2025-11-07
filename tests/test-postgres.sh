@@ -62,7 +62,7 @@
 #   ./test-postgres.sh
 #
 #   # Run tests after starting services
-#   ../manage-colima.sh start postgres
+#   ../manage-devstack.sh start postgres
 #   ./test-postgres.sh
 #
 #   # Test with TLS enabled

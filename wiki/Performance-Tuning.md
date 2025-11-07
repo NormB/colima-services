@@ -47,7 +47,7 @@
 
 ## Overview
 
-Performance tuning is essential for optimal operation of the colima-services environment. This page provides guidance on optimizing resource allocation, database performance, and identifying bottlenecks.
+Performance tuning is essential for optimal operation of the devstack-core environment. This page provides guidance on optimizing resource allocation, database performance, and identifying bottlenecks.
 
 **Performance Optimization Areas:**
 - Colima VM resources (CPU, memory, disk)

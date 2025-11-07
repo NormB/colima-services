@@ -38,7 +38,7 @@
 
 ## Overview
 
-The colima-services environment uses HashiCorp Vault's PKI secrets engine to manage TLS certificates for all services. This provides a two-tier PKI hierarchy with automated certificate generation and renewal.
+The devstack-core environment uses HashiCorp Vault's PKI secrets engine to manage TLS certificates for all services. This provides a two-tier PKI hierarchy with automated certificate generation and renewal.
 
 **PKI Architecture:**
 ```
@@ -171,7 +171,7 @@ vault secrets tune -max-lease-ttl=87600h pki
 
 # Generate root CA certificate
 vault write pki/root/generate/internal \
-  common_name="Colima Services Root CA" \
+  common_name="DevStack Core Root CA" \
   ttl=87600h \
   exclude_cn_from_sans=true
 
@@ -192,7 +192,7 @@ vault secrets tune -max-lease-ttl=43800h pki_int
 
 # Generate intermediate CSR
 vault write -format=json pki_int/intermediate/generate/internal \
-  common_name="Colima Services Intermediate CA" \
+  common_name="DevStack Core Intermediate CA" \
   ttl=43800h \
   exclude_cn_from_sans=true \
   | jq -r '.data.csr' > pki_int.csr
@@ -372,7 +372,7 @@ openssl x509 -in ~/.config/vault/certs/postgres/cert.pem -text -noout
 
 # Key information:
 # Subject: CN=postgres
-# Issuer: CN=Colima Services Intermediate CA
+# Issuer: CN=DevStack Core Intermediate CA
 # Validity:
 #   Not Before: Jan 1 00:00:00 2024 GMT
 #   Not After:  Jan 1 00:00:00 2025 GMT
@@ -474,7 +474,7 @@ security add-trusted-cert \
 2. File → Import Items
 3. Select `~/.config/vault/ca/ca.pem`
 4. Choose "System" or "login" keychain
-5. Find "Colima Services Root CA"
+5. Find "DevStack Core Root CA"
 6. Double-click → Trust → "Always Trust"
 
 ### Trust Settings
@@ -486,7 +486,7 @@ security add-trusted-cert \
 security verify-cert -c ~/.config/vault/ca/ca.pem
 
 # View certificate
-security find-certificate -c "Colima Services Root CA" -p | openssl x509 -text -noout
+security find-certificate -c "DevStack Core Root CA" -p | openssl x509 -text -noout
 ```
 
 ### Verify Trust

@@ -1,4 +1,4 @@
-# Makefile for Colima Services - API Synchronization
+# Makefile for DevStack Core - API Synchronization
 #
 # This Makefile provides a platform-agnostic interface for API synchronization
 # validation. All CI/CD systems (GitHub Actions, GitLab, Jenkins, etc.) should
@@ -31,7 +31,7 @@ NC := \033[0m  # No Color
 ##@ General
 
 help: ## Display this help message
-	@echo "$(BLUE)Colima Services - API Synchronization$(NC)"
+	@echo "$(BLUE)DevStack Core - API Synchronization$(NC)"
 	@echo ""
 	@echo "$(GREEN)Available targets:$(NC)"
 	@awk 'BEGIN {FS = ":.*##"; printf ""} \
@@ -125,7 +125,7 @@ clean: ## Clean generated files and caches
 ##@ Information
 
 status: ## Show synchronization status
-	@echo "$(BLUE)Colima Services - Synchronization Status$(NC)"
+	@echo "$(BLUE)DevStack Core - Synchronization Status$(NC)"
 	@echo ""
 	@echo "$(YELLOW)OpenAPI Specification:$(NC)"
 	@if [ -f "reference-apps/shared/openapi.yaml" ]; then \
@@ -165,5 +165,5 @@ status: ## Show synchronization status
 	fi
 
 version: ## Show version information
-	@echo "Colima Services API Synchronization v1.0.0"
+	@echo "DevStack Core API Synchronization v1.0.0"
 	@echo "Platform-agnostic validation framework"

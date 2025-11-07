@@ -14,7 +14,7 @@
 
 ## Overview
 
-This guide helps you configure your IDE for optimal development with the Colima Services project. Each section covers:
+This guide helps you configure your IDE for optimal development with the DevStack Core project. Each section covers:
 - Required extensions/plugins
 - Recommended settings
 - Debugging configuration
@@ -236,7 +236,7 @@ Create `.vscode/launch.json`:
       "name": "Rust: API",
       "type": "lldb",
       "request": "launch",
-      "program": "${workspaceFolder}/reference-apps/rust/target/debug/colima-services-rust-api",
+      "program": "${workspaceFolder}/reference-apps/rust/target/debug/devstack-core-rust-api",
       "cwd": "${workspaceFolder}/reference-apps/rust",
       "env": {
         "RUST_LOG": "debug",
@@ -273,22 +273,22 @@ Create `.vscode/tasks.json`:
   "version": "2.0.0",
   "tasks": [
     {
-      "label": "Start Colima Services",
+      "label": "Start DevStack Core",
       "type": "shell",
-      "command": "./manage-colima.sh start",
+      "command": "./manage-devstack.sh start",
       "problemMatcher": [],
       "group": "build"
     },
     {
-      "label": "Stop Colima Services",
+      "label": "Stop DevStack Core",
       "type": "shell",
-      "command": "./manage-colima.sh stop",
+      "command": "./manage-devstack.sh stop",
       "problemMatcher": []
     },
     {
       "label": "Check Services Health",
       "type": "shell",
-      "command": "./manage-colima.sh health",
+      "command": "./manage-devstack.sh health",
       "problemMatcher": []
     },
     {
@@ -455,7 +455,7 @@ brew install --cask pycharm
 2. **Configuration:**
    - Name: `Go API`
    - Run kind: **Package**
-   - Package path: `github.com/normbrandinger/colima-services/reference-apps/golang/cmd/api`
+   - Package path: `github.com/normbrandinger/devstack-core/reference-apps/golang/cmd/api`
    - Working directory: `reference-apps/golang`
    - Environment:
      ```
@@ -782,12 +782,12 @@ echo 'alias vault-token="export VAULT_TOKEN=\$(cat ~/.config/vault/root-token)"'
 Add to `~/.zshrc` or `~/.bashrc`:
 
 ```bash
-# Colima Services aliases
-alias cs-start="cd ~/colima-services && ./manage-colima.sh start"
-alias cs-stop="cd ~/colima-services && ./manage-colima.sh stop"
-alias cs-status="cd ~/colima-services && ./manage-colima.sh status"
-alias cs-health="cd ~/colima-services && ./manage-colima.sh health"
-alias cs-logs="cd ~/colima-services && ./manage-colima.sh logs"
+# DevStack Core aliases
+alias ds-start="cd ~/devstack-core && ./manage-devstack.sh start"
+alias ds-stop="cd ~/devstack-core && ./manage-devstack.sh stop"
+alias ds-status="cd ~/devstack-core && ./manage-devstack.sh status"
+alias ds-health="cd ~/devstack-core && ./manage-devstack.sh health"
+alias ds-logs="cd ~/devstack-core && ./manage-devstack.sh logs"
 
 # Vault
 alias vault-login="export VAULT_TOKEN=\$(cat ~/.config/vault/root-token)"
@@ -890,7 +890,7 @@ Save as `setup-ide.sh`:
 
 ```bash
 #!/bin/bash
-# Quick IDE setup for Colima Services
+# Quick IDE setup for DevStack Core
 
 # VS Code extensions
 if command -v code &> /dev/null; then
@@ -913,7 +913,7 @@ echo "IDE setup complete!"
 echo "Next steps:"
 echo "1. Open project in your IDE"
 echo "2. Configure Python/Go interpreters"
-echo "3. Run 'Start Colima Services' task"
+echo "3. Run 'Start DevStack Core' task"
 echo "4. Start debugging!"
 ```
 

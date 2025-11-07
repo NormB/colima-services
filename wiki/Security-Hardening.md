@@ -42,7 +42,7 @@
 
 ## Overview
 
-The colima-services environment is designed for **local development** and is NOT production-hardened out of the box. This page provides guidance on hardening the environment for production use.
+The devstack-core environment is designed for **local development** and is NOT production-hardened out of the box. This page provides guidance on hardening the environment for production use.
 
 **Current Security Posture (Development):**
 - Uses Vault root token (full access)

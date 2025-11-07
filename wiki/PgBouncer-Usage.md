@@ -1,6 +1,6 @@
 # PgBouncer Usage
 
-Comprehensive guide to using PgBouncer connection pooler for PostgreSQL in the Colima Services environment.
+Comprehensive guide to using PgBouncer connection pooler for PostgreSQL in the DevStack Core environment.
 
 ## Table of Contents
 
@@ -258,7 +258,7 @@ PgBouncer configuration is at `/configs/pgbouncer/pgbouncer.ini` in the reposito
 docker exec dev-pgbouncer cat /etc/pgbouncer/pgbouncer.ini
 
 # Edit configuration (requires restart)
-nano /Users/gator/colima-services/configs/pgbouncer/pgbouncer.ini
+nano /Users/gator/devstack-core/configs/pgbouncer/pgbouncer.ini
 docker restart dev-pgbouncer
 ```
 
@@ -1154,7 +1154,7 @@ SHOW POOLS;
 
 ```bash
 # 1. Increase pool size
-nano /Users/gator/colima-services/configs/pgbouncer/pgbouncer.ini
+nano /Users/gator/devstack-core/configs/pgbouncer/pgbouncer.ini
 # Increase: default_pool_size = 30  (was 20)
 docker restart dev-pgbouncer
 
@@ -1204,7 +1204,7 @@ docker exec -it dev-postgres psql -h postgres -p 5432 -U postgres
 # If this works, problem is PgBouncer auth config
 
 # 5. Use auth_query instead of userlist.txt
-nano /Users/gator/colima-services/configs/pgbouncer/pgbouncer.ini
+nano /Users/gator/devstack-core/configs/pgbouncer/pgbouncer.ini
 # Add: auth_query = SELECT usename, passwd FROM pg_shadow WHERE usename = $1
 docker restart dev-pgbouncer
 ```
