@@ -278,7 +278,7 @@ enable_secrets_engine() {
 # Notes:
 #   - Enables PKI secrets engine at 'pki' mount point
 #   - Sets maximum lease TTL to ROOT_CA_TTL (10 years)
-#   - Generates internal root CA with common name "Colima Services Root CA"
+#   - Generates internal root CA with common name "DevStack Core Root CA"
 #   - Configures issuing certificate and CRL distribution URLs
 #   - Idempotent: skips generation if root CA already exists
 #   - Private key remains internal to Vault (not exported)
@@ -305,7 +305,7 @@ setup_root_ca() {
         curl -sf -X POST \
             -H "X-Vault-Token: $VAULT_TOKEN" \
             -d "{
-                \"common_name\": \"Colima Services Root CA\",
+                \"common_name\": \"DevStack Core Root CA\",
                 \"issuer_name\": \"root-ca\",
                 \"ttl\": \"$ROOT_CA_TTL\",
                 \"key_type\": \"$KEY_TYPE\",
@@ -374,7 +374,7 @@ setup_intermediate_ca() {
         CSR_RESPONSE=$(curl -sf -X POST \
             -H "X-Vault-Token: $VAULT_TOKEN" \
             -d "{
-                \"common_name\": \"Colima Services Intermediate CA\",
+                \"common_name\": \"DevStack Core Intermediate CA\",
                 \"issuer_name\": \"intermediate-ca\",
                 \"key_type\": \"$KEY_TYPE\",
                 \"key_bits\": $KEY_BITS
@@ -588,10 +588,14 @@ store_service_credentials() {
                 '{user: $user, password: $password, database: $database, tls_enabled: $tls_enabled}')
             ;;
         forgejo)
-            # Forgejo uses PostgreSQL, no separate credentials needed
+            # Forgejo admin credentials and PostgreSQL connection
+            # Generate random admin password for initial setup
             creds_json=$(jq -n \
+                --arg admin_user "devadmin" \
+                --arg admin_password "$password" \
+                --arg admin_email "admin@devstack.local" \
                 --argjson tls_enabled true \
-                '{tls_enabled: $tls_enabled}')
+                '{admin_user: $admin_user, admin_password: $admin_password, admin_email: $admin_email, tls_enabled: $tls_enabled}')
             ;;
     esac
 
