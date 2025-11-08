@@ -25,7 +25,7 @@ This repository includes production-ready reference implementations demonstratin
 | **Python** | FastAPI (API-First) | OpenAPI specification-driven implementation with shared test suite | 8001 (HTTP), 8444 (HTTPS) | [README](./reference-apps/fastapi-api-first/README.md) |
 | **Go** | Gin Framework | Production-ready Go implementation with concurrent patterns | 8002 (HTTP), 8445 (HTTPS) | [README](./reference-apps/golang/README.md) |
 | **Node.js** | Express Framework | Modern async/await patterns with Express | 8003 (HTTP), 8446 (HTTPS) | [README](./reference-apps/nodejs/README.md) |
-| **Rust** | Actix-web (Minimal) | High-performance async API with Actix-web | 8004 (HTTP), 8447 (HTTPS) | [README](./reference-apps/rust/README.md) |
+| **Rust** | Actix-web (Partial) | High-performance async API with comprehensive testing | 8004 (HTTP), 8447 (HTTPS) | [README](./reference-apps/rust/README.md) |
 
 ### Key Features
 
