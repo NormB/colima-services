@@ -154,15 +154,15 @@ All tests performed with idle services (no concurrent load unless otherwise spec
 
 | Endpoint | p50 | p95 | p99 | Max | Notes |
 |----------|-----|-----|-----|-----|-------|
-| `GET /` | 2ms | 5ms | 8ms | 12ms | Root endpoint (minimal impl) |
+| `GET /` | 2ms | 5ms | 8ms | 12ms | Root endpoint (partial impl) |
 | `GET /health` | 2ms | 4ms | 7ms | 11ms | Simple health check |
-| `GET /health/vault` | 8ms | 15ms | 25ms | 40ms | Basic Vault connectivity |
+| `GET /health/vault` | 8ms | 15ms | 25ms | 40ms | Vault health connectivity |
 
 **Observations:**
-- **Fastest response times** (minimal implementation)
+- **Fastest response times** across all implementations
 - Zero-cost abstractions provide excellent performance
-- Limited functionality makes comparison incomplete
-- Production implementation would have higher latency
+- Partial implementation (~40% complete) - missing database/cache/messaging integrations
+- Performance advantage would likely narrow with full feature parity
 
 ### Performance Comparison Summary
 
@@ -170,18 +170,19 @@ All tests performed with idle services (no concurrent load unless otherwise spec
 
 | Implementation | p95 Latency | Relative Performance |
 |----------------|-------------|----------------------|
-| Rust (minimal) | N/A | N/A (incomplete) |
-| Go | 60ms | **Fastest (baseline)** |
+| Go | 60ms | **Fastest full implementation (baseline)** |
 | Python FastAPI | 75ms | +25% slower than Go |
 | Node.js | 85ms | +42% slower than Go |
 | Python API-First | 78ms | +30% slower than Go |
+
+**Note:** Rust implementation excluded from comparison - partial implementation (~40% complete) lacks database/cache/messaging integrations needed for fair performance comparison. Basic endpoint benchmarks show excellent performance potential.
 
 **Memory Usage Per Request:**
 
 | Implementation | Memory/Request | Notes |
 |----------------|----------------|-------|
 | Go | ~2 KB | Goroutine stack |
-| Rust | ~1 KB | Minimal heap allocation |
+| Rust | ~1 KB | Minimal heap allocation (partial impl) |
 | Python | ~8 KB | asyncio overhead |
 | Node.js | ~5 KB | V8 heap allocation |
 
@@ -388,7 +389,7 @@ HSET: 10,000.00 requests per second
 | FastAPI API-First | <1% | 98 MB | 185 MB | Python + OpenAPI validation |
 | Go API | <1% | 18 MB | 35 MB | Compiled binary |
 | Node.js API | <1% | 65 MB | 145 MB | V8 heap |
-| Rust API | <1% | 8 MB | 22 MB | Minimal implementation |
+| Rust API | <1% | 8 MB | 22 MB | Partial implementation (~40% complete) |
 | **Observability** |
 | Prometheus | 1% | 120 MB | 250 MB | Time series DB |
 | Grafana | <1% | 85 MB | 160 MB | Visualization |
