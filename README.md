@@ -97,8 +97,8 @@ This repository provides a **complete, self-contained development environment** 
 
 **Separation of Concerns:**
 - DevStack Core environment: Git hosting (Forgejo) + development databases
-- Separate UTM VM: Production VoIP services (OpenSIPS, FreeSWITCH)
-- Benefit: Network latency minimization, clear environment boundaries
+- Separate libvirt VMs: Production VoIP services (OpenSIPS, Asterisk, RTPEngine)
+- Benefit: Network latency minimization, clear environment boundaries, full kernel access for RTPEngine
 
 **Design Principles:**
 1. **Minimal Complexity** - Use standard Docker images, avoid custom builds

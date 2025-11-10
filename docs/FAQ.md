@@ -18,7 +18,7 @@ export COLIMA_PROFILE=project2
 ./manage-devstack.sh start
 ```
 
-**Q: How do I access services from UTM VM?**
+**Q: How do I access services from libvirt VMs?**
 A: Use Colima IP instead of localhost:
 ```bash
 COLIMA_IP=$(./manage-devstack.sh ip | grep "Colima IP:" | awk '{print $3}')
