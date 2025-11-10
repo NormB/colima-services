@@ -28,7 +28,7 @@
     "node-vault": "^0.10.2",
     "pg": "^8.11.3",
     "mysql2": "^3.6.5",
-    "mongodb": "^6.3.0",
+    "mongodb": "^7.0.0",
     "redis": "^5.9.0",
     "amqplib": "^0.10.3",
     "prom-client": "^15.1.0",
