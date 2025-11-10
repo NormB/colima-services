@@ -67,6 +67,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - Updated `manage-devstack.sh` vault-bootstrap to ensure forgejo database exists
   - Prevents "installation page" issue when forgejo database is missing
 
+### Removed
+- Removed redundant historical documentation files from project root
+  - Deleted `RUST_DOCUMENTATION_UPDATE.md` (297 lines) - historical analysis already captured in changelog
+  - Deleted `FIXES.md` (174 lines) - test suite fixes already applied to codebase
+  - Enforces project mandate: all documentation must be in `docs/` subdirectory
+  - Only `README.md` and `CLAUDE.md` remain in project root (per project standards)
+
 ---
 
 ## [1.3.0] - 2025-11-05
