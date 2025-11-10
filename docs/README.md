@@ -79,6 +79,43 @@ This directory contains comprehensive documentation for the DevStack Core projec
 
 ### Operational Guides
 
+- **[SERVICE_PROFILES.md](./SERVICE_PROFILES.md)** - Service profile system (NEW in v1.3)
+  - Flexible service orchestration (minimal, standard, full, reference)
+  - Profile comparison and selection guide
+  - Use cases and resource requirements
+  - Profile combinations and customization
+  - Environment variable overrides per profile
+
+- **[PYTHON_MANAGEMENT_SCRIPT.md](./PYTHON_MANAGEMENT_SCRIPT.md)** - Modern Python CLI (NEW in v1.3)
+  - Profile-aware management commands
+  - Installation and setup (pip, venv, homebrew)
+  - Complete command reference with examples
+  - Migration strategy from bash script
+  - Beautiful terminal output with Rich library
+
+- **[MANAGEMENT.md](./MANAGEMENT.md)** - Bash management script guide
+  - Complete command reference (20+ commands)
+  - Daily operations workflow
+  - Vault operations
+  - Backup and restore procedures
+  - Service lifecycle management
+
+- **[INSTALLATION.md](./INSTALLATION.md)** - Step-by-step installation guide
+  - Pre-flight checks and prerequisites
+  - Profile selection guidance (Step 4.5)
+  - Python script setup (recommended)
+  - Bash script setup (traditional)
+  - Vault initialization and bootstrap
+  - Redis cluster initialization (for standard/full profiles)
+  - Complete verification procedures
+
+- **[USAGE.md](./USAGE.md)** - Daily usage guide
+  - Starting and stopping services
+  - Checking service status and health
+  - Accessing service credentials
+  - Common development workflows
+  - IDE integration
+
 - **[TROUBLESHOOTING.md](./TROUBLESHOOTING.md)** - Troubleshooting guide
   - Common startup issues (especially Vault bootstrap)
   - Service health check failures
@@ -94,6 +131,20 @@ This directory contains comprehensive documentation for the DevStack Core projec
   - API performance (caching, connection pooling)
   - Benchmarking procedures
   - Production scaling strategies
+
+- **[PROFILE_IMPLEMENTATION_GUIDE.md](./PROFILE_IMPLEMENTATION_GUIDE.md)** - Technical profile implementation
+  - Docker Compose profile architecture
+  - Profile assignment strategy
+  - Environment variable loading mechanism
+  - Testing and validation procedures
+  - Custom profile creation
+
+- **[PROFILE_TESTING_CHECKLIST.md](./PROFILE_TESTING_CHECKLIST.md)** - Profile testing procedures
+  - 60+ manual test cases for all profiles
+  - Automated testing script usage
+  - Profile combination tests
+  - Environment override validation
+  - Performance and regression testing
 
 ### API Development Patterns
 
@@ -171,13 +222,14 @@ See [CONTRIBUTING.md](../.github/CONTRIBUTING.md) for guidelines on:
 |----------|-------|--------|
 | Project Information | 1 | ✅ Complete |
 | Security | 3 | ✅ Complete |
-| Testing | 3 | ✅ Complete |
+| Testing | 4 | ✅ Complete (includes PROFILE_TESTING_CHECKLIST.md) |
 | Architecture | 1 | ✅ Complete |
-| Operational Guides | 2 | ✅ Complete |
+| Service Profiles (NEW v1.3) | 3 | ✅ Complete (SERVICE_PROFILES.md, PYTHON_MANAGEMENT_SCRIPT.md, PROFILE_IMPLEMENTATION_GUIDE.md) |
+| Operational Guides | 10 | ✅ Complete |
 | API Patterns | 1 | ✅ Complete |
 | Reference Apps | 6 | ✅ Complete |
 | Infrastructure | 1 | ✅ Complete |
-| **Total** | **18** | **✅ Complete** |
+| **Total Documentation Files** | **30+** | **✅ 98% Coverage** |
 
 ## Useful Resources
 
