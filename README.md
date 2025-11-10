@@ -8,6 +8,7 @@ A production-ready, Docker-based development environment running on Colima that 
 
 - [Reference Applications](#reference-applications)
 - [Overview](#overview)
+- [Service Profiles](#service-profiles)
 - [Quick Start](#quick-start)
 - [Documentation](#documentation)
 - [Features](#features)
@@ -107,7 +108,44 @@ This repository provides a **complete, self-contained development environment** 
 4. **Security Aware** - Password protection, network isolation (development setup)
 5. **Observable** - Health checks, logging, easy status inspection
 
+## Service Profiles
+
+DevStack Core supports flexible service profiles to match your development needs. Choose the profile that fits your use case:
+
+| Profile | Services | RAM | Use Case |
+|---------|----------|-----|----------|
+| **minimal** | 5 services | 2GB | Git hosting + essential development (single Redis) |
+| **standard** | 10 services | 4GB | Full development stack + Redis cluster (recommended) |
+| **full** | 18 services | 6GB | Complete suite + observability (Prometheus, Grafana, Loki) |
+| **reference** | +5 services | +1GB | Educational API examples (combine with standard/full) |
+
+### Profile Quick Start
+
+```bash
+# Start with standard profile (recommended for most developers)
+./manage-devstack.py start --profile standard
+
+# Or use minimal profile (lightweight, single Redis instance)
+./manage-devstack.py start --profile minimal
+
+# Or use full profile (includes Prometheus, Grafana, Loki)
+./manage-devstack.py start --profile full
+
+# Combine profiles (standard + reference apps)
+./manage-devstack.py start --profile standard --profile reference
+
+# Check health of all running services
+./manage-devstack.py health
+
+# Initialize Redis cluster (required for standard/full profiles, first time only)
+./manage-devstack.py redis-cluster-init
+```
+
+**See [docs/SERVICE_PROFILES.md](./docs/SERVICE_PROFILES.md) for complete profile documentation.**
+
 ## Quick Start
+
+### Traditional Bash Script
 
 ```bash
 # 1. Install Colima (if not already installed)
@@ -134,6 +172,41 @@ nano .env  # Set strong passwords
 ./manage-devstack.sh status
 ```
 
+### Modern Python Script (Recommended)
+
+```bash
+# 1. Install Colima (if not already installed)
+brew install colima docker docker-compose
+
+# 2. Clone repository
+git clone https://github.com/NormB/devstack-core.git ~/devstack-core
+cd ~/devstack-core
+
+# 3. Install Python dependencies
+pip3 install --user -r requirements-dev.txt
+
+# 4. Configure environment
+cp .env.example .env
+nano .env  # Set strong passwords
+
+# 5. Start with standard profile
+./manage-devstack.py start --profile standard
+
+# 6. Initialize Vault (first time only)
+./manage-devstack.sh vault-init
+
+# 7. Bootstrap Vault PKI and credentials (first time only)
+./manage-devstack.sh vault-bootstrap
+
+# 8. Initialize Redis cluster (for standard/full profiles, first time only)
+./manage-devstack.py redis-cluster-init
+
+# 9. Check health
+./manage-devstack.py health
+```
+
+**See [docs/PYTHON_MANAGEMENT_SCRIPT.md](./docs/PYTHON_MANAGEMENT_SCRIPT.md) for complete Python script documentation.**
+
 **Access Services:**
 - **Forgejo (Git):** http://localhost:3000
 - **Vault UI:** http://localhost:8200/ui
@@ -151,6 +224,8 @@ For detailed installation instructions, see [docs/INSTALLATION.md](./docs/INSTAL
 ### Core Documentation
 
 - **[Installation Guide](./docs/INSTALLATION.md)** - Complete step-by-step installation with pre-flight checks, software setup, and verification
+- **[Service Profiles](./docs/SERVICE_PROFILES.md)** - Flexible service profiles (minimal, standard, full, reference) for different development needs
+- **[Python Management Script](./docs/PYTHON_MANAGEMENT_SCRIPT.md)** - Modern Python CLI with profile support, colored output, and comprehensive commands
 - **[Services Overview](./docs/SERVICES.md)** - Detailed configuration for PostgreSQL, MySQL, MongoDB, Redis, RabbitMQ, Forgejo, and Vault
 - **[Vault Integration](./docs/VAULT.md)** - Vault PKI setup, certificate management, auto-unseal configuration, and Vault commands
 - **[Redis Cluster](./docs/REDIS.md)** - Redis cluster architecture, setup, operations, and troubleshooting

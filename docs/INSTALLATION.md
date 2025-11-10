@@ -6,9 +6,13 @@
   - [Step 2: Install Required Software](#step-2-install-required-software)
   - [Step 3: Clone the Repository](#step-3-clone-the-repository)
   - [Step 4: Configure Environment](#step-4-configure-environment)
+  - [Step 4.5: Choose Your Service Profile](#step-45-choose-your-service-profile-optional-but-recommended)
   - [Step 5: Start Colima and Services](#step-5-start-colima-and-services)
+    - [Option A: Python Script (Recommended)](#option-a-start-with-python-script-recommended)
+    - [Option B: Bash Script (Traditional)](#option-b-start-with-bash-script-traditional)
   - [Step 6: Initialize Vault](#step-6-initialize-vault)
   - [Step 7: Bootstrap Vault and Generate Credentials](#step-7-bootstrap-vault-and-generate-credentials)
+  - [Step 7.5: Initialize Redis Cluster (For Standard/Full Profiles Only)](#step-75-initialize-redis-cluster-for-standardfull-profiles-only)
   - [Step 8: Verify Everything Works](#step-8-verify-everything-works)
   - [Step 9: Access Your Services](#step-9-access-your-services)
   - [What to Do If Something Goes Wrong](#what-to-do-if-something-goes-wrong)
@@ -27,10 +31,13 @@
 
 **What You'll Accomplish:**
 - ✅ Install Colima (lightweight Docker alternative)
+- ✅ Choose your service profile (minimal, standard, full, or reference)
 - ✅ Set up a complete development infrastructure
 - ✅ Configure HashiCorp Vault for secrets management
-- ✅ Launch 12+ services (databases, message queues, git server, etc.)
+- ✅ Launch 5-23 services based on your chosen profile
 - ✅ Access web UIs and verify everything works
+
+**New in v1.3:** Service Profiles let you start only the services you need. See [SERVICE_PROFILES.md](./SERVICE_PROFILES.md) for complete details.
 
 **Before You Begin:**
 - This guide assumes macOS (tested on Apple M Series Processors)
@@ -263,7 +270,174 @@ cat .env | head -30
 
 ---
 
+### Step 4.5: Choose Your Service Profile (Optional but Recommended)
+
+**What are Service Profiles?** DevStack Core offers flexible profiles that let you start only the services you need. This saves resources and speeds up startup times.
+
+**Available Profiles:**
+
+| Profile | Services | RAM | Best For |
+|---------|----------|-----|----------|
+| **minimal** | 5 services | 2GB | Git hosting + basic development (single Redis) |
+| **standard** | 10 services | 4GB | **Full development stack + Redis cluster (RECOMMENDED)** |
+| **full** | 18 services | 6GB | Complete suite + observability (Prometheus, Grafana, Loki) |
+| **reference** | +5 services | +1GB | Educational API examples (combine with standard/full) |
+
+**Which Profile Should You Choose?**
+
+- **Choose `minimal`** if you:
+  - Only need Git hosting (Forgejo) and basic database
+  - Have limited RAM (< 8GB)
+  - Want fastest startup time
+
+- **Choose `standard`** if you:
+  - Need Redis cluster for development (3 nodes)
+  - Want all databases (PostgreSQL, MySQL, MongoDB)
+  - Need RabbitMQ messaging
+  - **This is the recommended profile for most developers**
+
+- **Choose `full`** if you:
+  - Need metrics and monitoring (Prometheus, Grafana)
+  - Want log aggregation (Loki)
+  - Are doing performance testing
+  - Have 16GB+ RAM
+
+**4.5.1 Install Python Dependencies (for Profile Support):**
+
+```bash
+# Install Python management script dependencies
+pip3 install --user -r requirements-dev.txt
+
+# Expected output:
+# Successfully installed click-8.1.7 rich-13.7.0 PyYAML-6.0.1 python-dotenv-1.0.0 docker-7.0.0
+```
+
+**Alternative: Use Virtual Environment:**
+
+```bash
+# Create virtual environment (optional but recommended)
+python3 -m venv venv
+
+# Activate it
+source venv/bin/activate
+
+# Install dependencies
+pip3 install -r requirements-dev.txt
+
+# When done: deactivate
+```
+
+**4.5.2 Make Python Script Executable:**
+
+```bash
+# Add execute permissions
+chmod +x manage-devstack.py
+
+# Verify permissions
+ls -l manage-devstack.py
+
+# Expected output (note the 'x'):
+# -rwxr-xr-x  1 yourusername  staff  xxxxx Nov 23 10:00 manage-devstack.py
+```
+
+**Skip This Section If:** You want to use the traditional bash script and start all services. Continue to Step 5.
+
+---
+
 ### Step 5: Start Colima and Services
+
+You can now start services using either:
+- **Python script** (recommended, with profile support)
+- **Bash script** (traditional, starts all services)
+
+#### Option A: Start with Python Script (Recommended)
+
+**5.1 Start with Your Chosen Profile:**
+
+```bash
+# Start with standard profile (recommended for most developers)
+./manage-devstack.py start --profile standard
+
+# OR start with minimal profile (lightweight)
+# ./manage-devstack.py start --profile minimal
+
+# OR start with full profile (includes observability)
+# ./manage-devstack.py start --profile full
+
+# OR combine profiles (standard + reference apps)
+# ./manage-devstack.py start --profile standard --profile reference
+```
+
+**Expected Output (takes 2-3 minutes on first run):**
+
+```
+═══ DevStack Core - Start Services ═══
+
+Profile Configuration
+  Selected Profiles: standard
+  Services to Start: 10
+
+Step 1/3: Check Colima Status
+  ✓ Colima is not running
+
+Step 2/3: Start Colima VM
+  INFO[0000] starting colima
+  INFO[0000] runtime: docker
+  INFO[0001] creating and starting colima VM...
+  INFO[0002] provisioning docker runtime
+  INFO[0150] starting ... context=docker
+  INFO[0155] done
+  ✓ Colima started successfully
+     Profile: default
+     Colima IP: 192.168.106.2
+
+Step 3/3: Start Docker Services
+  [+] Running 10/10
+   ✔ Container dev-vault             Started
+   ✔ Container dev-postgres          Started
+   ✔ Container dev-pgbouncer         Started
+   ✔ Container dev-mysql             Started
+   ✔ Container dev-mongodb           Started
+   ✔ Container dev-redis-1           Started
+   ✔ Container dev-redis-2           Started
+   ✔ Container dev-redis-3           Started
+   ✔ Container dev-rabbitmq          Started
+   ✔ Container dev-forgejo           Started
+
+Services Started Successfully!
+
+Next Steps:
+  1. Wait 2-3 minutes for services to become healthy
+  2. Check health: ./manage-devstack.py health
+  3. Initialize Vault: ./manage-devstack.sh vault-init
+  4. Bootstrap Vault: ./manage-devstack.sh vault-bootstrap
+  5. Initialize Redis cluster: ./manage-devstack.py redis-cluster-init
+```
+
+**5.2 Check Service Health:**
+
+```bash
+# Check health status of all running services
+./manage-devstack.py health
+
+# Expected output:
+# ┏━━━━━━━━━━━━━━━━━━━━━━┳━━━━━━━━━┳━━━━━━━━━━━━━━━━┓
+# ┃ Service              ┃ Status  ┃ Health         ┃
+# ┡━━━━━━━━━━━━━━━━━━━━━━╇━━━━━━━━━╇━━━━━━━━━━━━━━━━┩
+# │ dev-vault            │ running │ healthy        │
+# │ dev-postgres         │ running │ healthy        │
+# │ dev-pgbouncer        │ running │ healthy        │
+# │ dev-redis-1          │ running │ healthy        │
+# ...
+```
+
+**What's Happening:**
+1. **Colima VM Creation** (0-60 seconds): Creates a Linux virtual machine
+2. **Docker Installation** (60-150 seconds): Installs Docker inside the VM
+3. **Container Start** (150-180 seconds): Launches your selected services
+4. **Health Checks** (180+ seconds): Services report as "healthy" once ready
+
+#### Option B: Start with Bash Script (Traditional)
 
 **5.1 Start Colima VM:**
 
@@ -593,6 +767,122 @@ docker logs dev-postgres 2>&1 | grep -i "vault"
 # User: dev_admin
 # Password: aB1cD2eF3gH4iJ5kL6mN7oP8qR9sT0u
 # Database: dev_db
+```
+
+---
+
+### Step 7.5: Initialize Redis Cluster (For Standard/Full Profiles Only)
+
+**Skip This Step If:** You started with the `minimal` profile (single Redis instance).
+
+**Required For:** `standard` and `full` profiles (3-node Redis cluster).
+
+**What This Does:** Creates a Redis cluster by connecting the 3 Redis nodes together and distributing hash slots.
+
+**7.5.1 Initialize Redis Cluster:**
+
+```bash
+# Using Python script (recommended)
+./manage-devstack.py redis-cluster-init
+
+# OR using bash script
+./manage-devstack.sh redis-cluster-init
+```
+
+**Expected Output:**
+
+```
+═══ Redis Cluster Initialization ═══
+
+Step 1/3: Verify Redis Nodes Are Running
+  ✓ dev-redis-1 is running
+  ✓ dev-redis-2 is running
+  ✓ dev-redis-3 is running
+
+Step 2/3: Create Redis Cluster
+  >>> Creating cluster with 3 master nodes
+  >>> Performing hash slots allocation on 3 nodes...
+  >>> Distributing 16384 slots across 3 nodes
+  Master[0] -> Slots 0 - 5460
+  Master[1] -> Slots 5461 - 10922
+  Master[2] -> Slots 10923 - 16383
+  >>> Sending CLUSTER MEET messages to join cluster
+  >>> Waiting for cluster to join...
+  >>> Performing Cluster Check (using node 172.20.0.13:6379)
+  [OK] All nodes agree about slots configuration.
+  [OK] All 16384 slots covered.
+
+Step 3/3: Verify Cluster Health
+  ✓ Cluster is healthy
+  ✓ All slots assigned
+  ✓ 3 master nodes active
+
+Redis cluster created successfully!
+
+Next Steps:
+  1. Test cluster: redis-cli -c -h localhost -p 6379
+  2. Check cluster info: redis-cli cluster info
+  3. View cluster nodes: redis-cli cluster nodes
+```
+
+**7.5.2 Verify Redis Cluster:**
+
+```bash
+# Connect to cluster (note the -c flag for cluster mode)
+docker exec -it dev-redis-1 redis-cli -c -a "$(./manage-devstack.sh vault-show-password redis-1 | grep Password | awk '{print $2}')"
+
+# Inside redis-cli:
+> CLUSTER INFO
+# Expected output:
+# cluster_state:ok
+# cluster_slots_assigned:16384
+# cluster_slots_ok:16384
+# cluster_known_nodes:3
+
+> CLUSTER NODES
+# Expected output (3 nodes):
+# abc123... 172.20.0.13:6379@16379 myself,master - 0 1234567890000 1 connected 0-5460
+# def456... 172.20.0.16:6379@16379 master - 0 1234567890000 2 connected 5461-10922
+# ghi789... 172.20.0.17:6379@16379 master - 0 1234567890000 3 connected 10923-16383
+
+> exit
+```
+
+**What This Means:**
+- `cluster_state:ok` - Cluster is healthy ✅
+- `cluster_slots_assigned:16384` - All hash slots are assigned ✅
+- `cluster_known_nodes:3` - All 3 nodes are in the cluster ✅
+
+**7.5.3 Test Cluster Operations:**
+
+```bash
+# Set a key (will be routed to appropriate node)
+docker exec -it dev-redis-1 redis-cli -c -a "$(./manage-devstack.sh vault-show-password redis-1 | grep Password | awk '{print $2}')" SET mykey "hello"
+
+# Get the key (cluster will redirect to correct node)
+docker exec -it dev-redis-1 redis-cli -c -a "$(./manage-devstack.sh vault-show-password redis-1 | grep Password | awk '{print $2}')" GET mykey
+
+# Expected output: "hello"
+```
+
+**What If It Fails?**
+
+```bash
+# Check if all Redis nodes are running
+docker ps | grep redis
+
+# Expected: 3 containers (dev-redis-1, dev-redis-2, dev-redis-3)
+
+# Check Redis logs
+docker logs dev-redis-1 2>&1 | tail -20
+docker logs dev-redis-2 2>&1 | tail -20
+docker logs dev-redis-3 2>&1 | tail -20
+
+# Destroy and recreate cluster
+docker exec dev-redis-1 redis-cli -a "$REDIS_PASSWORD" CLUSTER RESET HARD
+docker exec dev-redis-2 redis-cli -a "$REDIS_PASSWORD" CLUSTER RESET HARD
+docker exec dev-redis-3 redis-cli -a "$REDIS_PASSWORD" CLUSTER RESET HARD
+./manage-devstack.py redis-cluster-init
 ```
 
 ---
