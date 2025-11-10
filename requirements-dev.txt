@@ -1,0 +1,23 @@
+# ==============================================================================
+# DevStack Core - Python Management Script Dependencies
+# ==============================================================================
+#
+# These are the dependencies for the Python management script (manage-devstack.py)
+# Install with: pip3 install -r requirements-dev.txt
+#
+# ==============================================================================
+
+# CLI Framework - Beautiful command-line interfaces
+click>=8.1.7
+
+# Rich Output - Colored terminal output, tables, progress bars
+rich>=13.7.0
+
+# YAML Parser - For reading profiles.yaml
+PyYAML>=6.0.1
+
+# Docker SDK - For Docker operations (optional, falls back to subprocess)
+docker>=7.0.0
+
+# Python-dotenv - For loading .env files
+python-dotenv>=1.0.0
