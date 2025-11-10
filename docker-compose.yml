@@ -62,6 +62,10 @@ services:
     container_name: dev-postgres
     restart: unless-stopped
 
+    # PROFILE: Available in minimal, standard, and full profiles
+    # Core database for Forgejo (Git server) and local development
+    profiles: ["minimal", "standard", "full"]
+
     entrypoint: ["/init/init.sh"]
 
     environment:
@@ -141,6 +145,10 @@ services:
     container_name: dev-pgbouncer
     restart: unless-stopped
 
+    # PROFILE: Available in minimal, standard, and full profiles
+    # Connection pooling for PostgreSQL (recommended for all scenarios)
+    profiles: ["minimal", "standard", "full"]
+
     entrypoint: ["/usr/local/bin/init.sh"]
 
     environment:
@@ -197,6 +205,10 @@ services:
     image: mysql:8.0.40
     container_name: dev-mysql
     restart: unless-stopped
+
+    # PROFILE: Available in standard and full profiles only
+    # Legacy database support for multi-database applications
+    profiles: ["standard", "full"]
 
     entrypoint: ["/init/init.sh"]
 
@@ -275,6 +287,10 @@ services:
     container_name: dev-redis-1
     restart: unless-stopped
 
+    # PROFILE: Available in minimal (standalone), standard (cluster node 1), and full profiles
+    # In minimal: runs standalone mode (no cluster). In standard/full: cluster node 1 (slots 0-5460)
+    profiles: ["minimal", "standard", "full"]
+
     entrypoint: ["/init/init.sh"]
 
     environment:
@@ -349,6 +365,10 @@ services:
     container_name: dev-redis-2
     restart: unless-stopped
 
+    # PROFILE: Available in standard and full profiles only
+    # Redis cluster node 2 (slots 5461-10922) - NOT included in minimal profile
+    profiles: ["standard", "full"]
+
     entrypoint: ["/init/init.sh"]
 
     environment:
@@ -422,6 +442,10 @@ services:
     image: redis:7.4-alpine3.21
     container_name: dev-redis-3
     restart: unless-stopped
+
+    # PROFILE: Available in standard and full profiles only
+    # Redis cluster node 3 (slots 10923-16383) - NOT included in minimal profile
+    profiles: ["standard", "full"]
 
     entrypoint: ["/init/init.sh"]
 
@@ -506,6 +530,10 @@ services:
     container_name: dev-rabbitmq
     restart: unless-stopped
 
+    # PROFILE: Available in standard and full profiles only
+    # Message queue for asynchronous communication between services
+    profiles: ["standard", "full"]
+
     entrypoint: ["/init/init.sh"]
 
     environment:
@@ -568,6 +596,10 @@ services:
     container_name: dev-mongodb
     restart: unless-stopped
 
+    # PROFILE: Available in standard and full profiles only
+    # NoSQL document database for unstructured data
+    profiles: ["standard", "full"]
+
     # Vault Integration: Credentials are fetched from Vault at startup
     entrypoint: ["/init/init.sh"]
     command: ["mongod"]
@@ -625,6 +657,10 @@ services:
     build: ./configs/forgejo
     container_name: dev-forgejo
     restart: unless-stopped
+
+    # PROFILE: Available in minimal, standard, and full profiles
+    # Self-hosted Git server with Forgejo
+    profiles: ["minimal", "standard", "full"]
 
     environment:
       VAULT_ADDR: ${VAULT_ADDR:-http://vault:8200}
@@ -691,6 +727,9 @@ services:
     container_name: dev-vault
     restart: unless-stopped
 
+    # PROFILE: NO PROFILE - Always starts (required for all profiles)
+    # Secrets management and PKI infrastructure
+
     environment:
       VAULT_ADDR: http://127.0.0.1:8200
       VAULT_API_ADDR: http://127.0.0.1:8200
@@ -752,6 +791,10 @@ services:
     build: ./reference-apps/fastapi
     container_name: dev-reference-api
     restart: unless-stopped
+
+    # PROFILE: Available in reference profile
+    # Python FastAPI code-first implementation (port 8000/8443)
+    profiles: ["reference"]
 
     environment:
       VAULT_ADDR: ${VAULT_ADDR:-http://vault:8200}
@@ -818,6 +861,10 @@ services:
     container_name: dev-api-first
     restart: unless-stopped
 
+    # PROFILE: Available in reference profile
+    # Python FastAPI API-first implementation (port 8001/8444)
+    profiles: ["reference"]
+
     environment:
       VAULT_ADDR: ${VAULT_ADDR:-http://vault:8200}
       VAULT_TOKEN: ${VAULT_TOKEN}
@@ -882,6 +929,10 @@ services:
     build: ./reference-apps/golang
     container_name: dev-golang-api
     restart: unless-stopped
+
+    # PROFILE: Available in reference profile
+    # Go with Gin framework (port 8002/8445)
+    profiles: ["reference"]
 
     environment:
       VAULT_ADDR: ${VAULT_ADDR:-http://vault:8200}
@@ -950,6 +1001,10 @@ services:
     container_name: dev-nodejs-api
     restart: unless-stopped
 
+    # PROFILE: Available in reference profile
+    # Node.js with Express (port 8003/8446)
+    profiles: ["reference"]
+
     environment:
       VAULT_ADDR: ${VAULT_ADDR:-http://vault:8200}
       VAULT_TOKEN: ${VAULT_TOKEN}
@@ -1017,6 +1072,10 @@ services:
     container_name: dev-rust-api
     restart: unless-stopped
 
+    # PROFILE: Available in reference profile
+    # Rust with Actix-web (port 8004/8447, ~40% complete)
+    profiles: ["reference"]
+
     environment:
       VAULT_ADDR: ${VAULT_ADDR:-http://vault:8200}
       VAULT_TOKEN: ${VAULT_TOKEN}
@@ -1064,6 +1123,10 @@ services:
     image: prom/prometheus:v2.48.0
     container_name: dev-prometheus
     restart: unless-stopped
+
+    # PROFILE: Available in full profile only
+    # Metrics collection and time-series database
+    profiles: ["full"]
 
     command:
       - '--config.file=/etc/prometheus/prometheus.yml'
@@ -1117,6 +1180,10 @@ services:
     image: grafana/grafana:10.2.2
     container_name: dev-grafana
     restart: unless-stopped
+
+    # PROFILE: Available in full profile only
+    # Visualization dashboards (http://localhost:3001)
+    profiles: ["full"]
 
     environment:
       GF_SECURITY_ADMIN_USER: ${GRAFANA_ADMIN_USER:-admin}
@@ -1174,6 +1241,10 @@ services:
     container_name: dev-loki
     restart: unless-stopped
 
+    # PROFILE: Available in full profile only
+    # Log aggregation system
+    profiles: ["full"]
+
     command: -config.file=/etc/loki/loki-config.yml
 
     ports:
@@ -1221,6 +1292,10 @@ services:
     image: oliver006/redis_exporter:v1.55.0
     container_name: dev-redis-exporter-1
     restart: unless-stopped
+
+    # PROFILE: Available in full profile only
+    # Redis metrics exporter for node 1
+    profiles: ["full"]
 
     entrypoint: ["/init/init.sh"]
 
@@ -1283,6 +1358,10 @@ services:
     container_name: dev-redis-exporter-2
     restart: unless-stopped
 
+    # PROFILE: Available in full profile only
+    # Redis metrics exporter for node 2
+    profiles: ["full"]
+
     entrypoint: ["/init/init.sh"]
 
     environment:
@@ -1341,6 +1420,10 @@ services:
     image: oliver006/redis_exporter:v1.55.0
     container_name: dev-redis-exporter-3
     restart: unless-stopped
+
+    # PROFILE: Available in full profile only
+    # Redis metrics exporter for node 3
+    profiles: ["full"]
 
     entrypoint: ["/init/init.sh"]
 
@@ -1401,6 +1484,10 @@ services:
     container_name: dev-cadvisor
     restart: unless-stopped
 
+    # PROFILE: Available in full profile only
+    # Container resource monitoring
+    profiles: ["full"]
+
     # Use specific capabilities instead of privileged mode for security
     cap_add:
       - SYS_ADMIN
@@ -1452,6 +1539,10 @@ services:
     image: timberio/vector:0.50.0-debian
     container_name: dev-vector
     restart: unless-stopped
+
+    # PROFILE: Available in full profile only
+    # Unified observability data pipeline
+    profiles: ["full"]
 
     entrypoint: ["/init/init.sh"]
     command: ["--config", "/etc/vector/vector.yaml"]
