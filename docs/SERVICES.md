@@ -411,7 +411,7 @@ For setting up SSH keys (for authenticated push/pull) and GPG keys (for signed c
 
 **Access from Network:**
 - Set `FORGEJO_DOMAIN` to Colima IP in `.env`
-- Access from UTM VM or other machines on network
+- Access from libvirt VMs or other machines on network
 - Example: http://192.168.106.2:3000
 
 ### HashiCorp Vault

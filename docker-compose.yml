@@ -4,7 +4,7 @@
 # ARCHITECTURE:
 #   - PostgreSQL: For Forgejo (Git) and local development ONLY
 #   - Other services: Redis, RabbitMQ, MongoDB for local dev/testing
-#   - UTM VM has its own PostgreSQL for VoIP services
+#   - libvirt VMs have their own PostgreSQL for VoIP services
 #
 # Run on Apple Silicon Mac with Colima:
 #   colima start --cpu 4 --memory 8 --disk 60 --network-address
@@ -48,7 +48,7 @@ services:
   #   1. Forgejo (Git server) - primary use case
   #   2. Local development and testing
   #
-  # NOT for production VoIP services - they use UTM VM PostgreSQL
+  # NOT for production VoIP services - they use libvirt VM PostgreSQL
   #
   # VAULT INTEGRATION:
   #   - Credentials fetched from Vault at startup
@@ -1522,18 +1522,20 @@ services:
 #
 # SEPARATION OF CONCERNS:
 #   - This Colima instance: Git storage (Forgejo) + local development
-#   - UTM VM instance: Production VoIP services (OpenSIPS, etc.)
+#   - libvirt VMs: Production VoIP services (OpenSIPS, Asterisk, RTPEngine)
 #
 # DATABASE USAGE:
 #   - PostgreSQL here is for Forgejo and local dev/testing ONLY
-#   - VoIP services use separate PostgreSQL in UTM VM
+#   - VoIP services use separate PostgreSQL in libvirt VMs
 #   - No cross-network database calls for production VoIP traffic
 #
 # BENEFITS:
 #   - Reduced network latency for VoIP database operations
-#   - Self-contained UTM VM for VoIP services
+#   - Self-contained libvirt VMs for VoIP services
 #   - Clear separation between dev/git and production environments
 #   - Each environment can be backed up/restored independently
+#   - Full kernel access in libvirt VMs (required for RTPEngine kernel module)
+#   - Infrastructure as code via Ansible/Terraform
 #
 # CONNECTION INFO:
 #   1. Get Colima IP:
@@ -1543,7 +1545,7 @@ services:
 #      PostgreSQL: localhost:5432
 #      Forgejo: http://localhost:3000
 #
-#   3. From UTM VM (if needed for dev):
+#   3. From libvirt VMs (if needed for dev):
 #      PostgreSQL: <COLIMA_IP>:5432
 #      Forgejo: http://<COLIMA_IP>:3000
 #
