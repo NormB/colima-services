@@ -1,5 +1,93 @@
 # FAQ
 
+## Service Profiles (NEW v1.3)
+
+**Q: What are service profiles and why should I use them?**
+A: Service profiles let you start only the services you need, saving resources and startup time:
+- **minimal**: 5 services, 2GB RAM - Git hosting + basic database
+- **standard**: 10 services, 4GB RAM - Full stack + Redis cluster (recommended)
+- **full**: 18 services, 6GB RAM - Everything + observability
+- **reference**: 5 API examples - Educational, combine with standard/full
+
+See [SERVICE_PROFILES.md](./SERVICE_PROFILES.md) for complete details.
+
+**Q: Which profile should I use?**
+A: **Standard profile is recommended for most developers:**
+```bash
+./manage-devstack.py start --profile standard
+```
+Use minimal if you have limited RAM (< 8GB), or full if you need Prometheus/Grafana.
+
+**Q: How do I switch between profiles?**
+A: Stop current services and start with new profile:
+```bash
+docker compose down
+./manage-devstack.py start --profile minimal  # or standard, full
+```
+
+**Q: Can I combine profiles?**
+A: Yes! Combine standard/full with reference:
+```bash
+./manage-devstack.py start --profile standard --profile reference
+```
+This gives you infrastructure + 5 educational API examples.
+
+**Q: Do I need to initialize Redis cluster for all profiles?**
+A: Only for standard and full profiles:
+```bash
+./manage-devstack.py start --profile standard
+./manage-devstack.py redis-cluster-init  # Required for cluster
+```
+Minimal profile uses single Redis instance (no initialization needed).
+
+**Q: Can I use the bash script with profiles?**
+A: The bash script (`manage-devstack.sh`) starts all services (no profile support). Use the Python script for profile control:
+```bash
+./manage-devstack.py start --profile standard  # Profile-aware
+./manage-devstack.sh start                     # All services
+```
+
+**Q: How do I check which profile is running?**
+A: Use status or health commands:
+```bash
+./manage-devstack.py status   # Shows running containers
+./manage-devstack.py health   # Shows health status
+docker compose ps             # Shows all running services
+```
+
+**Q: Can I create custom profiles?**
+A: Yes! Create a custom environment file:
+```bash
+# Create custom profile
+cat > configs/profiles/my-custom.env << 'EOF'
+REDIS_CLUSTER_ENABLED=true
+POSTGRES_MAX_CONNECTIONS=200
+ENABLE_METRICS=false
+EOF
+
+# Load and use
+set -a
+source configs/profiles/my-custom.env
+set +a
+docker compose --profile standard up -d
+```
+
+**Q: Where are profile settings stored?**
+A: Profile environment overrides are in `configs/profiles/`:
+- `minimal.env` - Minimal profile settings
+- `standard.env` - Standard profile settings
+- `full.env` - Full profile settings
+- `reference.env` - Reference profile settings
+
+**Q: What's the difference between Python and Bash management scripts?**
+A:
+- **Python script** (`manage-devstack.py`): Profile-aware, colored output, better UX, 850 lines
+- **Bash script** (`manage-devstack.sh`): Traditional, no profiles, starts everything, 1,622 lines
+
+Both are maintained. Use Python for profiles, Bash for backwards compatibility.
+
+## General Questions
+
 **Q: Can I use this on Intel Mac?**
 A: Yes, but change VM type:
 ```bash

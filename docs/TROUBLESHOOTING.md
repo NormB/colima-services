@@ -6,17 +6,252 @@ Comprehensive troubleshooting guide for common issues in the DevStack Core infra
 
 ## Table of Contents
 
-1. [Startup Issues](#startup-issues)
-2. [Service Health Check Failures](#service-health-check-failures)
-3. [Network Connectivity Problems](#network-connectivity-problems)
-4. [Database Issues](#database-issues)
-5. [Redis Cluster Issues](#redis-cluster-issues)
-6. [Vault Issues](#vault-issues)
-7. [Docker/Colima Issues](#dockercolima-issues)
-8. [Testing Failures](#testing-failures)
-9. [Performance Issues](#performance-issues)
-10. [TLS/Certificate Issues](#tlscertificate-issues)
-11. [Diagnostic Commands](#diagnostic-commands)
+1. [Service Profile Issues (NEW v1.3)](#service-profile-issues-new-v13)
+2. [Startup Issues](#startup-issues)
+3. [Service Health Check Failures](#service-health-check-failures)
+4. [Network Connectivity Problems](#network-connectivity-problems)
+5. [Database Issues](#database-issues)
+6. [Redis Cluster Issues](#redis-cluster-issues)
+7. [Vault Issues](#vault-issues)
+8. [Docker/Colima Issues](#dockercolima-issues)
+9. [Testing Failures](#testing-failures)
+10. [Performance Issues](#performance-issues)
+11. [TLS/Certificate Issues](#tlscertificate-issues)
+12. [Diagnostic Commands](#diagnostic-commands)
+
+---
+
+## Service Profile Issues (NEW v1.3)
+
+### Issue: Wrong Services Starting
+
+**Symptoms:**
+```bash
+# Expected 10 services (standard profile)
+$ docker ps
+# But seeing 18 services (full profile) or 5 services (minimal)
+```
+
+**Cause:** Profile not specified or wrong profile used
+
+**Solution:**
+```bash
+# Check which services are defined for a profile
+docker compose --profile standard config --services
+
+# Stop all and restart with correct profile
+docker compose down
+./manage-devstack.py start --profile standard
+
+# Verify correct services running
+./manage-devstack.py status
+```
+
+### Issue: Redis Cluster Init Fails on Minimal Profile
+
+**Symptoms:**
+```bash
+$ ./manage-devstack.py redis-cluster-init
+Error: redis-2 and redis-3 not found
+```
+
+**Cause:** Minimal profile only has redis-1 (standalone mode)
+
+**Solution:**
+Minimal profile uses standalone Redis, no cluster initialization needed:
+```bash
+# Use standard or full profile for Redis cluster
+docker compose down
+./manage-devstack.py start --profile standard
+./manage-devstack.py redis-cluster-init
+```
+
+### Issue: Python Script Command Not Found
+
+**Symptoms:**
+```bash
+$ ./manage-devstack.py start --profile standard
+ModuleNotFoundError: No module named 'click'
+```
+
+**Cause:** Python dependencies not installed
+
+**Solution:**
+```bash
+# Install dependencies
+pip3 install --user -r requirements-dev.txt
+
+# Or use virtual environment
+python3 -m venv venv
+source venv/bin/activate
+pip3 install -r requirements-dev.txt
+
+# Verify installation
+python3 -c "import click, rich, yaml; print('All dependencies installed!')"
+
+# Try again
+./manage-devstack.py start --profile standard
+```
+
+### Issue: Profile Environment Variables Not Taking Effect
+
+**Symptoms:**
+```bash
+# Started with minimal profile but Redis cluster is enabled
+$ ./manage-devstack.py start --profile minimal
+$ docker exec dev-redis-1 redis-cli INFO cluster | grep cluster_enabled
+cluster_enabled:1  # Should be 0 for minimal
+```
+
+**Cause:** Environment variables from previous session or shell environment overriding profile
+
+**Solution:**
+```bash
+# Check for conflicting env vars
+env | grep REDIS
+
+# Unset any conflicting variables
+unset REDIS_CLUSTER_ENABLED
+
+# Stop and restart with profile
+docker compose down
+./manage-devstack.py start --profile minimal
+
+# Verify
+docker exec dev-redis-1 redis-cli INFO cluster | grep cluster_enabled
+# Should show: cluster_enabled:0
+```
+
+### Issue: Cannot Combine Minimal and Standard Profiles
+
+**Symptoms:**
+```bash
+$ ./manage-devstack.py start --profile minimal --profile standard
+# Only seeing standard services, minimal services ignored
+```
+
+**Cause:** Docker Compose uses all specified profiles, but standard includes all minimal services
+
+**Explanation:**
+- minimal ⊂ standard ⊂ full (profiles are hierarchical)
+- Specifying both is redundant
+- Standard profile includes all minimal services plus additional ones
+
+**Solution:**
+```bash
+# Just use the larger profile
+./manage-devstack.py start --profile standard
+```
+
+### Issue: Missing Services After Profile Switch
+
+**Symptoms:**
+```bash
+# Previously running full profile, switched to minimal
+$ ./manage-devstack.py start --profile minimal
+# Prometheus, Grafana still showing as stopped in docker ps -a
+```
+
+**Cause:** Old containers from previous profile still exist (stopped)
+
+**Solution:**
+```bash
+# Clean shutdown removes old containers
+docker compose down  # Removes stopped containers
+./manage-devstack.py start --profile minimal
+
+# Or remove all containers manually
+docker compose down -v  # WARNING: Removes volumes too
+```
+
+### Issue: Reference Profile Services Not Starting
+
+**Symptoms:**
+```bash
+$ ./manage-devstack.py start --profile reference
+# Reference APIs failing to start, database connection errors
+```
+
+**Cause:** Reference profile requires infrastructure services (must combine with standard/full)
+
+**Solution:**
+```bash
+# Stop and restart with combined profiles
+docker compose down
+./manage-devstack.py start --profile standard --profile reference
+
+# Verify both profiles running
+docker ps | grep -E "dev-postgres|dev-reference-api"
+```
+
+### Issue: Observability Services Not Available
+
+**Symptoms:**
+```bash
+# Started with standard profile
+$ curl http://localhost:9090
+Connection refused
+```
+
+**Cause:** Prometheus/Grafana only included in full profile
+
+**Solution:**
+```bash
+# Use full profile for observability
+docker compose down
+./manage-devstack.py start --profile full
+
+# Access services
+curl http://localhost:9090  # Prometheus
+curl http://localhost:3001  # Grafana
+```
+
+### Issue: Profile Command Help Not Working
+
+**Symptoms:**
+```bash
+$ ./manage-devstack.py --help
+# No output or error
+```
+
+**Cause:** Script not executable or Python dependencies missing
+
+**Solution:**
+```bash
+# Make script executable
+chmod +x manage-devstack.py
+
+# Check she bang line
+head -1 manage-devstack.py
+# Should be: #!/usr/bin/env python3
+
+# Install dependencies
+pip3 install --user -r requirements-dev.txt
+
+# Try again
+./manage-devstack.py --help
+```
+
+### Diagnostic: Check Profile Configuration
+
+```bash
+# List available profiles
+./manage-devstack.py profiles
+
+# Check which services are in a profile
+docker compose --profile minimal config --services
+docker compose --profile standard config --services
+docker compose --profile full config --services
+
+# Verify profile .env files exist
+ls -la configs/profiles/*.env
+
+# Check environment loading
+set -a
+source configs/profiles/standard.env
+set +a
+env | grep REDIS_CLUSTER_ENABLED
+```
 
 ---
 

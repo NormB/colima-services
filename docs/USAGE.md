@@ -7,19 +7,42 @@ Complete guide for using the DevStack Core development environment.
 ## Table of Contents
 
 1. [Quick Start](#quick-start)
-2. [First-Time Setup](#first-time-setup)
-3. [Daily Operations](#daily-operations)
-4. [Testing](#testing)
-5. [Working with Services](#working-with-services)
-6. [Working with Vault](#working-with-vault)
-7. [Working with Reference Applications](#working-with-reference-applications)
-8. [Development Workflows](#development-workflows)
-9. [Troubleshooting](#troubleshooting)
-10. [Advanced Usage](#advanced-usage)
+2. [Service Profiles (NEW v1.3)](#service-profiles-new-v13)
+3. [First-Time Setup](#first-time-setup)
+4. [Daily Operations](#daily-operations)
+5. [Testing](#testing)
+6. [Working with Services](#working-with-services)
+7. [Working with Vault](#working-with-vault)
+8. [Working with Reference Applications](#working-with-reference-applications)
+9. [Development Workflows](#development-workflows)
+10. [Troubleshooting](#troubleshooting)
+11. [Advanced Usage](#advanced-usage)
 
 ---
 
 ## Quick Start
+
+### Option A: Python Script with Profiles (Recommended)
+
+```bash
+# 1. Install Python dependencies (first time only)
+pip3 install --user -r requirements-dev.txt
+
+# 2. Start with standard profile (recommended for most developers)
+./manage-devstack.py start --profile standard
+
+# 3. Initialize Vault (first time only)
+./manage-devstack.sh vault-init
+./manage-devstack.sh vault-bootstrap
+
+# 4. Initialize Redis cluster (for standard/full profiles, first time only)
+./manage-devstack.py redis-cluster-init
+
+# 5. Check health
+./manage-devstack.py health
+```
+
+### Option B: Bash Script (Traditional, All Services)
 
 ```bash
 # 1. Start everything
@@ -36,13 +59,96 @@ Complete guide for using the DevStack Core development environment.
 ./tests/run-all-tests.sh
 ```
 
-That's it! You now have a complete development environment with:
-- PostgreSQL, MySQL, MongoDB
-- Redis Cluster (3 nodes)
-- RabbitMQ
-- Vault (PKI + secrets)
-- Grafana, Prometheus, Loki
-- Reference APIs in 5 languages
+That's it! You now have a complete development environment.
+
+**See [Service Profiles](#service-profiles-new-v13) below to choose the right profile for your needs.**
+
+---
+
+## Service Profiles (NEW v1.3)
+
+DevStack Core supports flexible service profiles to match your development needs. Choose the profile that fits your use case:
+
+### Available Profiles
+
+| Profile | Services | RAM | Best For |
+|---------|----------|-----|----------|
+| **minimal** | 5 | 2GB | Git hosting + basic development (single Redis) |
+| **standard** | 10 | 4GB | **Full development stack + Redis cluster (RECOMMENDED)** |
+| **full** | 18 | 6GB | Complete suite + observability (Prometheus, Grafana, Loki) |
+| **reference** | +5 | +1GB | Educational API examples (combine with standard/full) |
+
+### Quick Profile Commands
+
+```bash
+# List available profiles
+./manage-devstack.py profiles
+
+# Start with minimal profile (lightweight)
+./manage-devstack.py start --profile minimal
+
+# Start with standard profile (recommended)
+./manage-devstack.py start --profile standard
+
+# Start with full profile (observability included)
+./manage-devstack.py start --profile full
+
+# Combine profiles (standard + reference apps)
+./manage-devstack.py start --profile standard --profile reference
+
+# Check what's running
+./manage-devstack.py status
+./manage-devstack.py health
+
+# Stop specific profile services
+./manage-devstack.py stop --profile reference
+```
+
+### Profile Use Cases
+
+**Choose minimal if you:**
+- Only need Git hosting (Forgejo) and basic database
+- Have limited RAM (< 8GB)
+- Want fastest startup time (< 3 minutes)
+- Don't need Redis cluster
+
+**Choose standard if you:**
+- Need Redis cluster for development (3 nodes)
+- Want all databases (PostgreSQL, MySQL, MongoDB)
+- Need RabbitMQ messaging
+- **Developing software that requires Redis cluster** (recommended)
+
+**Choose full if you:**
+- Need metrics and monitoring (Prometheus, Grafana)
+- Want log aggregation (Loki)
+- Are doing performance testing
+- Have 16GB+ RAM
+
+**Choose reference if you:**
+- Want to learn API design patterns
+- Need examples in multiple languages
+- Want to compare implementation approaches
+- Must combine with standard or full profile
+
+### Profile Management Commands
+
+```bash
+# View service logs
+./manage-devstack.py logs <service>
+./manage-devstack.py logs --follow redis-1
+
+# Open shell in container
+./manage-devstack.py shell postgres
+./manage-devstack.py shell --shell bash vault
+
+# Get Colima VM IP
+./manage-devstack.py ip
+
+# Initialize Redis cluster (standard/full only)
+./manage-devstack.py redis-cluster-init
+```
+
+**For complete profile documentation, see [SERVICE_PROFILES.md](./SERVICE_PROFILES.md).**
 
 ---
 

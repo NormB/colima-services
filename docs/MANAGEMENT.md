@@ -2,13 +2,115 @@
 
 ## Table of Contents
 
+- [Management Scripts Overview](#management-scripts-overview)
+- [Python Script (NEW v1.3)](#python-script-new-v13)
+- [Bash Script (Traditional)](#bash-script-traditional)
 - [Available Commands](#available-commands)
 - [Common Workflows](#common-workflows)
 - [Advanced Usage](#advanced-usage)
 
 ---
 
-The `manage-devstack.sh` script provides a unified interface for all operations.
+## Management Scripts Overview
+
+DevStack Core provides two management interfaces:
+
+1. **Python Script (Recommended)**: `manage-devstack.py` - Modern CLI with service profile support
+2. **Bash Script (Traditional)**: `manage-devstack.sh` - Backward compatible, starts all services
+
+**Which Should You Use?**
+
+- **Use Python script if:** You want profile control, colored output, better UX
+- **Use Bash script if:** You want all services, no profile management needed, backward compatibility
+
+Both scripts are maintained and fully functional.
+
+---
+
+## Python Script (NEW v1.3)
+
+The modern Python management script provides profile-aware service orchestration with beautiful terminal output.
+
+### Installation
+
+```bash
+# Install dependencies
+pip3 install --user -r requirements-dev.txt
+
+# Make executable (if needed)
+chmod +x manage-devstack.py
+
+# Verify
+./manage-devstack.py --version
+```
+
+### Python Script Commands
+
+```bash
+./manage-devstack.py <command> [options]
+```
+
+| Command | Description | Example |
+|---------|-------------|---------|
+| `start --profile <name>` | Start services with profile | `./manage-devstack.py start --profile standard` |
+| `stop [--profile <name>]` | Stop services (optionally by profile) | `./manage-devstack.py stop` |
+| `status` | Show service status with resources | `./manage-devstack.py status` |
+| `health` | Check service health (colored table) | `./manage-devstack.py health` |
+| `logs <service>` | View service logs | `./manage-devstack.py logs postgres` |
+| `shell <service>` | Open shell in container | `./manage-devstack.py shell postgres` |
+| `profiles` | List available profiles | `./manage-devstack.py profiles` |
+| `ip` | Show Colima IP address | `./manage-devstack.py ip` |
+| `redis-cluster-init` | Initialize Redis cluster | `./manage-devstack.py redis-cluster-init` |
+| `--help` | Show help message | `./manage-devstack.py --help` |
+
+### Python Script Workflows
+
+**Start with Standard Profile (Recommended):**
+```bash
+# Start full development stack
+./manage-devstack.py start --profile standard
+
+# Initialize Redis cluster (first time only)
+./manage-devstack.py redis-cluster-init
+
+# Check health
+./manage-devstack.py health
+```
+
+**Start with Minimal Profile (Lightweight):**
+```bash
+# Start essential services only
+./manage-devstack.py start --profile minimal
+
+# Check what's running
+./manage-devstack.py status
+```
+
+**Start with Full Profile (Observability):**
+```bash
+# Start everything including Prometheus/Grafana
+./manage-devstack.py start --profile full
+
+# Check health
+./manage-devstack.py health
+```
+
+**Combine Profiles:**
+```bash
+# Start standard infrastructure + reference APIs
+./manage-devstack.py start --profile standard --profile reference
+
+# Verify
+./manage-devstack.py status
+```
+
+**For complete Python script documentation, see [PYTHON_MANAGEMENT_SCRIPT.md](./PYTHON_MANAGEMENT_SCRIPT.md).**
+
+---
+
+## Bash Script (Traditional)
+
+The `manage-devstack.sh` script provides a unified interface for all operations. **Note:** This script starts ALL services (no profile support).
 
 ### Available Commands
 
