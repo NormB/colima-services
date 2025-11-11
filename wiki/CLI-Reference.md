@@ -1,567 +1,649 @@
-# CLI Reference
-
-## Table of Contents
-
-- [Overview](#overview)
-- [Start Command](#start-command)
-- [Stop Command](#stop-command)
-- [Restart Command](#restart-command)
-- [Status Command](#status-command)
-- [Health Command](#health-command)
-- [Logs Command](#logs-command)
-- [Shell Command](#shell-command)
-- [Vault Commands](#vault-commands)
-  - [vault-init](#vault-init)
-  - [vault-bootstrap](#vault-bootstrap)
-  - [vault-status](#vault-status)
-  - [vault-unseal](#vault-unseal)
-  - [vault-token](#vault-token)
-  - [vault-show-password](#vault-show-password)
-- [Backup Command](#backup-command)
-- [Reset Command](#reset-command)
-- [Related Pages](#related-pages)
+# Python Management Script Guide
 
 ## Overview
 
-The `manage-devstack.sh` script is the primary interface for managing the devstack-core environment. This page documents all available commands and their usage.
+`manage-devstack` is a modern Python-based management interface for DevStack Core with comprehensive service profile support. It provides a beautiful CLI experience with colored output, tables, and progress indicators.
 
-**Script Location:** `/Users/gator/devstack-core/manage-devstack.sh`
+**Features:**
+- Service profile management (minimal, standard, full, reference)
+- Automatic environment loading from profile .env files
+- Beautiful terminal output with Rich library
+- Health checks for all services
+- Service logs and shell access
+- Redis cluster initialization
+- Profile listing and validation
+- Comprehensive built-in help for all commands
 
-**Basic Usage:**
+## Getting Help
+
+The script includes comprehensive help documentation accessible via standard help commands:
+
 ```bash
-./manage-devstack.sh <command> [arguments]
+# Main help - shows all commands
+./manage-devstack --help
+./manage-devstack -h
+
+# Help for specific command - shows all options and examples
+./manage-devstack start --help
+./manage-devstack logs --help
+./manage-devstack stop --help
+./manage-devstack vault-show-password --help
+
+# Version information
+./manage-devstack --version
 ```
 
-## Start Command
+**Every command includes:**
+- **ARGUMENTS:** Required and optional arguments
+- **OPTIONS:** All available flags and parameters with defaults
+- **EXAMPLES:** Real-world usage examples
+- **NOTES:** Important warnings, tips, and gotchas
 
-**Start the entire environment (Colima VM + all services)**
-
+**Examples of getting help:**
 ```bash
-./manage-devstack.sh start
+# See all available --profile options for start command
+./manage-devstack start --help
+
+# Learn about log viewing options (--follow, --tail)
+./manage-devstack logs --help
+
+# Understand which services can be queried for passwords
+./manage-devstack vault-show-password --help
 ```
 
-**What it does:**
-1. Checks if Colima is running
-2. Starts Colima VM if not running
-3. Starts all Docker containers via docker-compose
-4. Waits for Vault to become healthy
-5. Allows dependent services to start
+## Installation
+
+### Prerequisites
+
+- Python 3.8 or higher (Python 3.14.0 confirmed working)
+- pip3 package manager
+
+### Install Dependencies
+
+#### Option 1: Using pip (Recommended for development)
+
+```bash
+# Install using uv (recommended)
+uv venv
+uv pip install -r scripts/requirements.txt
+
+# The wrapper script automatically uses the venv
+# No manual activation needed!
+```
+
+#### Option 2: Using a Virtual Environment Manually
+
+```bash
+# If you prefer to manage the venv yourself:
+python3 -m venv .venv
+source .venv/bin/activate
+pip3 install -r scripts/requirements.txt
+
+# Deactivate when done
+deactivate
+
+# Note: The wrapper script handles activation automatically
+```
+
+#### Option 3: Using Homebrew Python (macOS)
+
+```bash
+# If using Homebrew Python
+brew install python@3
+
+# Install dependencies with Homebrew pip
+/opt/homebrew/bin/pip3 install click rich PyYAML python-dotenv
+```
+
+### Verify Installation
+
+```bash
+# Test that all dependencies are available
+python3 -c "import click, rich, yaml; print('All dependencies installed!')"
+
+# Test the script
+./manage-devstack --version
+./manage-devstack --help
+```
+
+## Quick Start
+
+### Basic Usage
+
+```bash
+# Start with standard profile (recommended)
+./manage-devstack start --profile standard
+
+# Check status
+./manage-devstack status
+
+# Check health
+./manage-devstack health
+
+# Stop services
+./manage-devstack stop
+```
+
+### Common Workflows
+
+**Morning Routine (Start Development Environment):**
+```bash
+# Start full development stack
+./manage-devstack start --profile standard
+
+# Initialize Redis cluster (first time only)
+./manage-devstack redis-cluster-init
+
+# Check all services are healthy
+./manage-devstack health
+```
+
+**End of Day (Stop Everything):**
+```bash
+# Stop all services and Colima VM
+./manage-devstack stop
+```
+
+**Quick Check (Status Without Starting):**
+```bash
+# Check what's running
+./manage-devstack status
+
+# Get Colima IP address
+./manage-devstack ip
+```
+
+## Commands
+
+### start
+
+Start Colima VM and Docker services with specified profile(s).
+
+```bash
+# Start with minimal profile
+./manage-devstack start --profile minimal
+
+# Start with standard profile (default)
+./manage-devstack start --profile standard
+
+# Start with full profile (all services + observability)
+./manage-devstack start --profile full
+
+# Combine multiple profiles
+./manage-devstack start --profile standard --profile reference
+
+# Start in foreground (see logs in real-time)
+./manage-devstack start --profile minimal --no-detach
+```
 
 **Options:**
+- `--profile, -p`: Service profile(s) to start (can specify multiple)
+- `--detach/--no-detach, -d`: Run in background (default: True)
+
+**Examples:**
 ```bash
-# Start with custom Colima configuration
-COLIMA_CPU=8 COLIMA_MEM=16 COLIMA_DISK=100 ./manage-devstack.sh start
+# Minimal profile (5 services, 2GB RAM)
+./manage-devstack start --profile minimal
 
-# Start specific services only
-docker compose up -d vault postgres redis-1
+# Standard profile with reference apps (15 services)
+./manage-devstack start --profile standard --profile reference
+
+# Full profile (18 services, 6GB RAM)
+./manage-devstack start --profile full
 ```
 
-**Output:**
-```
-Starting Colima VM...
-✓ Colima started successfully
+### stop
 
-Starting services...
-[+] Running 15/15
- ✔ Container dev-vault           Started
- ✔ Container dev-postgres        Started
- ✔ Container dev-mysql           Started
- ✔ Container dev-mongodb         Started
- ✔ Container dev-redis-1         Started
- ✔ Container dev-redis-2         Started
- ✔ Container dev-redis-3         Started
- ✔ Container dev-rabbitmq        Started
- ✔ Container dev-forgejo         Started
- ✔ Container dev-reference-api   Started
-
-All services started successfully!
-```
-
-## Stop Command
-
-**Stop all services and the Colima VM**
+Stop Docker services and optionally Colima VM.
 
 ```bash
-./manage-devstack.sh stop
-```
+# Stop everything (services + Colima VM)
+./manage-devstack stop
 
-**What it does:**
-1. Stops all Docker containers
-2. Stops Colima VM
-3. Preserves data volumes
+# Stop only specific profile services (keeps Colima running)
+./manage-devstack stop --profile standard
+./manage-devstack stop --profile reference
+```
 
 **Options:**
+- `--profile, -p`: Only stop services from specific profile(s)
+
+### status
+
+Display status of Colima VM and all running services with resource usage.
+
 ```bash
-# Stop services but keep Colima running
+# Show full status
+./manage-devstack status
+```
+
+**Output includes:**
+- Colima VM status (running/stopped)
+- Docker service list with status
+- Resource usage (CPU, memory)
+
+### health
+
+Check health status of all running services.
+
+```bash
+# Check health of all services
+./manage-devstack health
+```
+
+**Output shows:**
+- Service name
+- Running status (running/stopped/exited)
+- Health check result (healthy/unhealthy/no healthcheck)
+
+**Color coding:**
+- Green: Healthy and running
+- Yellow: Running but no healthcheck or starting
+- Red: Stopped or unhealthy
+
+### logs
+
+View logs for all services or a specific service.
+
+```bash
+# View all service logs (last 100 lines)
+./manage-devstack logs
+
+# View specific service logs
+./manage-devstack logs postgres
+./manage-devstack logs vault
+
+# Follow logs (like tail -f)
+./manage-devstack logs -f redis-1
+
+# Show more lines
+./manage-devstack logs --tail 500 postgres
+
+# Follow multiple services (using docker compose directly)
+docker compose logs -f postgres vault
+```
+
+**Options:**
+- `--follow, -f`: Follow log output (stream continuously)
+- `--tail, -n`: Number of lines to show (default: 100)
+
+### shell
+
+Open an interactive shell in a running container.
+
+```bash
+# Open shell in PostgreSQL container
+./manage-devstack shell postgres
+
+# Open specific shell (bash instead of sh)
+./manage-devstack shell vault --shell bash
+
+# Common shell commands after entering:
+# PostgreSQL: psql -U $POSTGRES_USER -d $POSTGRES_DB
+# Redis: redis-cli -a $REDIS_PASSWORD
+# MongoDB: mongosh -u $MONGODB_USER -p $MONGODB_PASSWORD
+```
+
+**Options:**
+- `--shell, -s`: Shell to use (default: sh, can use bash if available)
+
+### profiles
+
+List all available service profiles with details.
+
+```bash
+# Show all profiles
+./manage-devstack profiles
+```
+
+**Output includes:**
+- Profile name
+- Number of services
+- RAM estimate
+- Description and use case
+
+### ip
+
+Display Colima VM IP address.
+
+```bash
+# Get VM IP address
+./manage-devstack ip
+```
+
+**Use cases:**
+- Accessing services from libvirt VMs
+- Configuring network clients
+- Debugging network issues
+
+### redis-cluster-init
+
+Initialize Redis cluster (required for standard/full profiles).
+
+```bash
+# Initialize 3-node Redis cluster
+./manage-devstack redis-cluster-init
+```
+
+**When to use:**
+- After first start with `--profile standard`
+- After first start with `--profile full`
+- NOT needed for `--profile minimal` (single Redis node)
+
+**What it does:**
+- Creates 3-node Redis cluster
+- Distributes 16,384 slots across nodes
+- Verifies cluster health
+
+**Verify cluster:**
+```bash
+# Connect to cluster
+redis-cli -c -h localhost -p 6379
+
+# Check cluster nodes
+redis-cli -h localhost -p 6379 cluster nodes
+
+# Check cluster info
+redis-cli -h localhost -p 6379 cluster info
+```
+
+## Profile Comparison
+
+| Profile | Services | RAM | Start Command |
+|---------|----------|-----|---------------|
+| **minimal** | 5 | 2GB | `./manage-devstack start --profile minimal` |
+| **standard** | 10 | 4GB | `./manage-devstack start --profile standard` |
+| **full** | 18 | 6GB | `./manage-devstack start --profile full` |
+| **reference** | +5 | +1GB | `./manage-devstack start --profile standard --profile reference` |
+
+### Minimal Profile (5 services)
+
+**Services:** vault, postgres, pgbouncer, forgejo, redis-1 (standalone)
+
+**Use Cases:**
+- Git repository hosting
+- Simple CRUD application development
+- Learning the platform
+- CI/CD pipelines (lightweight)
+
+### Standard Profile (10 services)
+
+**Services:** All minimal + mysql, mongodb, redis-2, redis-3, rabbitmq
+
+**Use Cases:**
+- Multi-database application development
+- Redis cluster testing (**YOUR PRIMARY USE CASE**)
+- Message queue integration
+- Full-featured development
+
+### Full Profile (18 services)
+
+**Services:** All standard + prometheus, grafana, loki, vector, cadvisor, exporters
+
+**Use Cases:**
+- Performance testing
+- Production troubleshooting simulation
+- Observability pattern learning
+- Load testing with metrics
+
+### Reference Profile (5 services)
+
+**Services:** reference-api, api-first, golang-api, nodejs-api, rust-api
+
+**Use Cases:**
+- Learning API design patterns
+- Comparing language implementations
+- Testing integration patterns
+
+**Note:** Must combine with standard or full profile.
+
+## Environment Variables
+
+The script respects these environment variables:
+
+### Colima Configuration
+
+```bash
+# Colima profile name
+export COLIMA_PROFILE=default
+
+# Colima CPU cores
+export COLIMA_CPU=4
+
+# Colima memory in GB
+export COLIMA_MEMORY=8
+
+# Colima disk size in GB
+export COLIMA_DISK=60
+```
+
+### Profile Environment Loading
+
+The script automatically loads environment variables from:
+1. Shell environment (highest priority)
+2. `configs/profiles/<profile>.env`
+3. Root `.env` file
+4. docker-compose.yml defaults (lowest priority)
+
+## Comparison: Python vs Bash Script
+
+| Feature | Python Script | Bash Script |
+|---------|--------------|-------------|
+| Profile Support | ✅ Native | ❌ No |
+| Colored Output | ✅ Rich library | ⚠️ Basic ANSI |
+| Error Handling | ✅ Excellent | ⚠️ Basic |
+| Maintainability | ✅ High | ⚠️ Medium (1622 lines) |
+| Dependencies | Python + 4 packages | Bash + system tools |
+| Cross-platform | ✅ Yes | ⚠️ macOS/Linux only |
+| Progress Indicators | ✅ Spinners | ❌ No |
+| Tables | ✅ Formatted | ⚠️ Plain text |
+
+### Migration Strategy
+
+**Current State:**
+- Bash script (`manage-devstack`) - 1,622 lines
+- Python script (`manage-devstack`) - 850 lines
+
+**Recommended Approach:**
+1. **Phase 1:** Use Python script for profile management
+   ```bash
+   ./manage-devstack start --profile standard
+   ```
+
+2. **Phase 2:** Use Python script for common operations
+   ```bash
+   ./manage-devstack status
+   ./manage-devstack health
+   ./manage-devstack logs <service>
+   ```
+
+3. **Phase 3:** Use bash script for advanced operations (until implemented in Python)
+   ```bash
+   ./manage-devstack vault-bootstrap
+   ./manage-devstack backup
+   ./manage-devstack forgejo-init
+   ```
+
+4. **Future:** Complete Python implementation with all bash script features
+
+## Troubleshooting
+
+### Dependencies Not Found
+
+**Problem:** `ModuleNotFoundError: No module named 'click'`
+
+**Solution:**
+```bash
+# Install dependencies
+pip3 install --user click rich PyYAML python-dotenv
+
+# Or use virtual environment
+uv venv
+uv pip install -r scripts/requirements.txt
+# Wrapper script automatically uses the venv
+```
+
+### Script Not Executable
+
+**Problem:** `Permission denied: ./manage-devstack`
+
+**Solution:**
+```bash
+chmod +x manage-devstack
+```
+
+### Colima Not Found
+
+**Problem:** `Command not found: colima`
+
+**Solution:**
+```bash
+# Install Colima
+brew install colima
+```
+
+### Profile Not Loading
+
+**Problem:** Environment variables from profile not taking effect
+
+**Solution:**
+```bash
+# Check if profile .env file exists
+ls -la configs/profiles/standard.env
+
+# Manually load to debug
+set -a
+source configs/profiles/standard.env
+set +a
+env | grep REDIS
+```
+
+### Redis Cluster Init Fails
+
+**Problem:** `Error initializing Redis cluster`
+
+**Solution:**
+```bash
+# Check redis containers are running
+docker ps | grep redis
+
+# Check if already initialized
+redis-cli -h localhost -p 6379 cluster nodes
+
+# Reset if needed (WARNING: destroys data)
 docker compose down
-
-# Stop specific services
-docker compose stop postgres mysql
+docker volume rm devstack-core_redis_1_data devstack-core_redis_2_data devstack-core_redis_3_data
+./manage-devstack start --profile standard
+./manage-devstack redis-cluster-init
 ```
 
-**Output:**
-```
-Stopping services...
-[+] Running 15/15
- ✔ Container dev-reference-api   Stopped
- ✔ Container dev-forgejo         Stopped
- ✔ Container dev-rabbitmq        Stopped
- ✔ Container dev-redis-3         Stopped
- ✔ Container dev-redis-2         Stopped
- ✔ Container dev-redis-1         Stopped
- ✔ Container dev-mongodb         Stopped
- ✔ Container dev-mysql           Stopped
- ✔ Container dev-postgres        Stopped
- ✔ Container dev-vault           Stopped
+## Advanced Usage
 
-Stopping Colima VM...
-✓ Colima stopped successfully
-```
+### Custom Profiles
 
-## Restart Command
-
-**Restart all services (Colima VM stays running)**
+Create a custom profile environment file:
 
 ```bash
-./manage-devstack.sh restart
+# Create custom profile
+cat > configs/profiles/my-custom.env << 'EOF'
+# My custom settings
+REDIS_MAX_MEMORY=1024mb
+POSTGRES_MAX_CONNECTIONS=200
+ENABLE_METRICS=true
+EOF
+
+# Use custom environment
+set -a
+source configs/profiles/my-custom.env
+set +a
+docker compose --profile standard up -d
 ```
 
-**What it does:**
-1. Stops all Docker containers
-2. Starts all Docker containers
-3. Colima VM remains running
+### Scripting and Automation
 
-**Use when:**
-- Configuration changes require restart
-- Services become unresponsive
-- After updating docker-compose.yml
-
-**Options:**
-```bash
-# Restart specific service
-docker compose restart postgres
-
-# Restart with recreate (rebuild containers)
-docker compose up -d --force-recreate
-```
-
-## Status Command
-
-**Display VM and service status with resource usage**
+Use the Python script in automation:
 
 ```bash
-./manage-devstack.sh status
+#!/bin/bash
+# CI/CD example
+
+# Start minimal profile for testing
+./manage-devstack start --profile minimal
+
+# Wait for services to be healthy
+sleep 30
+./manage-devstack health
+
+# Run tests
+pytest tests/
+
+# Stop services
+./manage-devstack stop
 ```
 
-**Output:**
-```
-=== Colima VM Status ===
-Profile: default
-Runtime: docker
-CPU: 8
-Memory: 16GB
-Disk: 100GB
-Status: Running
-
-=== Service Status ===
-NAME                CPU %    MEM USAGE / LIMIT     MEM %    NET I/O           BLOCK I/O
-dev-vault           0.50%    45.2MB / 256MB        17.66%   1.2MB / 850KB     0B / 4.1MB
-dev-postgres        2.30%    156MB / 2GB           7.80%    5.4MB / 3.2MB     12MB / 45MB
-dev-mysql           1.80%    245MB / 1GB           24.50%   3.1MB / 2.8MB     8MB / 32MB
-dev-mongodb         1.20%    180MB / 1GB           18.00%   2.5MB / 1.9MB     6MB / 28MB
-dev-redis-1         0.40%    12.3MB / 512MB        2.40%    850KB / 620KB     0B / 1.2MB
-dev-redis-2         0.35%    11.8MB / 512MB        2.30%    780KB / 580KB     0B / 1.1MB
-dev-redis-3         0.38%    12.1MB / 512MB        2.36%    820KB / 600KB     0B / 1.1MB
-dev-rabbitmq        1.50%    95MB / 512MB          18.55%   1.8MB / 1.5MB     2MB / 8MB
-dev-reference-api   0.80%    78MB / 1GB            7.80%    2.5MB / 1.8MB     0B / 512KB
-```
-
-**Useful for:**
-- Checking resource usage
-- Identifying performance issues
-- Capacity planning
-
-## Health Command
-
-**Check health of all services**
+### Monitoring
 
 ```bash
-./manage-devstack.sh health
+# Watch status in real-time
+watch -n 5 './manage-devstack status'
+
+# Continuous health monitoring
+while true; do
+  ./manage-devstack health
+  sleep 60
+done
 ```
 
-**Output:**
-```
-=== DevStack Core Health Check ===
+## Future Enhancements
 
-Core Services:
-Vault:          ✓ healthy (unsealed)
-PostgreSQL:     ✓ healthy
-MySQL:          ✓ healthy
-MongoDB:        ✓ healthy
-Redis-1:        ✓ healthy
-Redis-2:        ✓ healthy
-Redis-3:        ✓ healthy
-Redis Cluster:  ✓ healthy (3 masters, all slots assigned)
-RabbitMQ:       ✓ healthy
-Forgejo:        ✓ healthy
+Planned features for future versions:
 
-Observability:
-Prometheus:     ✓ healthy
-Grafana:        ✓ healthy
-Loki:           ✓ healthy
+- [ ] Vault operations (vault-init, vault-bootstrap, vault-unseal)
+- [ ] Backup and restore commands
+- [ ] Forgejo initialization
+- [ ] Service restart command
+- [ ] Reset command (destroy and recreate)
+- [ ] Performance metrics display
+- [ ] Service dependency visualization
+- [ ] Configuration validation
+- [ ] Automated health check scheduling
+- [ ] Profile switching helper
 
-Reference Apps:
-FastAPI:        ✓ healthy
-Go API:         ✓ healthy
-Node.js API:    ✓ healthy
-Rust API:       ✓ healthy
+## Contributing
 
-Overall Status: ALL SERVICES HEALTHY ✓
-```
+To add new commands to the Python script:
 
-**Exit codes:**
-- 0: All services healthy
-- 1: One or more services unhealthy
+1. Add a new function decorated with `@cli.command()`
+2. Use Rich library for beautiful output
+3. Handle errors gracefully
+4. Add comprehensive documentation
+5. Test with all profiles
 
-## Logs Command
+Example:
+```python
+@cli.command()
+@click.option("--force", is_flag=True, help="Force operation")
+def mycommand(force: bool):
+    """
+    Description of my command.
 
-**View logs for all or specific services**
-
-```bash
-# All services
-./manage-devstack.sh logs
-
-# Specific service
-./manage-devstack.sh logs postgres
-
-# Follow logs (tail -f)
-./manage-devstack.sh logs vault -f
-
-# Last N lines
-./manage-devstack.sh logs redis-1 --tail=100
+    Examples:
+      ./manage-devstack mycommand
+      ./manage-devstack mycommand --force
+    """
+    console.print("[cyan]Running my command...[/cyan]")
+    # Implementation here
 ```
 
-**Examples:**
-```bash
-# View Vault logs
-./manage-devstack.sh logs vault
+## Support
 
-# Follow PostgreSQL logs
-./manage-devstack.sh logs postgres -f
+For help with the Python management script:
+1. Check this documentation
+2. Run `./manage-devstack --help`
+3. Check command-specific help: `./manage-devstack start --help`
+4. Review docs/SERVICE_PROFILES.md
+5. Open an issue on GitHub
 
-# View last 50 lines from MySQL
-./manage-devstack.sh logs mysql --tail=50
+## License
 
-# Multiple services
-docker compose logs postgres mysql redis-1
-```
-
-## Shell Command
-
-**Open an interactive shell in a container**
-
-```bash
-./manage-devstack.sh shell <service>
-```
-
-**Examples:**
-```bash
-# Shell into PostgreSQL container
-./manage-devstack.sh shell postgres
-
-# Shell into Vault container
-./manage-devstack.sh shell vault
-
-# Shell into Redis node
-./manage-devstack.sh shell redis-1
-```
-
-**Inside container:**
-```bash
-# PostgreSQL container
-$ psql -U postgres
-$ pg_isready
-$ ps aux
-
-# Vault container
-$ vault status
-$ env | grep VAULT
-
-# Redis container
-$ redis-cli
-$ redis-cli CLUSTER INFO
-```
-
-## Vault Commands
-
-### vault-init
-
-**Initialize Vault (first-time setup only)**
-
-```bash
-./manage-devstack.sh vault-init
-```
-
-**What it does:**
-1. Initializes Vault with 5 keys, threshold 3
-2. Saves keys to `~/.config/vault/keys.json`
-3. Saves root token to `~/.config/vault/root-token`
-4. Unseals Vault automatically
-
-**Output:**
-```
-Initializing Vault...
-✓ Vault initialized successfully
-✓ Unseal keys saved to ~/.config/vault/keys.json
-✓ Root token saved to ~/.config/vault/root-token
-
-IMPORTANT: Backup these files immediately!
-  cp -r ~/.config/vault ~/vault-backup-$(date +%Y%m%d)
-```
-
-**WARNING:** Only run once! Running again will fail if Vault is already initialized.
-
-### vault-bootstrap
-
-**Set up PKI and store all service credentials**
-
-```bash
-./manage-devstack.sh vault-bootstrap
-```
-
-**What it does:**
-1. Creates root CA (10 year TTL)
-2. Creates intermediate CA (5 year TTL)
-3. Creates service roles for certificates
-4. Generates and stores passwords for all services
-5. Stores database connection info
-
-**Services configured:**
-- PostgreSQL
-- MySQL
-- MongoDB
-- Redis (all nodes)
-- RabbitMQ
-- Forgejo
-
-**Output:**
-```
-Bootstrapping Vault...
-
-Setting up PKI...
-✓ Root CA created
-✓ Intermediate CA created
-✓ Service roles created
-
-Storing service credentials...
-✓ PostgreSQL credentials stored
-✓ MySQL credentials stored
-✓ MongoDB credentials stored
-✓ Redis credentials stored
-✓ RabbitMQ credentials stored
-✓ Forgejo credentials stored
-
-Bootstrap complete!
-```
-
-### vault-status
-
-**Check Vault seal status**
-
-```bash
-./manage-devstack.sh vault-status
-```
-
-**Output (unsealed):**
-```
-Key             Value
----             -----
-Seal Type       shamir
-Initialized     true
-Sealed          false
-Total Shares    5
-Threshold       3
-Version         1.15.0
-Storage Type    file
-Cluster Name    vault-cluster-dev
-```
-
-**Output (sealed):**
-```
-Key             Value
----             -----
-Seal Type       shamir
-Initialized     true
-Sealed          true
-Total Shares    5
-Threshold       3
-
-Vault is sealed. Run './manage-devstack.sh vault-unseal' to unseal.
-```
-
-### vault-unseal
-
-**Manually unseal Vault**
-
-```bash
-./manage-devstack.sh vault-unseal
-```
-
-**What it does:**
-1. Reads unseal keys from `~/.config/vault/keys.json`
-2. Applies 3 keys (threshold)
-3. Unseals Vault
-
-**Output:**
-```
-Unsealing Vault...
-Key                Value
----                -----
-Seal Type          shamir
-Initialized        true
-Sealed             false
-Unseal Progress    3/3
-
-✓ Vault unsealed successfully
-```
-
-### vault-token
-
-**Display root token**
-
-```bash
-./manage-devstack.sh vault-token
-```
-
-**Output:**
-```
-Vault Root Token: hvs.CAESIJxyz123abc456...
-
-Set token in environment:
-  export VAULT_TOKEN=hvs.CAESIJxyz123abc456...
-
-Or source the token file:
-  export VAULT_TOKEN=$(cat ~/.config/vault/root-token)
-```
-
-### vault-show-password
-
-**Get service password from Vault**
-
-```bash
-./manage-devstack.sh vault-show-password <service>
-```
-
-**Examples:**
-```bash
-# PostgreSQL password
-./manage-devstack.sh vault-show-password postgres
-# Output: pg_s3cr3t_p4ssw0rd
-
-# MySQL password
-./manage-devstack.sh vault-show-password mysql
-
-# Redis password
-./manage-devstack.sh vault-show-password redis-1
-
-# Use in scripts
-POSTGRES_PASSWORD=$(./manage-devstack.sh vault-show-password postgres)
-psql "postgresql://devuser:$POSTGRES_PASSWORD@localhost/devdb"
-```
-
-## Backup Command
-
-**Backup all databases and Vault data**
-
-```bash
-./manage-devstack.sh backup [name]
-```
-
-**Examples:**
-```bash
-# Standard backup
-./manage-devstack.sh backup
-
-# Named backup (e.g., pre-upgrade)
-./manage-devstack.sh backup pre-upgrade
-
-# Compressed backup
-COMPRESS=true ./manage-devstack.sh backup
-```
-
-**What gets backed up:**
-- PostgreSQL databases
-- MySQL databases
-- MongoDB databases
-- Vault snapshot
-- Vault keys and token
-- Configuration files
-- SSL certificates
-
-**Backup location:**
-```
-~/devstack-core/backups/
-├── 2024-01-15_14-30-00/
-│   ├── postgres_devdb.sql
-│   ├── mysql_devdb.sql
-│   ├── mongodb_devdb.archive
-│   ├── vault/
-│   │   ├── keys.json
-│   │   ├── root-token
-│   │   └── snapshot.json
-│   └── config/
-└── latest -> 2024-01-15_14-30-00/
-```
-
-## Reset Command
-
-**Destroy and reset environment (DATA LOSS)**
-
-```bash
-./manage-devstack.sh reset
-```
-
-**WARNING:** This command:
-- Stops all containers
-- Deletes all Docker volumes (ALL DATA LOST)
-- Deletes Vault keys
-- Stops Colima VM
-
-**Confirmation required:**
-```
-WARNING: This will DELETE ALL DATA!
-Are you sure you want to reset the environment? (yes/no): yes
-
-Stopping all services...
-Removing all containers...
-Removing all volumes...
-Removing Vault keys...
-Stopping Colima...
-
-Reset complete. To start fresh:
-  ./manage-devstack.sh start
-  ./manage-devstack.sh vault-init
-  ./manage-devstack.sh vault-bootstrap
-```
-
-**Use when:**
-- Starting completely fresh
-- Testing initialization
-- Fixing irreparable corruption
-- Switching configurations
-
-**ALWAYS backup before reset!**
-```bash
-# Backup first
-./manage-devstack.sh backup pre-reset
-
-# Then reset
-./manage-devstack.sh reset
-```
-
-## Related Pages
-
-- [Health-Monitoring](Health-Monitoring) - Health check details
-- [Backup-and-Restore](Backup-and-Restore) - Backup procedures
-- [Vault-Troubleshooting](Vault-Troubleshooting) - Vault commands
-- [Service-Configuration](Service-Configuration) - Service management
+MIT License - See LICENSE file for details

@@ -1,768 +1,1025 @@
-# Vault Integration
-
-Comprehensive guide to HashiCorp Vault integration for secrets management, PKI infrastructure, and credential distribution across all services.
-
----
+# Vault PKI Integration
 
 ## Table of Contents
 
-1. [Overview](#overview)
-2. [How Vault Manages Credentials](#how-vault-manages-credentials)
-3. [PKI Hierarchy](#pki-hierarchy)
-4. [Service Credential Retrieval Pattern](#service-credential-retrieval-pattern)
-5. [TLS Certificate Generation](#tls-certificate-generation)
-6. [Auto-Unseal Process](#auto-unseal-process)
-7. [Common Vault Operations](#common-vault-operations)
-8. [Code Examples](#code-examples)
-9. [Troubleshooting](#troubleshooting)
-10. [Related Documentation](#related-documentation)
+  - [Overview](#overview)
+  - [Service Vault Integration](#service-vault-integration)
+  - [SSL/TLS Certificate Management](#ssltls-certificate-management)
+  - [Vault Commands](#vault-commands)
+- [Vault Auto-Unseal](#vault-auto-unseal)
+  - [How It Works](#how-it-works)
+  - [Initial Setup](#initial-setup)
+  - [Auto-Unseal Process](#auto-unseal-process)
+  - [Manual Operations](#manual-operations)
 
 ---
 
-## Overview
+### Overview
 
-HashiCorp Vault provides **centralized secrets management** and **Public Key Infrastructure (PKI)** for the entire DevStack Core infrastructure. Instead of hardcoded passwords in `.env` files, all services fetch credentials from Vault at startup.
+HashiCorp Vault provides centralized secrets management and Public Key Infrastructure (PKI) for services. Instead of storing passwords in `.env` files, services fetch credentials from Vault at startup.
 
-### Key Benefits
+**Benefits:**
+- ✅ Centralized secrets management
+- ✅ Dynamic certificate generation
+- ✅ Automatic certificate rotation
+- ✅ Audit trail of secret access
+- ✅ Optional SSL/TLS for encrypted connections
+- ✅ No plaintext passwords in configuration files
 
-- ✅ **No Hardcoded Secrets** - All credentials stored securely in Vault
-- ✅ **Dynamic Certificate Generation** - TLS certificates issued on-demand
-- ✅ **Automatic Rotation** - Certificates can be renewed without service restart
-- ✅ **Audit Trail** - Track all secret access attempts
-- ✅ **Centralized Management** - Single source of truth for all credentials
-- ✅ **Runtime Configuration** - Enable/disable TLS without rebuilding containers
-
-### Vault Endpoints
-
-- **UI:** http://localhost:8200/ui
-- **API:** http://localhost:8200
-- **Health:** http://localhost:8200/v1/sys/health
-- **Internal (from containers):** http://vault:8200
-
----
-
-## How Vault Manages Credentials
-
-### Storage Architecture
-
-Vault uses a **Key-Value (KV) v2** secrets engine at the path `secret/`.
-
+**Architecture:**
 ```
-Vault Storage Structure:
-├── secret/
-│   ├── postgres           # PostgreSQL credentials
-│   ├── mysql              # MySQL credentials
-│   ├── mongodb            # MongoDB credentials
-│   ├── redis-1            # Redis cluster shared password
-│   ├── rabbitmq           # RabbitMQ credentials
-│   └── <your-app>         # Custom application secrets
-└── pki/                   # PKI infrastructure
-    ├── root CA
-    └── intermediate CA
+Vault PKI Hierarchy
+├── Root CA (10-year validity)
+│   └── Intermediate CA (5-year validity)
+│       └── Service Certificates (1-year validity)
+│           ├── PostgreSQL
+│           ├── MySQL
+│           ├── Redis
+│           └── Other services
 ```
 
-### Credential Format
+### Service Vault Integration
 
-Each service has credentials stored with this structure:
+**ALL services use Vault integration for credentials management.** PostgreSQL was the proof-of-concept, now fully implemented across the stack.
 
-```json
-{
-  "data": {
-    "user": "dev_admin",
-    "password": "randomly-generated-25-char-password",
-    "database": "dev_database",
-    "tls_enabled": true
-  }
-}
-```
+**Integrated Services:**
+- ✅ PostgreSQL (`configs/postgres/scripts/init.sh`)
+- ✅ MySQL (`configs/mysql/scripts/init.sh`)
+- ✅ Redis Cluster (`configs/redis/scripts/init.sh`)
+- ✅ RabbitMQ (`configs/rabbitmq/scripts/init.sh`)
+- ✅ MongoDB (`configs/mongodb/scripts/init.sh`)
 
-### Credential Lifecycle
+**How It Works (using PostgreSQL as example):**
 
-```mermaid
-graph TD
-    Bootstrap["Vault Bootstrap<br/>(One-time setup)"]
-    Generate["Generate random passwords<br/>(25 characters, alphanumeric)"]
-    Store["Store in Vault KV<br/>(secret/{service})"]
-    Service["Service starts"]
-    Fetch["Service fetches credentials<br/>(init.sh script)"]
-    Configure["Service configures itself<br/>(environment variables)"]
-    Start["Service process starts<br/>(with credentials)"]
+1. **Container Startup** → Wrapper script (`/init/init.sh`) executes
+2. **Wait for Vault** → Script waits for Vault to be unsealed and ready
+3. **Fetch Credentials & TLS Setting** → GET `/v1/secret/data/postgres` (includes `tls_enabled` field)
+4. **Validate Certificates** → Check pre-generated certificates exist if TLS enabled
+5. **Configure PostgreSQL** → Injects credentials and TLS configuration
+6. **Start PostgreSQL** → Calls original `docker-entrypoint.sh`
 
-    Bootstrap --> Generate
-    Generate --> Store
-    Store --> Service
-    Service --> Fetch
-    Fetch --> Configure
-    Configure --> Start
-```
-
----
-
-## PKI Hierarchy
-
-Vault implements a **two-tier Public Key Infrastructure** for certificate management.
-
-### Certificate Authority Structure
-
-```
-Root CA (pki)
-├── Common Name: DevStack Core Root CA
-├── Validity: 10 years (87600h)
-├── Key Type: RSA 2048
-├── Usage: CA, Certificate Signing
-└── Intermediate CA (pki_int)
-    ├── Common Name: DevStack Core Intermediate CA
-    ├── Validity: 5 years (43800h)
-    ├── Key Type: RSA 2048
-    ├── Signed by: Root CA
-    └── Service Certificates
-        ├── postgres-role (TTL: 1 year)
-        ├── mysql-role (TTL: 1 year)
-        ├── redis-1-role (TTL: 1 year)
-        ├── rabbitmq-role (TTL: 1 year)
-        ├── mongodb-role (TTL: 1 year)
-        └── ... (9 total roles)
-```
-
-### PKI Roles
-
-Each service has a dedicated PKI role that defines certificate issuance policies:
-
-```bash
-# Example: postgres-role configuration
-vault read pki_int/roles/postgres-role
-
-# Output:
-allowed_domains: postgres.dev-services.local
-allow_subdomains: false
-max_ttl: 8760h (1 year)
-key_bits: 2048
-allow_ip_sans: true
-```
-
-### Certificate Subject Alternative Names (SANs)
-
-Issued certificates include multiple SANs for flexibility:
-
-- **DNS Name:** `postgres.dev-services.local`
-- **IP Address:** `172.20.0.10` (static IP)
-- **Localhost:** `localhost` (for local testing)
-- **Container Name:** `postgres` (Docker DNS)
-
----
-
-## Service Credential Retrieval Pattern
-
-All services follow the **same pattern** for fetching credentials from Vault at startup.
-
-### Standard Init Script Pattern
-
-Every service uses a wrapper script (`configs/{service}/scripts/init.sh`) that:
-
-1. **Waits for Vault** to be ready (unsealed and accessible)
-2. **Fetches credentials** from Vault API
-3. **Exports environment variables** for the service
-4. **Checks TLS configuration** from Vault
-5. **Starts the actual service** with injected credentials
-
-### Example: PostgreSQL Init Script
-
-`configs/postgres/scripts/init.sh`:
+**Wrapper Script** (`configs/postgres/scripts/init.sh`):
 
 ```bash
 #!/bin/bash
-set -e
+# PostgreSQL initialization with Vault integration
 
 # 1. Wait for Vault to be ready
-wait_for_vault() {
-  echo "Waiting for Vault..."
-  until curl -sf http://vault:8200/v1/sys/health > /dev/null 2>&1; do
-    sleep 2
-  done
-  echo "Vault is ready"
-}
+wait_for_vault()
 
-wait_for_vault
+# 2. Fetch credentials AND tls_enabled from Vault
+export POSTGRES_USER=$(vault_api | jq -r '.data.data.user')
+export POSTGRES_PASSWORD=$(vault_api | jq -r '.data.data.password')
+export POSTGRES_DB=$(vault_api | jq -r '.data.data.database')
+export ENABLE_TLS=$(vault_api | jq -r '.data.data.tls_enabled // "false"')
 
-# 2. Fetch credentials from Vault
-VAULT_RESPONSE=$(curl -sf \
-  -H "X-Vault-Token: $VAULT_TOKEN" \
-  http://vault:8200/v1/secret/data/postgres)
-
-# 3. Parse and export credentials
-export POSTGRES_USER=$(echo "$VAULT_RESPONSE" | jq -r '.data.data.user')
-export POSTGRES_PASSWORD=$(echo "$VAULT_RESPONSE" | jq -r '.data.data.password')
-export POSTGRES_DB=$(echo "$VAULT_RESPONSE" | jq -r '.data.data.database')
-
-# 4. Check TLS configuration
-ENABLE_TLS=$(echo "$VAULT_RESPONSE" | jq -r '.data.data.tls_enabled // "false"')
-
+# 3. If TLS enabled, validate pre-generated certificates
 if [ "$ENABLE_TLS" = "true" ]; then
-  echo "TLS enabled - validating certificates..."
-  validate_certificates
-  configure_postgresql_tls
+    validate_certificates  # Check certs exist in mounted volume
+    configure_tls          # Configure PostgreSQL SSL
 fi
 
-# 5. Start PostgreSQL with credentials
+# 4. Start PostgreSQL with injected credentials
 exec docker-entrypoint.sh postgres
 ```
 
-### Docker Compose Configuration
-
-Services specify the init script as their entrypoint:
-
-```yaml
-services:
-  postgres:
-    entrypoint: ["/init/init.sh"]
-    volumes:
-      - ./configs/postgres/scripts/init.sh:/init/init.sh:ro
-    environment:
-      VAULT_ADDR: http://vault:8200
-      VAULT_TOKEN: ${VAULT_TOKEN}
-    depends_on:
-      vault:
-        condition: service_healthy
-```
-
-### Credential Retrieval API Call
+**Fetching PostgreSQL Password:**
 
 ```bash
-# Fetch PostgreSQL credentials
-curl -s -H "X-Vault-Token: $VAULT_TOKEN" \
-  http://vault:8200/v1/secret/data/postgres | jq
+# Via management script
+./manage-devstack vault-show-password postgres
 
-# Response:
-{
-  "data": {
-    "data": {
-      "user": "dev_admin",
-      "password": "xK9mP2vQ8rL5nT3wY7zF4jH6",
-      "database": "dev_database",
-      "tls_enabled": true
-    }
-  }
-}
+# Via Vault CLI
+export VAULT_ADDR=http://localhost:8200
+export VAULT_TOKEN=$(cat ~/.config/vault/root-token)
+vault kv get -field=password secret/postgres
+
+# Via curl
+curl -H "X-Vault-Token: $VAULT_TOKEN" \
+  http://localhost:8200/v1/secret/data/postgres \
+  | jq -r '.data.data.password'
 ```
 
----
-
-## TLS Certificate Generation
-
-The system uses **pre-generated certificates** with **Vault-based TLS configuration**.
-
-### Certificate Generation Process
-
-```mermaid
-graph TD
-    Bootstrap["Vault Bootstrap<br/>(creates PKI)"]
-    Roles["Create certificate roles<br/>(9 services)"]
-    Script["Run generate-certificates.sh"]
-    Issue["Issue certificates from Vault<br/>(one per service)"]
-    Export["Export to files<br/>(~/.config/vault/certs/)"]
-    Mount["Mount into containers<br/>(read-only volumes)"]
-    Configure["Services check tls_enabled<br/>(from Vault secret)"]
-    Enable["If true: use mounted certs"]
-
-    Bootstrap --> Roles
-    Roles --> Script
-    Script --> Issue
-    Issue --> Export
-    Export --> Mount
-    Mount --> Configure
-    Configure --> Enable
-```
-
-### One-Time Certificate Generation
+**Environment Variables:**
 
 ```bash
-# 1. Ensure Vault is bootstrapped
-./manage-devstack.sh vault-bootstrap
+# In .env file
+VAULT_ADDR=http://vault:8200
+VAULT_TOKEN=hvs.xxxxxxxxxxxxx  # From ~/.config/vault/root-token
+# NOTE: TLS settings are now in Vault, not .env
+```
 
-# 2. Generate all certificates
+**Note:** ALL service passwords and TLS settings have been removed from `.env`. All credentials and TLS configuration are now managed entirely by Vault.
+
+### SSL/TLS Certificate Management
+
+**TLS Implementation: Pre-Generated Certificates with Vault-Based Configuration**
+
+The system uses a modern, production-ready TLS architecture where:
+- ✅ TLS settings are stored in **Vault** (not environment variables)
+- ✅ Certificates are **pre-generated** and validated before service startup
+- ✅ Runtime enable/disable without container rebuilds
+- ✅ All 8 services support TLS (PostgreSQL, MySQL, Redis cluster, RabbitMQ, MongoDB, FastAPI reference app)
+- ✅ Dual-mode operation (accepts both SSL and non-SSL connections)
+
+**One-Time Certificate Generation:**
+
+```bash
+# 1. Ensure Vault is running and bootstrapped
+docker compose up -d vault
+sleep 10
+
+# 2. Bootstrap Vault (creates secrets with tls_enabled field)
 VAULT_ADDR=http://localhost:8200 \
 VAULT_TOKEN=$(cat ~/.config/vault/root-token) \
-  ./scripts/generate-certificates.sh
+  bash configs/vault/scripts/vault-bootstrap.sh
 
-# Output:
-✓ Generating certificate for postgres...
-✓ Generating certificate for mysql...
-✓ Generating certificate for redis-1...
-✓ Generating certificate for rabbitmq...
-✓ Generating certificate for mongodb...
-✓ All certificates generated successfully
+# 3. Generate all certificates (stored in ~/.config/vault/certs/)
+VAULT_ADDR=http://localhost:8200 \
+VAULT_TOKEN=$(cat ~/.config/vault/root-token) \
+  bash scripts/generate-certificates.sh
 ```
 
-### Certificate Storage Locations
-
-```
-~/.config/vault/
-├── ca/                      # CA certificates (shared)
-│   ├── ca.pem              # Root CA certificate
-│   ├── ca-chain.pem        # Full certificate chain
-│   └── intermediate-ca.pem # Intermediate CA certificate
-└── certs/                   # Service certificates
-    ├── postgres/
-    │   ├── cert.pem        # Server certificate
-    │   ├── key.pem         # Private key
-    │   └── ca.pem          # CA bundle
-    ├── mysql/
-    │   ├── server-cert.pem
-    │   ├── server-key.pem
-    │   └── ca.pem
-    ├── redis-1/
-    │   ├── redis.crt
-    │   ├── redis.key
-    │   └── ca.crt
-    └── ... (other services)
-```
-
-### Runtime TLS Configuration
-
-TLS can be **enabled or disabled at runtime** without regenerating certificates:
+**Enabling TLS for a Service (Runtime Configuration):**
 
 ```bash
-# Enable TLS for PostgreSQL
+# 1. Set tls_enabled=true in Vault
 TOKEN=$(cat ~/.config/vault/root-token)
 curl -sf -X POST \
   -H "X-Vault-Token: $TOKEN" \
   -H "Content-Type: application/json" \
-  -d '{"data":{"user":"dev_admin","password":"...","database":"dev_database","tls_enabled":true}}' \
+  -d '{"data":{"tls_enabled":true}}' \
   http://localhost:8200/v1/secret/data/postgres
 
-# Restart service to apply
+# 2. Restart the service (picks up new setting)
 docker restart dev-postgres
 
-# Disable TLS
+# 3. Verify TLS is enabled
+docker logs dev-postgres | grep "tls_enabled"
+# Should show: tls_enabled=true
+```
+
+**Disabling TLS:**
+
+```bash
+# Set tls_enabled=false and restart
+TOKEN=$(cat ~/.config/vault/root-token)
 curl -sf -X POST \
   -H "X-Vault-Token: $TOKEN" \
   -H "Content-Type: application/json" \
-  -d '{"data":{"user":"dev_admin","password":"...","database":"dev_database","tls_enabled":false}}' \
+  -d '{"data":{"tls_enabled":false}}' \
   http://localhost:8200/v1/secret/data/postgres
 
 docker restart dev-postgres
 ```
 
-### Certificate Rotation
+**Certificate Rotation:**
 
 ```bash
-# 1. Delete old certificates
+# 1. Delete old certificates for a service
 rm -rf ~/.config/vault/certs/postgres/
 
 # 2. Regenerate certificates
 VAULT_ADDR=http://localhost:8200 \
 VAULT_TOKEN=$(cat ~/.config/vault/root-token) \
-  ./scripts/generate-certificates.sh
+  bash scripts/generate-certificates.sh
 
-# 3. Restart service
+# 3. Restart service to pick up new certificates
 docker restart dev-postgres
 ```
 
----
+**Certificate Details:**
+- **Validity:** 1 year (8760 hours)
+- **Storage:** `~/.config/vault/certs/{service}/`
+- **Mount:** Read-only bind mounts into containers
+- **Format:** Service-specific (e.g., MySQL uses .pem, MongoDB uses combined cert+key)
 
-## Auto-Unseal Process
+**Testing TLS Connections:**
 
-Vault automatically initializes and unseals on container start.
+All services are configured for **dual-mode TLS** (accepting both encrypted and unencrypted connections).
 
-### Unseal Mechanism
+**PostgreSQL:**
+```bash
+# Get password from Vault
+export PGPASSWORD=$(python3 scripts/read-vault-secret.py postgres password)
 
-Vault uses **Shamir Secret Sharing**:
-- **5 unseal keys** generated during initialization
-- **3 of 5 keys** required to unseal Vault
-- Keys stored in `~/.config/vault/keys.json`
+# SSL connection (with certificate verification)
+psql "postgresql://dev_admin@localhost:5432/dev_database?sslmode=require"
 
-### Auto-Unseal Flow
+# Non-SSL connection (dual-mode allows this)
+psql "postgresql://dev_admin@localhost:5432/dev_database?sslmode=disable"
 
-```mermaid
-graph TD
-    Start["Container starts"]
-    VaultServer["Vault server starts<br/>(sealed state)"]
-    AutoUnseal["vault-auto-unseal.sh<br/>(background process)"]
-    Wait["Wait for Vault API<br/>(max 30 seconds)"]
-    CheckSealed["Check seal status"]
-    ReadKeys["Read keys.json<br/>(3 of 5 keys)"]
-    Unseal1["POST key 1 → /v1/sys/unseal"]
-    Unseal2["POST key 2 → /v1/sys/unseal"]
-    Unseal3["POST key 3 → /v1/sys/unseal"]
-    Ready["Vault unsealed and ready"]
-    Sleep["Sleep indefinitely<br/>(no CPU overhead)"]
-
-    Start --> VaultServer
-    Start --> AutoUnseal
-    VaultServer --> Wait
-    AutoUnseal --> Wait
-    Wait --> CheckSealed
-    CheckSealed -->|Sealed| ReadKeys
-    ReadKeys --> Unseal1
-    Unseal1 --> Unseal2
-    Unseal2 --> Unseal3
-    Unseal3 --> Ready
-    Ready --> Sleep
+# Verify SSL is enabled
+docker exec dev-postgres psql -U dev_admin -d dev_database -c "SHOW ssl;"
 ```
 
-### Entrypoint Configuration
+**MySQL:**
+```bash
+# Get password from Vault
+MYSQL_PASS=$(export VAULT_TOKEN=$(cat ~/.config/vault/root-token); python3 scripts/read-vault-secret.py mysql password)
 
-In `docker-compose.yml`:
+# SSL connection
+mysql -h localhost -u dev_admin -p$MYSQL_PASS --ssl-mode=REQUIRED dev_database
 
-```yaml
-vault:
-  entrypoint: >
-    sh -c "
-    chown -R vault:vault /vault/data &&
-    docker-entrypoint.sh server &
-    /usr/local/bin/vault-auto-unseal.sh &
-    wait -n
-    "
+# Non-SSL connection
+mysql -h localhost -u dev_admin -p$MYSQL_PASS --ssl-mode=DISABLED dev_database
+
+# Verify TLS is configured
+docker logs dev-mysql | grep "Channel mysql_main configured to support TLS"
 ```
 
-This starts **two processes**:
-1. Vault server (background)
-2. Auto-unseal script (background)
+**Redis:**
+```bash
+# Get password from Vault
+REDIS_PASS=$(export VAULT_TOKEN=$(cat ~/.config/vault/root-token); python3 scripts/read-vault-secret.py redis-1 password)
 
-### First-Time Initialization
+# SSL connection (TLS port 6380)
+redis-cli -h localhost -p 6380 --tls \
+  --cacert ~/.config/vault/certs/redis-1/ca.crt \
+  --cert ~/.config/vault/certs/redis-1/redis.crt \
+  --key ~/.config/vault/certs/redis-1/redis.key \
+  -a $REDIS_PASS PING
+
+# Non-SSL connection (standard port 6379)
+redis-cli -h localhost -p 6379 -a $REDIS_PASS PING
+
+# Verify dual ports
+docker logs dev-redis-1 | grep "Ready to accept connections"
+```
+
+**RabbitMQ:**
+```bash
+# SSL port: 5671
+# Non-SSL port: 5672 (management UI also available on 15672)
+
+# Test management API
+curl -u admin:$(export VAULT_TOKEN=$(cat ~/.config/vault/root-token); python3 scripts/read-vault-secret.py rabbitmq password) \
+  http://localhost:15672/api/overview
+```
+
+**MongoDB:**
+```bash
+# Get credentials from Vault
+MONGO_USER=$(export VAULT_TOKEN=$(cat ~/.config/vault/root-token); python3 scripts/read-vault-secret.py mongodb user)
+MONGO_PASS=$(export VAULT_TOKEN=$(cat ~/.config/vault/root-token); python3 scripts/read-vault-secret.py mongodb password)
+
+# SSL connection (if TLS is enabled)
+mongosh "mongodb://$MONGO_USER:$MONGO_PASS@localhost:27017/dev_database?tls=true&tlsCAFile=$HOME/.config/vault/certs/mongodb/ca.pem"
+
+# Non-SSL connection
+mongosh "mongodb://$MONGO_USER:$MONGO_PASS@localhost:27017/dev_database"
+```
+
+**SSL/TLS Modes:**
+- **PostgreSQL SSL Modes:**
+  - `disable` - No SSL
+  - `allow` - Try SSL, fallback to plain
+  - `prefer` - Prefer SSL, fallback to plain
+  - `require` - Require SSL (no cert verification)
+  - `verify-ca` - Require SSL + verify CA certificate
+  - `verify-full` - Require SSL + verify CA + hostname matching
+
+- **MySQL SSL Modes:**
+  - `DISABLED` - No SSL
+  - `PREFERRED` - Use SSL if available
+  - `REQUIRED` - Require SSL
+  - `VERIFY_CA` - Verify CA certificate
+  - `VERIFY_IDENTITY` - Verify CA + hostname
+
+### Vault Commands
+
+**Vault Management Script Commands:**
 
 ```bash
-# Initialize Vault (creates keys and root token)
-./manage-devstack.sh vault-init
+# Initialize Vault (first time only)
+./manage-devstack vault-init
 
-# Output:
-Unseal Key 1: K7k9mL2nP5qR8sT1vW4xY6zA...
-Unseal Key 2: B3c5dF7gH9jK1mN3oP5qR7sT...
-Unseal Key 3: C4e6gI8kL0mN2pR4tV6xZ8aB...
-Unseal Key 4: D5f7hJ9lM1nO3qS5uW7yA9cE...
-Unseal Key 5: E6g8iK0mN2pQ4rT6vX8zA0dF...
+# Check Vault status
+./manage-devstack vault-status
 
-Initial Root Token: hvs.XXXXXXXXXXXXXXXXXX
+# Get root token
+./manage-devstack vault-token
 
-Keys saved to: ~/.config/vault/keys.json
-Root token saved to: ~/.config/vault/root-token
+# Unseal Vault manually (if needed)
+./manage-devstack vault-unseal
+
+# Bootstrap PKI and service credentials
+./manage-devstack vault-bootstrap
+
+# Export CA certificates
+./manage-devstack vault-ca-cert
+
+# Show service password
+./manage-devstack vault-show-password postgres
+./manage-devstack vault-show-password mysql
 ```
 
-**CRITICAL:** Backup these files! Without them, Vault data cannot be recovered.
+**Vault Bootstrap Process:**
 
----
+The `vault-bootstrap` command sets up the complete PKI infrastructure:
 
-## Common Vault Operations
+1. **Generate Root CA** (if not exists)
+2. **Generate Intermediate CA CSR**
+3. **Sign Intermediate CA with Root CA**
+4. **Install Intermediate CA certificate**
+5. **Create PKI roles for each service** (postgres-role, mysql-role, etc.)
+6. **Generate and store service credentials** (user, password, database)
+7. **Export CA certificates** to `~/.config/vault/ca/`
 
-### Environment Setup
+**Manual Vault Operations:**
 
 ```bash
-# Set Vault address
+# Set environment
 export VAULT_ADDR=http://localhost:8200
-
-# Set root token
 export VAULT_TOKEN=$(cat ~/.config/vault/root-token)
-```
 
-### Secret Management
-
-```bash
-# List all secrets
+# List secret paths
 vault kv list secret/
 
 # Get PostgreSQL credentials
 vault kv get secret/postgres
 
-# Get specific field
-vault kv get -field=password secret/postgres
-
 # Update password (manual rotation)
 vault kv put secret/postgres \
   user=dev_admin \
-  password=new_password_here \
-  database=dev_database \
-  tls_enabled=true
-
-# Store custom application secret
-vault kv put secret/myapp/config \
-  api_key=abc123 \
-  webhook_url=https://example.com/hook
-```
-
-### PKI Operations
-
-```bash
-# List certificate roles
-vault list pki_int/roles
-
-# View role configuration
-vault read pki_int/roles/postgres-role
+  password=new_generated_password \
+  database=dev_database
 
 # Issue certificate manually
 vault write pki_int/issue/postgres-role \
   common_name=postgres.dev-services.local \
   ttl=8760h
 
-# View CA certificate
-vault read pki/ca/pem
-
-# View intermediate CA certificate
-vault read pki_int/ca/pem
-
-# Get full CA chain
-vault read pki_int/ca_chain
+# View PKI role configuration
+vault read pki_int/roles/postgres-role
 ```
 
-### Token Management
+**PKI Certificate Paths:**
 
-```bash
-# Check token info
-vault token lookup
-
-# Create new token with specific policy
-vault token create -policy=admin -ttl=24h
-
-# Renew token
-vault token renew
-
-# Revoke token
-vault token revoke <token>
+```
+Vault PKI Endpoints:
+├── /v1/pki/ca/pem                      # Root CA certificate
+├── /v1/pki_int/ca/pem                  # Intermediate CA certificate
+├── /v1/pki_int/roles/postgres-role     # PostgreSQL certificate role
+├── /v1/pki_int/issue/postgres-role     # Issue PostgreSQL certificate
+└── /v1/secret/data/postgres            # PostgreSQL credentials
 ```
 
-### Health and Status
+**Credential Loading for Non-Container Services:**
 
-```bash
-# Check Vault status
-vault status
+For services that need Vault credentials but aren't containerized (e.g., PgBouncer, Forgejo), credentials are loaded via environment variables:
 
-# Check seal status
-vault operator seal-status
+**Script: `scripts/load-vault-env.sh`**
 
-# Get Vault health
-curl http://localhost:8200/v1/sys/health | jq
-```
-
----
-
-## Code Examples
-
-### Python: Fetching Secrets
-
-```python
-import requests
-import os
-
-def get_vault_secret(secret_path, field=None):
-    """Fetch secret from Vault"""
-    vault_addr = os.getenv('VAULT_ADDR', 'http://localhost:8200')
-    vault_token = os.getenv('VAULT_TOKEN')
-
-    url = f"{vault_addr}/v1/secret/data/{secret_path}"
-    headers = {"X-Vault-Token": vault_token}
-
-    response = requests.get(url, headers=headers)
-    response.raise_for_status()
-
-    data = response.json()['data']['data']
-
-    if field:
-        return data.get(field)
-    return data
-
-# Usage
-postgres_creds = get_vault_secret('postgres')
-print(f"User: {postgres_creds['user']}")
-print(f"Database: {postgres_creds['database']}")
-
-# Get specific field
-password = get_vault_secret('postgres', field='password')
-```
-
-### Go: Vault Client
-
-```go
-package main
-
-import (
-    "fmt"
-    "os"
-    vault "github.com/hashicorp/vault/api"
-)
-
-func getSecret(path string) (map[string]interface{}, error) {
-    config := vault.DefaultConfig()
-    config.Address = os.Getenv("VAULT_ADDR")
-
-    client, err := vault.NewClient(config)
-    if err != nil {
-        return nil, err
-    }
-
-    client.SetToken(os.Getenv("VAULT_TOKEN"))
-
-    secret, err := client.Logical().Read(fmt.Sprintf("secret/data/%s", path))
-    if err != nil {
-        return nil, err
-    }
-
-    return secret.Data["data"].(map[string]interface{}), nil
-}
-
-func main() {
-    creds, err := getSecret("postgres")
-    if err != nil {
-        panic(err)
-    }
-
-    fmt.Printf("User: %s\n", creds["user"])
-    fmt.Printf("Database: %s\n", creds["database"])
-}
-```
-
-### Node.js: Vault Integration
-
-```javascript
-const axios = require('axios');
-
-async function getVaultSecret(secretPath, field = null) {
-  const vaultAddr = process.env.VAULT_ADDR || 'http://localhost:8200';
-  const vaultToken = process.env.VAULT_TOKEN;
-
-  const url = `${vaultAddr}/v1/secret/data/${secretPath}`;
-
-  const response = await axios.get(url, {
-    headers: { 'X-Vault-Token': vaultToken }
-  });
-
-  const data = response.data.data.data;
-
-  return field ? data[field] : data;
-}
-
-// Usage
-(async () => {
-  const creds = await getVaultSecret('postgres');
-  console.log('User:', creds.user);
-  console.log('Database:', creds.database);
-
-  const password = await getVaultSecret('postgres', 'password');
-  console.log('Password:', password);
-})();
-```
-
-### Bash: Simple Credential Retrieval
+This script loads credentials from Vault into environment variables for docker-compose:
 
 ```bash
 #!/bin/bash
-# scripts/get-vault-secret.sh
+# Load credentials from Vault and export as environment variables
 
-VAULT_ADDR=${VAULT_ADDR:-http://localhost:8200}
-VAULT_TOKEN=$(cat ~/.config/vault/root-token)
+# 1. Wait for Vault to be ready
+# 2. Read VAULT_TOKEN from ~/.config/vault/root-token
+# 3. Fetch PostgreSQL password: secret/postgres
+# 4. Export POSTGRES_PASSWORD for docker-compose
 
-SECRET_PATH=$1
-FIELD=$2
+export POSTGRES_PASSWORD=$(python3 scripts/read-vault-secret.py postgres password)
+```
 
-# Fetch secret
-RESPONSE=$(curl -sf \
-  -H "X-Vault-Token: $VAULT_TOKEN" \
-  "$VAULT_ADDR/v1/secret/data/$SECRET_PATH")
+**Script: `scripts/read-vault-secret.py`**
 
-# Parse with jq
-if [ -z "$FIELD" ]; then
-  echo "$RESPONSE" | jq -r '.data.data'
-else
-  echo "$RESPONSE" | jq -r ".data.data.$FIELD"
+Python helper to read secrets from Vault KV v2 API:
+
+```python
+#!/usr/bin/env python3
+# Usage: read-vault-secret.py <path> <field>
+# Example: read-vault-secret.py postgres password
+
+import sys, json, urllib.request, os
+
+vault_addr = os.getenv('VAULT_ADDR', 'http://localhost:8200')
+vault_token = os.getenv('VAULT_TOKEN')
+
+url = f"{vault_addr}/v1/secret/data/{sys.argv[1]}"
+req = urllib.request.Request(url)
+req.add_header('X-Vault-Token', vault_token)
+
+with urllib.request.urlopen(req) as response:
+    data = json.loads(response.read().decode())
+    print(data['data']['data'][sys.argv[2]])
+```
+
+**When Credentials Are Loaded:**
+
+The `manage-devstack.py` script automatically loads credentials during startup:
+
+1. Start Vault container
+2. Wait 5 seconds for Vault to be ready
+3. Run `source scripts/load-vault-env.sh`
+4. Export credentials as environment variables
+5. Start remaining services with injected credentials
+
+**All Services Are Now Vault-Integrated:**
+
+✅ All database services (PostgreSQL, MySQL, MongoDB)
+✅ All caching services (Redis Cluster)
+✅ All message queue services (RabbitMQ)
+✅ All connection pooling services (PgBouncer)
+
+No migration needed - the infrastructure is complete!
+
+## Vault Auto-Unseal
+
+### How It Works
+
+Vault runs in two concurrent processes within the container:
+
+```
+Container: dev-vault
+├── Process 1: vault server
+│   - Listens on 0.0.0.0:8200
+│   - Uses file storage: /vault/data
+│   - Config: /vault/config/vault.hcl
+│
+└── Process 2: vault-auto-unseal.sh
+    - Waits for Vault to be ready
+    - Unseals using saved keys
+    - Sleeps indefinitely (no CPU overhead)
+```
+
+**Entrypoint** (`docker-compose.yml:360-366`):
+```yaml
+entrypoint: >
+  sh -c "
+  chown -R vault:vault /vault/data &&
+  docker-entrypoint.sh server &
+  /usr/local/bin/vault-auto-unseal.sh &
+  wait -n
+  "
+```
+
+**Process Flow:**
+1. Fix `/vault/data` permissions (chown)
+2. Start Vault server in background (`&`)
+3. Start auto-unseal script in background (`&`)
+4. Wait for either process to exit (`wait -n`)
+
+### Initial Setup
+
+**First-Time Initialization:**
+```bash
+./configs/vault/scripts/vault-init.sh
+# Or
+./manage-devstack vault-init
+```
+
+**What Happens:**
+1. Waits for Vault to be ready (max 30 seconds)
+2. Checks if already initialized
+3. If not initialized:
+   - POSTs to `/v1/sys/init` with `{"secret_shares": 5, "secret_threshold": 3}`
+   - Receives 5 unseal keys + root token
+   - Saves to `~/.config/vault/keys.json` (chmod 600)
+   - Saves root token to `~/.config/vault/root-token` (chmod 600)
+4. Unseals Vault using 3 of 5 keys
+5. Displays status and root token
+
+**Shamir Secret Sharing:**
+- 5 keys generated
+- Any 3 keys can unseal Vault
+- Designed for distributed trust (give keys to different people/systems)
+- Lost keys = cannot unseal (data is encrypted and unrecoverable)
+
+### Auto-Unseal Process
+
+**Script** (`configs/vault/scripts/vault-auto-unseal.sh`):
+
+```bash
+# 1. Wait for Vault API (max 30 attempts, 1s each)
+wget --spider http://127.0.0.1:8200/v1/sys/health?uninitcode=200&sealedcode=200
+
+# 2. Check seal status
+wget -qO- http://127.0.0.1:8200/v1/sys/seal-status
+# → {"sealed": true}
+
+# 3. Read unseal keys from mounted volume
+cat /vault-keys/keys.json | extract 3 keys
+
+# 4. POST each key to unseal endpoint
+for key in key1 key2 key3; do
+  wget --post-data='{"key":"'$key'"}' http://127.0.0.1:8200/v1/sys/unseal
+done
+
+# 5. Verify unsealed
+wget -qO- http://127.0.0.1:8200/v1/sys/seal-status
+# → {"sealed": false}
+
+# 6. Sleep indefinitely (no monitoring overhead)
+while true; do sleep 3600; done
+```
+
+**Why Not Continuous Monitoring?**
+- Original design had 10-second checks (360 API calls/hour)
+- Optimized to single unseal + sleep
+- Saves 99% of API calls and CPU cycles
+- Trade-off: Won't auto-reseal if manually sealed (must restart container)
+
+### Manual Operations
+
+**Check Vault Status:**
+```bash
+./manage-devstack vault-status
+
+# Or directly
+export VAULT_ADDR=http://localhost:8200
+export VAULT_TOKEN=$(cat ~/.config/vault/root-token)
+vault status
+```
+
+**Manually Unseal:**
+```bash
+./manage-devstack vault-unseal
+
+# Or using vault CLI
+vault operator unseal  # Repeat 3 times with different keys
+```
+
+**Seal Vault:**
+```bash
+vault operator seal
+# Note: Won't auto-reseal until container restarts
+```
+
+**Rotate Root Token:**
+```bash
+vault token create -policy=root
+# Save new token to ~/.config/vault/root-token
+```
+
+**Backup Unseal Keys:**
+```bash
+# Encrypt and backup
+tar czf vault-keys-$(date +%Y%m%d).tar.gz ~/.config/vault/
+gpg -c vault-keys-*.tar.gz
+# Store encrypted file in secure location (1Password, etc.)
+```
+
+---
+
+## Certificate Lifecycle Management
+
+### Certificate Expiration Timeline
+
+| Certificate Type | Validity Period | Typical Issue Date | Expiration Date | Renewal Window |
+|------------------|-----------------|---------------------|-----------------|----------------|
+| Root CA (pki) | 10 years | 2025-01-15 | 2035-01-15 | 9 years notice |
+| Intermediate CA (pki_int) | 5 years | 2025-01-15 | 2030-01-15 | 4.5 years notice |
+| Service Certificates | 1 year | 2025-01-15 | 2026-01-15 | **30 days notice** |
+
+**Critical:** Service certificates must be renewed annually. Set calendar reminders for 30 days before expiration.
+
+### Checking Certificate Expiration
+
+**Check all service certificates:**
+```bash
+# Quick check all services
+for service in postgres mysql redis-1 redis-2 redis-3 rabbitmq mongodb; do
+  echo "=== $service ==="
+  openssl x509 -in ~/.config/vault/certs/$service/cert.pem -noout -enddate
+  echo ""
+done
+
+# With days until expiry
+for service in postgres mysql redis-1 redis-2 redis-3 rabbitmq mongodb; do
+  EXPIRY=$(openssl x509 -in ~/.config/vault/certs/$service/cert.pem -noout -enddate | cut -d= -f2)
+  EXPIRY_EPOCH=$(date -j -f "%b %d %T %Y %Z" "$EXPIRY" +%s 2>/dev/null || date -d "$EXPIRY" +%s)
+  NOW_EPOCH=$(date +%s)
+  DAYS_UNTIL=$(( ($EXPIRY_EPOCH - $NOW_EPOCH) / 86400 ))
+  echo "$service: $DAYS_UNTIL days until expiry"
+done
+```
+
+**Check Root CA:**
+```bash
+openssl x509 -in ~/.config/vault/ca/ca.pem -noout -enddate -subject
+```
+
+**Check Intermediate CA:**
+```bash
+vault read pki_int/ca/pem | openssl x509 -noout -enddate -subject
+```
+
+### Service Certificate Renewal
+
+**When to Renew:** 30 days before expiration (or sooner)
+
+**Automated Renewal Script:** `scripts/renew-certificates.sh`
+
+```bash
+#!/bin/bash
+# Renew all service certificates from Vault PKI
+# Run annually or when certificates are approaching expiration
+
+set -e
+
+VAULT_ADDR="${VAULT_ADDR:-http://localhost:8200}"
+VAULT_TOKEN="${VAULT_TOKEN:-$(cat ~/.config/vault/root-token)}"
+
+echo "🔄 Renewing service certificates..."
+echo "Vault: $VAULT_ADDR"
+
+# Check Vault is unsealed
+if ! vault status > /dev/null 2>&1; then
+  echo "❌ Error: Vault is not accessible or is sealed"
+  echo "Run: ./manage-devstack vault-unseal"
+  exit 1
 fi
 
-# Usage:
-# ./get-vault-secret.sh postgres password
-# ./get-vault-secret.sh postgres
+# Backup existing certificates
+echo "📦 Backing up existing certificates..."
+BACKUP_DIR=~/.config/vault/certs-backup-$(date +%Y%m%d-%H%M%S)
+mkdir -p "$BACKUP_DIR"
+cp -r ~/.config/vault/certs/* "$BACKUP_DIR/"
+echo "   Backup created: $BACKUP_DIR"
+
+# Generate new certificates
+echo "🔐 Generating new certificates..."
+export VAULT_ADDR VAULT_TOKEN
+./scripts/generate-certificates.sh
+
+# Verify new certificates
+echo "✅ Verifying new certificates..."
+for service in postgres mysql redis-1 redis-2 redis-3 rabbitmq mongodb; do
+  if [ -f ~/.config/vault/certs/$service/cert.pem ]; then
+    EXPIRY=$(openssl x509 -in ~/.config/vault/certs/$service/cert.pem -noout -enddate | cut -d= -f2)
+    echo "   $service: Valid until $EXPIRY"
+  fi
+done
+
+echo ""
+echo "🔄 Restarting services to load new certificates..."
+./manage-devstack restart
+
+echo ""
+echo "✅ Certificate renewal complete!"
+echo "   Old certificates backed up to: $BACKUP_DIR"
+echo "   New certificates expire in ~365 days"
+echo ""
+echo "📅 Set reminder to renew again in 11 months"
 ```
 
----
-
-## Troubleshooting
-
-### Vault is Sealed
-
-**Symptoms:**
+**Make executable and run:**
 ```bash
-$ curl http://localhost:8200/v1/sys/health
-{"sealed": true}
+chmod +x scripts/renew-certificates.sh
+./scripts/renew-certificates.sh
 ```
+
+**Manual Renewal (if script fails):**
+
+```bash
+# 1. Set environment
+export VAULT_TOKEN=$(cat ~/.config/vault/root-token)
+export VAULT_ADDR=http://localhost:8200
+
+# 2. Backup existing certificates
+cp -r ~/.config/vault/certs ~/.config/vault/certs-backup-$(date +%Y%m%d)
+
+# 3. Regenerate certificates
+./scripts/generate-certificates.sh
+
+# 4. Restart services
+./manage-devstack restart
+
+# 5. Verify new certificates
+for service in postgres mysql redis-1; do
+  openssl x509 -in ~/.config/vault/certs/$service/cert.pem -noout -dates
+done
+```
+
+### Intermediate CA Renewal
+
+**When to Renew:** 60 days before expiration (5-year cert, so plan at 4 years 10 months)
+
+**⚠️ CRITICAL:** Intermediate CA renewal affects ALL service certificates. Plan carefully.
+
+**Renewal Procedure:**
+
+```bash
+# 1. Set environment
+export VAULT_TOKEN=$(cat ~/.config/vault/root-token)
+export VAULT_ADDR=http://localhost:8200
+
+# 2. Check current intermediate CA expiration
+vault read pki_int/ca/pem | openssl x509 -noout -enddate
+
+# 3. Generate new intermediate CSR
+vault write -format=json pki_int/intermediate/generate/internal \
+  common_name="DevStack Core Intermediate CA v2" \
+  ttl="43800h" \
+  key_type="rsa" \
+  key_bits="4096" > pki_int_csr_v2.json
+
+CSR=$(jq -r '.data.csr' < pki_int_csr_v2.json)
+
+# 4. Sign with Root CA
+vault write -format=json pki/root/sign-intermediate \
+  csr="$CSR" \
+  format=pem_bundle \
+  ttl="43800h" > pki_int_cert_v2.json
+
+CERT=$(jq -r '.data.certificate' < pki_int_cert_v2.json)
+
+# 5. Import signed certificate
+vault write pki_int/intermediate/set-signed certificate="$CERT"
+
+# 6. Verify new intermediate CA
+vault read pki_int/ca/pem | openssl x509 -noout -text | grep "Not After"
+
+# 7. Regenerate ALL service certificates
+./scripts/generate-certificates.sh
+
+# 8. Restart all services
+./manage-devstack restart
+
+# 9. Verify everything works
+./manage-devstack health
+```
+
+**Post-Renewal Verification:**
+```bash
+# Check Intermediate CA is active
+vault list pki_int/roles
+
+# Test certificate issuance
+vault write pki_int/issue/postgres-role \
+  common_name=test.postgres.local \
+  ttl=1h
+
+# Verify service health
+./manage-devstack health
+```
+
+### Root CA Renewal
+
+**When to Renew:** 6-12 months before expiration (10-year cert, plan at 9 years)
+
+**⚠️ MAJOR EVENT:** Root CA renewal requires extensive planning:
+
+1. **Coordinated rollover period** (dual root CA trust)
+2. **New intermediate CA** must be issued
+3. **All service certificates** must be regenerated
+4. **Distribution** of new root CA to all clients
+5. **Testing** in non-production environment first
+
+**DO NOT attempt Root CA renewal without:**
+- Full backup of current PKI
+- Test environment validation
+- Communication plan for dependent systems
+- Rollback procedure
+
+**Recommendation:** Create a dedicated `ROOT_CA_RENEWAL.md` runbook 6 months before expiration with detailed step-by-step procedures specific to your environment.
+
+**Emergency Root CA Renewal (if Root CA is compromised):**
+
+See [DISASTER_RECOVERY.md](DISASTER_RECOVERY.md) - "Vault Data Loss" section.
+
+### Automated Expiration Monitoring
+
+**Daily Cron Job:**
+
+```bash
+# Add to crontab: crontab -e
+# Check certificate expiration daily at 9 AM
+0 9 * * * /Users/gator/devstack-core/scripts/check-cert-expiry.sh 2>&1 | mail -s "Certificate Expiry Report" admin@example.com
+```
+
+**Monitoring Script:** `scripts/check-cert-expiry.sh`
+
+```bash
+#!/bin/bash
+# Check certificate expiration and alert if approaching expiry
+
+WARN_DAYS=30
+CRIT_DAYS=7
+FOUND_WARNING=0
+FOUND_CRITICAL=0
+
+echo "Certificate Expiration Report - $(date)"
+echo "==========================================="
+echo ""
+
+# Check service certificates
+echo "Service Certificates:"
+for cert_path in ~/.config/vault/certs/*/cert.pem; do
+  if [ ! -f "$cert_path" ]; then
+    continue
+  fi
+
+  service=$(basename $(dirname "$cert_path"))
+  expiry=$(openssl x509 -in "$cert_path" -noout -enddate | cut -d= -f2)
+
+  # Calculate days until expiry (macOS compatible)
+  if date -j -f "%b %d %T %Y %Z" "$expiry" +%s > /dev/null 2>&1; then
+    expiry_epoch=$(date -j -f "%b %d %T %Y %Z" "$expiry" +%s)
+  else
+    expiry_epoch=$(date -d "$expiry" +%s)
+  fi
+
+  now_epoch=$(date +%s)
+  days_until=$(( ($expiry_epoch - $now_epoch) / 86400 ))
+
+  if [ $days_until -lt $CRIT_DAYS ]; then
+    echo "❌ CRITICAL: $service certificate expires in $days_until days ($expiry)"
+    FOUND_CRITICAL=1
+  elif [ $days_until -lt $WARN_DAYS ]; then
+    echo "⚠️  WARNING: $service certificate expires in $days_until days ($expiry)"
+    FOUND_WARNING=1
+  else
+    echo "✅ OK: $service certificate valid for $days_until days"
+  fi
+done
+
+echo ""
+echo "Root and Intermediate CAs:"
+
+# Check Root CA
+if [ -f ~/.config/vault/ca/ca.pem ]; then
+  root_expiry=$(openssl x509 -in ~/.config/vault/ca/ca.pem -noout -enddate | cut -d= -f2)
+  echo "   Root CA expires: $root_expiry"
+fi
+
+# Check Intermediate CA
+if command -v vault > /dev/null 2>&1; then
+  export VAULT_ADDR=http://localhost:8200
+  export VAULT_TOKEN=$(cat ~/.config/vault/root-token 2>/dev/null)
+  if [ -n "$VAULT_TOKEN" ]; then
+    int_expiry=$(vault read pki_int/ca/pem 2>/dev/null | openssl x509 -noout -enddate 2>/dev/null)
+    if [ -n "$int_expiry" ]; then
+      echo "   Intermediate CA expires: $int_expiry"
+    fi
+  fi
+fi
+
+echo ""
+echo "==========================================="
+
+# Exit codes for monitoring systems
+if [ $FOUND_CRITICAL -eq 1 ]; then
+  exit 2
+elif [ $FOUND_WARNING -eq 1 ]; then
+  exit 1
+else
+  exit 0
+fi
+```
+
+**Make executable:**
+```bash
+chmod +x scripts/check-cert-expiry.sh
+
+# Test run
+./scripts/check-cert-expiry.sh
+```
+
+### Certificate Revocation
+
+**When to Revoke:** Certificate compromise, key exposure, or service decommissioning
+
+**Revocation Procedure:**
+
+```bash
+# 1. Get certificate serial number
+openssl x509 -in ~/.config/vault/certs/postgres/cert.pem -noout -serial
+
+# Example output: serial=3A:5F:2B:...
+
+# 2. Revoke certificate
+vault write pki_int/revoke serial_number="3A:5F:2B:..."
+
+# 3. Generate new certificate immediately
+vault write pki_int/issue/postgres-role \
+  common_name="postgres" \
+  ttl="8760h" \
+  format=pem_bundle > postgres_new.json
+
+# 4. Extract and install new certificate
+jq -r '.data.certificate' < postgres_new.json > ~/.config/vault/certs/postgres/cert.pem
+jq -r '.data.private_key' < postgres_new.json > ~/.config/vault/certs/postgres/key.pem
+jq -r '.data.ca_chain[]' < postgres_new.json > ~/.config/vault/certs/postgres/ca.pem
+
+# 5. Restart affected service
+docker compose restart postgres
+
+# 6. Update Certificate Revocation List (CRL)
+vault read pki_int/crl
+```
+
+### Best Practices
+
+1. **Calendar Reminders:**
+   - **Root CA:** Set reminder 9 years from issue date
+   - **Intermediate CA:** Set reminder 4 years 6 months from issue date
+   - **Service Certificates:** Set reminders every 11 months
+
+2. **Automate Renewal:**
+   - **Service certificates:** Run `renew-certificates.sh` monthly (automated)
+   - **Intermediate CA:** Manual process with advance planning
+   - **Root CA:** Treat as major project, plan 6-12 months ahead
+
+3. **Test Renewal Process:**
+   - Practice renewal in test environment quarterly
+   - Document any issues encountered
+   - Update renewal scripts based on lessons learned
+
+4. **Monitor Continuously:**
+   - Daily automated expiration checks (`check-cert-expiry.sh`)
+   - Alert if certificates < 30 days from expiry
+   - Escalate if certificates < 7 days from expiry
+
+5. **Backup Before Renewal:**
+   - Always backup `~/.config/vault/` before renewal
+   - Store backups securely off-system
+   - Test restoration from backup
+
+6. **Verify After Renewal:**
+   - Check certificate dates with `openssl x509`
+   - Verify services restart successfully
+   - Run health checks: `./manage-devstack health`
+   - Test TLS connections to services
+
+### Troubleshooting Certificate Issues
+
+**Problem:** Service won't start after certificate renewal
 
 **Solution:**
 ```bash
-# Auto-unseal (restart container)
-docker restart dev-vault
+# Check certificate permissions
+ls -la ~/.config/vault/certs/postgres/
 
-# Or manual unseal
-./manage-devstack.sh vault-unseal
+# Should be readable (644 for certs, 600 for keys)
+chmod 644 ~/.config/vault/certs/postgres/cert.pem
+chmod 644 ~/.config/vault/certs/postgres/ca.pem
+chmod 600 ~/.config/vault/certs/postgres/key.pem
+
+# Check certificate validity
+openssl verify -CAfile ~/.config/vault/certs/postgres/ca.pem \
+  ~/.config/vault/certs/postgres/cert.pem
+
+# Check service logs
+docker compose logs postgres | grep -i tls
 ```
 
-### Permission Denied
-
-**Symptoms:**
-```bash
-$ vault kv get secret/postgres
-Error: permission denied
-```
-
-**Solutions:**
-```bash
-# Ensure VAULT_TOKEN is set
-export VAULT_TOKEN=$(cat ~/.config/vault/root-token)
-
-# Check token validity
-vault token lookup
-
-# Use root token
-export VAULT_TOKEN=$(cat ~/.config/vault/root-token)
-```
-
-### Secret Not Found
-
-**Symptoms:**
-```bash
-$ vault kv get secret/postgres
-No value found at secret/data/postgres
-```
+**Problem:** Certificate verification failed
 
 **Solution:**
 ```bash
-# Run Vault bootstrap to populate secrets
-./manage-devstack.sh vault-bootstrap
+# Verify certificate chain
+openssl verify -verbose -CAfile ~/.config/vault/ca/ca.pem \
+  -untrusted ~/.config/vault/ca/ca-chain.pem \
+  ~/.config/vault/certs/postgres/cert.pem
+
+# If chain is broken, regenerate
+./scripts/generate-certificates.sh
 ```
 
-### Service Can't Reach Vault
+**Problem:** Vault won't issue new certificates
 
-**Symptoms:**
+**Solution:**
 ```bash
-# In service logs
-curl: (7) Failed to connect to vault port 8200: Connection refused
+# Check Vault PKI role exists
+vault list pki_int/roles
+
+# If missing, re-run vault-bootstrap
+./manage-devstack vault-bootstrap
+
+# Check intermediate CA is configured
+vault read pki_int/cert/ca
 ```
 
-**Solutions:**
-```bash
-# Check Vault is running
-docker ps | grep vault
+### Renewal Checklist
 
-# Check Vault health
-curl http://localhost:8200/v1/sys/health
+**30 Days Before Expiry:**
+- [ ] Run `check-cert-expiry.sh` to confirm expiry dates
+- [ ] Schedule maintenance window (service restart required)
+- [ ] Notify stakeholders of planned renewal
+- [ ] Backup current certificates
+- [ ] Test renewal script in non-production environment
 
-# Verify network connectivity
-docker exec dev-postgres ping -c 2 vault
-```
+**Renewal Day:**
+- [ ] Verify Vault is healthy and unsealed
+- [ ] Backup `~/.config/vault/` directory
+- [ ] Run `renew-certificates.sh` script
+- [ ] Verify new certificate dates
+- [ ] Restart services: `./manage-devstack restart`
+- [ ] Verify services healthy: `./manage-devstack health`
+- [ ] Test TLS connections
+- [ ] Monitor service logs for TLS errors
+
+**Post-Renewal (24 hours later):**
+- [ ] Confirm no TLS errors in logs
+- [ ] Verify applications connecting successfully
+- [ ] Update renewal tracking spreadsheet
+- [ ] Set reminder for next renewal (11 months)
+- [ ] Document any issues encountered
 
 ---
 
-## Related Documentation
-
-- **[Network Architecture](./Network-Architecture.md)** - How services communicate
-- **[Service Configuration](./Service-Configuration.md)** - Service-specific configs
-- **[Security Hardening](./Security-Hardening.md)** - Production security practices
-- **[Vault Troubleshooting](./Vault-Troubleshooting.md)** - Vault-specific issues
-- **[Testing Guide](./Testing-Guide.md)** - Testing Vault integration
-
----
-
-## Summary
-
-Vault integration provides:
-- **Centralized secrets management** - All credentials in one secure location
-- **Dynamic PKI** - Automatic certificate issuance and rotation
-- **Runtime configuration** - Enable/disable TLS without rebuilding
-- **Audit trail** - Track all secret access
-- **Simple integration** - Standard pattern across all services
-
-All services fetch credentials from Vault at startup, enabling zero-hardcoded-secret architecture.

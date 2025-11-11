@@ -1,1017 +1,672 @@
-# Service Configuration
-
-## Table of Contents
-
-- [Overview](#overview)
-- [PostgreSQL Configuration](#postgresql-configuration)
-  - [Environment Variables](#postgresql-environment-variables)
-  - [Configuration Files](#postgresql-configuration-files)
-  - [TLS Configuration](#postgresql-tls-configuration)
-  - [Performance Tuning](#postgresql-performance-tuning)
-  - [Init Scripts](#postgresql-init-scripts)
-- [MySQL Configuration](#mysql-configuration)
-  - [Environment Variables](#mysql-environment-variables)
-  - [Configuration Files](#mysql-configuration-files)
-  - [TLS Configuration](#mysql-tls-configuration)
-  - [Performance Tuning](#mysql-performance-tuning)
-- [MongoDB Configuration](#mongodb-configuration)
-  - [Environment Variables](#mongodb-environment-variables)
-  - [Configuration Files](#mongodb-configuration-files)
-  - [TLS Configuration](#mongodb-tls-configuration)
-  - [Performance Tuning](#mongodb-performance-tuning)
-- [Redis Configuration](#redis-configuration)
-  - [Environment Variables](#redis-environment-variables)
-  - [Configuration Files](#redis-configuration-files)
-  - [TLS Configuration](#redis-tls-configuration)
-  - [Cluster Configuration](#redis-cluster-configuration)
-- [RabbitMQ Configuration](#rabbitmq-configuration)
-  - [Environment Variables](#rabbitmq-environment-variables)
-  - [Configuration Files](#rabbitmq-configuration-files)
-  - [TLS Configuration](#rabbitmq-tls-configuration)
-  - [Performance Tuning](#rabbitmq-performance-tuning)
-- [Vault Configuration](#vault-configuration)
-  - [Environment Variables](#vault-environment-variables)
-  - [Configuration Files](#vault-configuration-files)
-  - [Auto-Unseal Configuration](#vault-auto-unseal-configuration)
-  - [Storage Backend](#vault-storage-backend)
-- [Forgejo Configuration](#forgejo-configuration)
-  - [Environment Variables](#forgejo-environment-variables)
-  - [Configuration Files](#forgejo-configuration-files)
-  - [Database Backend](#forgejo-database-backend)
-  - [SSH Configuration](#forgejo-ssh-configuration)
-- [Custom Configuration Examples](#custom-configuration-examples)
-- [Troubleshooting](#troubleshooting)
-- [Related Pages](#related-pages)
+# Service Profiles - Flexible Container Orchestration
 
 ## Overview
 
-This page documents the configuration for all services in the devstack-core environment. Each service follows the Vault-first architecture pattern where credentials are stored in Vault and fetched at runtime via wrapper scripts.
+DevStack Core provides multiple **service profiles** to accommodate different development scenarios. This allows developers to run only the services they need, reducing resource consumption and startup time.
 
-**Configuration Principles:**
-- No hardcoded secrets in configuration files
-- Credentials fetched from Vault at startup
-- Optional TLS support per service (dual-mode)
-- Performance tuning via environment variables
-- Custom initialization scripts in `configs/<service>/scripts/`
+## Available Profiles
 
-## PostgreSQL Configuration
+### 1. **minimal** - Essential Services Only
+**Use Case:** Basic development with Git server and single database
 
-### PostgreSQL Environment Variables
+**Services:** (5 containers, ~2GB RAM)
+- `vault` - Secrets management (required)
+- `postgres` - Primary database + Git storage
+- `pgbouncer` - Connection pooling
+- `forgejo` - Git server
+- `redis-1` - Single Redis instance (non-cluster mode)
 
-PostgreSQL configuration is controlled via environment variables in the `.env` file:
-
+**Start Command:**
 ```bash
-# Network Configuration
-POSTGRES_IP=172.20.0.10
-POSTGRES_PORT=5432
-
-# TLS Configuration
-POSTGRES_ENABLE_TLS=true
-POSTGRES_TLS_PORT=5432  # Same port, dual-mode
-
-# Performance Tuning
-POSTGRES_MAX_CONNECTIONS=200
-POSTGRES_SHARED_BUFFERS=256MB
-POSTGRES_EFFECTIVE_CACHE_SIZE=1GB
-POSTGRES_WORK_MEM=4MB
-POSTGRES_MAINTENANCE_WORK_MEM=64MB
-
-# Logging
-POSTGRES_LOG_STATEMENT=all
-POSTGRES_LOG_CONNECTIONS=on
-
-# Database and User (created at startup)
-POSTGRES_DB=devdb
-POSTGRES_USER=devuser
-# POSTGRES_PASSWORD loaded from Vault at runtime
+./manage-devstack.sh start --profile minimal
+# OR
+docker compose --profile minimal up -d
 ```
 
-### PostgreSQL Configuration Files
+**Best For:**
+- Simple CRUD application development
+- Git repository hosting only
+- Learning the platform
+- Resource-constrained environments
 
-**Location:** `configs/postgres/postgresql.conf`
+---
 
-```conf
-# Connection Settings
-listen_addresses = '*'
-port = 5432
-max_connections = 200
+### 2. **standard** - Full Development Stack
+**Use Case:** Multi-database development without observability
 
-# Memory Settings
-shared_buffers = 256MB
-effective_cache_size = 1GB
-work_mem = 4MB
-maintenance_work_mem = 64MB
+**Services:** (12 containers, ~4GB RAM)
+- All minimal services
+- `mysql` - Legacy database support
+- `mongodb` - NoSQL document database
+- `redis-1`, `redis-2`, `redis-3` - Redis cluster (3 nodes)
+- `rabbitmq` - Message queue
 
-# WAL Settings
-wal_level = replica
-max_wal_size = 1GB
-min_wal_size = 80MB
-
-# Logging
-log_statement = 'all'
-log_connections = on
-log_disconnections = on
-log_line_prefix = '%t [%p]: [%l-1] user=%u,db=%d,app=%a,client=%h '
-
-# Performance
-random_page_cost = 1.1  # SSD optimized
-effective_io_concurrency = 200
-
-# TLS Settings (when enabled)
-ssl = on
-ssl_cert_file = '/certs/cert.pem'
-ssl_key_file = '/certs/key.pem'
-ssl_ca_file = '/certs/ca.pem'
-```
-
-**Location:** `configs/postgres/pg_hba.conf`
-
-```conf
-# TYPE  DATABASE        USER            ADDRESS                 METHOD
-local   all             all                                     trust
-host    all             all             172.20.0.0/16           scram-sha-256
-hostssl all             all             172.20.0.0/16           scram-sha-256
-host    all             all             127.0.0.1/32            scram-sha-256
-host    all             all             ::1/128                 scram-sha-256
-```
-
-### PostgreSQL TLS Configuration
-
-Enable TLS in `.env`:
-
+**Start Command:**
 ```bash
-POSTGRES_ENABLE_TLS=true
+./manage-devstack.sh start --profile standard
+# OR
+docker compose --profile standard up -d
 ```
 
-The init script will:
-1. Check for certificates in `~/.config/vault/certs/postgres/`
-2. Copy certificates to `/certs/` inside container
-3. Set proper permissions (600 for key.pem)
-4. Configure PostgreSQL to use TLS
+**Best For:**
+- Multi-database applications
+- Microservices development
+- Message queue integration
+- Redis cluster testing (your use case!)
 
-**Verify TLS is enabled:**
+---
 
+### 3. **full** - Complete Suite with Observability
+**Use Case:** Production-parity development with full monitoring
+
+**Services:** (18 containers, ~6GB RAM)
+- All standard services
+- `prometheus` - Metrics collection
+- `grafana` - Visualization dashboards
+- `loki` - Log aggregation
+- `vector` - Observability pipeline
+- `cadvisor` - Container monitoring
+- `redis-exporter-1/2/3` - Redis metrics exporters
+
+**Start Command:**
 ```bash
-# Check SSL status
-docker exec dev-postgres psql -U devuser -d devdb -c "SHOW ssl;"
-
-# Connect with TLS
-docker exec dev-postgres psql "postgresql://devuser@localhost/devdb?sslmode=require"
+./manage-devstack.sh start --profile full
+# OR
+docker compose --profile full up -d
 ```
 
-### PostgreSQL Performance Tuning
+**Best For:**
+- Performance testing and optimization
+- Production troubleshooting simulation
+- Understanding system resource usage
+- Learning observability patterns
 
-Adjust based on available resources:
+---
 
+### 4. **reference** - Include Reference Applications
+**Use Case:** API development and cross-language pattern learning
+
+**Additional Services:** (5 reference apps)
+- `reference-api` - Python FastAPI (code-first)
+- `api-first` - Python FastAPI (API-first)
+- `golang-api` - Go with Gin
+- `nodejs-api` - Node.js with Express
+- `rust-api` - Rust with Actix-web (partial)
+
+**Start Command:**
 ```bash
-# For 8GB RAM system
-POSTGRES_SHARED_BUFFERS=2GB
-POSTGRES_EFFECTIVE_CACHE_SIZE=6GB
-POSTGRES_WORK_MEM=10MB
-POSTGRES_MAINTENANCE_WORK_MEM=512MB
-
-# For 16GB RAM system
-POSTGRES_SHARED_BUFFERS=4GB
-POSTGRES_EFFECTIVE_CACHE_SIZE=12GB
-POSTGRES_WORK_MEM=16MB
-POSTGRES_MAINTENANCE_WORK_MEM=1GB
+./manage-devstack.sh start --profile standard --profile reference
+# OR
+docker compose --profile standard --profile reference up -d
 ```
 
-See [Performance-Tuning](Performance-Tuning) for detailed optimization guide.
+**Best For:**
+- Learning API design patterns
+- Comparing language implementations
+- Testing shared test suites
+- API integration examples
 
-### PostgreSQL Init Scripts
+---
 
-**Location:** `configs/postgres/scripts/init.sh`
+## Profile Comparison
 
-This wrapper script runs before PostgreSQL starts:
+| Profile | Containers | RAM Usage | Startup Time | Use Case |
+|---------|------------|-----------|--------------|----------|
+| **minimal** | 5 | ~2GB | 20s | Git + Basic DB |
+| **standard** | 12 | ~4GB | 45s | Full dev stack |
+| **full** | 18 | ~6GB | 60s | With observability |
+| **reference** | +5 | +1GB | +15s | Add-on for APIs |
 
-```bash
-#!/bin/bash
-set -e
+## Implementation Approach
 
-echo "Fetching PostgreSQL credentials from Vault..."
+### Recommended: Docker Compose Profiles + Python Management Script
 
-# Wait for Vault
-until curl -s http://vault:8200/v1/sys/health > /dev/null 2>&1; do
-  echo "Waiting for Vault..."
-  sleep 2
-done
+**Why this approach:**
 
-# Fetch password from Vault
-VAULT_ADDR=${VAULT_ADDR:-http://vault:8200}
-VAULT_TOKEN=${VAULT_TOKEN}
+1. **Docker Compose Native Profiles** - Built-in feature since Compose v1.28+
+   - No custom orchestration logic needed
+   - Well-documented and widely understood
+   - Native support for `--profile` flag
+   - Services can belong to multiple profiles
 
-if [ -z "$VAULT_TOKEN" ]; then
-  echo "ERROR: VAULT_TOKEN not set"
-  exit 1
-fi
+2. **Python Management Script** - Replace bash with Python
+   - Better error handling and validation
+   - Easier to test and maintain
+   - Rich library ecosystem (click, rich, pyyaml)
+   - Cross-platform compatibility (future Linux support)
+   - Type hints for better IDE support
 
-# Get credentials
-RESPONSE=$(curl -s -H "X-Vault-Token: $VAULT_TOKEN" \
-  "$VAULT_ADDR/v1/secret/data/postgres")
+3. **Profile Configuration File** - YAML-based profile definitions
+   - Centralized profile management
+   - Easy to add custom profiles
+   - Documented service groupings
+   - User-extensible
 
-export POSTGRES_PASSWORD=$(echo $RESPONSE | jq -r '.data.data.password')
+### Architecture
 
-# Handle TLS certificates
-if [ "$POSTGRES_ENABLE_TLS" = "true" ]; then
-  echo "Configuring TLS certificates..."
-  mkdir -p /certs
-  cp /vault-certs/postgres/* /certs/
-  chmod 600 /certs/key.pem
-  chown postgres:postgres /certs/*
-fi
-
-# Start PostgreSQL
-exec docker-entrypoint.sh postgres
+```
+devstack-core/
+├── manage-devstack.py              # New Python management script
+├── profiles.yaml                   # Profile definitions
+├── docker-compose.yml              # Updated with profile labels
+└── configs/
+    └── profiles/
+        ├── minimal.yaml            # Minimal profile env overrides
+        ├── standard.yaml           # Standard profile env overrides
+        └── full.yaml               # Full profile env overrides
 ```
 
-## MySQL Configuration
+## Docker Compose Profile Implementation
 
-### MySQL Environment Variables
+### Step 1: Update docker-compose.yml
 
-```bash
-# Network Configuration
-MYSQL_IP=172.20.0.12
-MYSQL_PORT=3306
-
-# TLS Configuration
-MYSQL_ENABLE_TLS=true
-MYSQL_TLS_PORT=3306  # Dual-mode
-
-# Performance Tuning
-MYSQL_MAX_CONNECTIONS=200
-MYSQL_INNODB_BUFFER_POOL_SIZE=256M
-MYSQL_INNODB_LOG_FILE_SIZE=64M
-
-# Database and User
-MYSQL_DATABASE=devdb
-MYSQL_USER=devuser
-# MYSQL_PASSWORD loaded from Vault
-# MYSQL_ROOT_PASSWORD loaded from Vault
-```
-
-### MySQL Configuration Files
-
-**Location:** `configs/mysql/my.cnf`
-
-```ini
-[mysqld]
-# Network
-bind-address = 0.0.0.0
-port = 3306
-max_connections = 200
-
-# InnoDB Settings
-innodb_buffer_pool_size = 256M
-innodb_log_file_size = 64M
-innodb_flush_log_at_trx_commit = 2
-innodb_flush_method = O_DIRECT
-
-# Character Set
-character-set-server = utf8mb4
-collation-server = utf8mb4_unicode_ci
-
-# Logging
-general_log = 1
-general_log_file = /var/log/mysql/general.log
-log_error = /var/log/mysql/error.log
-slow_query_log = 1
-slow_query_log_file = /var/log/mysql/slow.log
-long_query_time = 2
-
-# TLS Configuration
-ssl-ca = /certs/ca.pem
-ssl-cert = /certs/cert.pem
-ssl-key = /certs/key.pem
-require_secure_transport = OFF  # Dual-mode: allow both TLS and non-TLS
-```
-
-### MySQL TLS Configuration
-
-Enable TLS in `.env`:
-
-```bash
-MYSQL_ENABLE_TLS=true
-```
-
-**Verify TLS:**
-
-```bash
-# Check SSL status
-docker exec dev-mysql mysql -u root -p -e "SHOW VARIABLES LIKE '%ssl%';"
-
-# Connect with TLS
-docker exec dev-mysql mysql -u devuser -p --ssl-mode=REQUIRED
-```
-
-### MySQL Performance Tuning
-
-```bash
-# For high-traffic applications
-MYSQL_MAX_CONNECTIONS=500
-MYSQL_INNODB_BUFFER_POOL_SIZE=1G
-MYSQL_INNODB_LOG_FILE_SIZE=256M
-MYSQL_INNODB_LOG_BUFFER_SIZE=16M
-```
-
-## MongoDB Configuration
-
-### MongoDB Environment Variables
-
-```bash
-# Network Configuration
-MONGODB_IP=172.20.0.15
-MONGODB_PORT=27017
-
-# TLS Configuration
-MONGODB_ENABLE_TLS=true
-MONGODB_TLS_PORT=27017
-
-# Database and User
-MONGODB_DATABASE=devdb
-MONGODB_USER=devuser
-# MONGODB_PASSWORD loaded from Vault
-# MONGODB_ROOT_PASSWORD loaded from Vault
-```
-
-### MongoDB Configuration Files
-
-**Location:** `configs/mongodb/mongod.conf`
-
-```yaml
-# Network Configuration
-net:
-  port: 27017
-  bindIp: 0.0.0.0
-  tls:
-    mode: preferTLS  # Dual-mode
-    certificateKeyFile: /certs/combined.pem
-    CAFile: /certs/ca.pem
-
-# Storage
-storage:
-  dbPath: /data/db
-  journal:
-    enabled: true
-  wiredTiger:
-    engineConfig:
-      cacheSizeGB: 0.5
-
-# Security
-security:
-  authorization: enabled
-
-# System Log
-systemLog:
-  destination: file
-  path: /var/log/mongodb/mongod.log
-  logAppend: true
-  verbosity: 1
-
-# Operation Profiling
-operationProfiling:
-  mode: slowOp
-  slowOpThresholdMs: 100
-```
-
-### MongoDB TLS Configuration
-
-Enable TLS in `.env`:
-
-```bash
-MONGODB_ENABLE_TLS=true
-```
-
-**Verify TLS:**
-
-```bash
-# Connect with TLS
-docker exec dev-mongodb mongosh --tls \
-  --tlsCAFile /certs/ca.pem \
-  --tlsCertificateKeyFile /certs/combined.pem \
-  -u devuser -p
-```
-
-### MongoDB Performance Tuning
-
-```bash
-# Adjust WiredTiger cache size (50-80% of available RAM)
-# In mongod.conf:
-storage:
-  wiredTiger:
-    engineConfig:
-      cacheSizeGB: 2  # For 4GB RAM allocated to MongoDB
-```
-
-## Redis Configuration
-
-### Redis Environment Variables
-
-```bash
-# Redis Node 1
-REDIS_1_IP=172.20.0.13
-REDIS_1_PORT=6379
-REDIS_1_TLS_PORT=6380
-REDIS_1_CLUSTER_BUS_PORT=16379
-
-# Redis Node 2
-REDIS_2_IP=172.20.0.16
-REDIS_2_PORT=6379
-REDIS_2_TLS_PORT=6380
-REDIS_2_CLUSTER_BUS_PORT=16379
-
-# Redis Node 3
-REDIS_3_IP=172.20.0.17
-REDIS_3_PORT=6379
-REDIS_3_TLS_PORT=6380
-REDIS_3_CLUSTER_BUS_PORT=16379
-
-# TLS Configuration
-REDIS_ENABLE_TLS=true
-
-# Performance
-REDIS_MAXMEMORY=256mb
-REDIS_MAXMEMORY_POLICY=allkeys-lru
-```
-
-### Redis Configuration Files
-
-**Location:** `configs/redis/redis.conf`
-
-```conf
-# Network
-bind 0.0.0.0
-port 6379
-protected-mode no
-
-# TLS Port (when enabled)
-tls-port 6380
-tls-cert-file /certs/cert.pem
-tls-key-file /certs/key.pem
-tls-ca-cert-file /certs/ca.pem
-tls-auth-clients no  # Allow non-TLS clients (dual-mode)
-
-# Cluster Configuration
-cluster-enabled yes
-cluster-config-file nodes.conf
-cluster-node-timeout 5000
-cluster-require-full-coverage no
-
-# Memory Management
-maxmemory 256mb
-maxmemory-policy allkeys-lru
-
-# Persistence
-save 900 1
-save 300 10
-save 60 10000
-appendonly yes
-appendfsync everysec
-
-# Logging
-loglevel notice
-logfile /var/log/redis/redis.log
-
-# Password (loaded from Vault)
-requirepass PLACEHOLDER  # Replaced at runtime
-
-# Performance
-tcp-backlog 511
-timeout 0
-tcp-keepalive 300
-```
-
-### Redis TLS Configuration
-
-Enable TLS in `.env`:
-
-```bash
-REDIS_ENABLE_TLS=true
-```
-
-**Connect with TLS:**
-
-```bash
-# Via TLS port
-docker exec dev-redis-1 redis-cli -p 6380 --tls \
-  --cert /certs/cert.pem \
-  --key /certs/key.pem \
-  --cacert /certs/ca.pem \
-  -a $(./manage-devstack.sh vault-show-password redis-1)
-```
-
-### Redis Cluster Configuration
-
-See [Redis-Cluster](Redis-Cluster) for complete cluster setup documentation.
-
-**Cluster Initialization Script:** `configs/redis/scripts/redis-cluster-init.sh`
-
-```bash
-#!/bin/bash
-set -e
-
-echo "Initializing Redis Cluster..."
-
-# Wait for all nodes to be ready
-for port in 6379 6379 6379; do
-  until redis-cli -h redis-1 -p $port ping 2>/dev/null; do
-    echo "Waiting for Redis nodes..."
-    sleep 2
-  done
-done
-
-# Create cluster
-redis-cli --cluster create \
-  172.20.0.13:6379 \
-  172.20.0.16:6379 \
-  172.20.0.17:6379 \
-  --cluster-replicas 0 \
-  --cluster-yes
-
-echo "Redis Cluster initialized successfully"
-```
-
-## RabbitMQ Configuration
-
-### RabbitMQ Environment Variables
-
-```bash
-# Network Configuration
-RABBITMQ_IP=172.20.0.14
-RABBITMQ_PORT=5672
-RABBITMQ_TLS_PORT=5671
-RABBITMQ_MANAGEMENT_PORT=15672
-
-# TLS Configuration
-RABBITMQ_ENABLE_TLS=true
-
-# User Configuration
-RABBITMQ_DEFAULT_USER=devuser
-# RABBITMQ_DEFAULT_PASS loaded from Vault
-
-# Virtual Host
-RABBITMQ_DEFAULT_VHOST=/
-```
-
-### RabbitMQ Configuration Files
-
-**Location:** `configs/rabbitmq/rabbitmq.conf`
-
-```conf
-# Network
-listeners.tcp.default = 5672
-management.tcp.port = 15672
-
-# TLS Listeners
-listeners.ssl.default = 5671
-ssl_options.cacertfile = /certs/ca.pem
-ssl_options.certfile = /certs/cert.pem
-ssl_options.keyfile = /certs/key.pem
-ssl_options.verify = verify_none
-ssl_options.fail_if_no_peer_cert = false
-
-# Management Plugin TLS
-management.ssl.port = 15671
-management.ssl.cacertfile = /certs/ca.pem
-management.ssl.certfile = /certs/cert.pem
-management.ssl.keyfile = /certs/key.pem
-
-# Logging
-log.file.level = info
-log.console.level = info
-
-# Memory and Disk
-vm_memory_high_watermark.relative = 0.6
-disk_free_limit.relative = 1.0
-
-# Default User
-default_user = devuser
-default_vhost = /
-```
-
-**Location:** `configs/rabbitmq/enabled_plugins`
-
-```erlang
-[rabbitmq_management,rabbitmq_prometheus].
-```
-
-### RabbitMQ TLS Configuration
-
-Enable TLS in `.env`:
-
-```bash
-RABBITMQ_ENABLE_TLS=true
-```
-
-**Access Management UI:**
-
-```bash
-# HTTP
-open http://localhost:15672
-
-# HTTPS (if TLS enabled)
-open https://localhost:15671
-```
-
-### RabbitMQ Performance Tuning
-
-```bash
-# Adjust memory watermark in rabbitmq.conf
-vm_memory_high_watermark.relative = 0.8  # Use 80% of available RAM
-
-# Increase connection limits
-num_acceptors.tcp = 20
-num_acceptors.ssl = 10
-```
-
-## Vault Configuration
-
-### Vault Environment Variables
-
-```bash
-# Network Configuration
-VAULT_IP=172.20.0.21
-VAULT_PORT=8200
-
-# Storage
-VAULT_STORAGE_PATH=/vault/data
-
-# TLS (Vault uses HTTP in dev mode)
-VAULT_TLS_DISABLE=1
-
-# Auto-unseal
-VAULT_KEYS_FILE=/vault-keys/keys.json
-```
-
-### Vault Configuration Files
-
-**Location:** `configs/vault/config.hcl`
-
-```hcl
-storage "file" {
-  path = "/vault/data"
-}
-
-listener "tcp" {
-  address     = "0.0.0.0:8200"
-  tls_disable = 1  # Development mode
-}
-
-ui = true
-
-api_addr = "http://172.20.0.21:8200"
-cluster_addr = "http://172.20.0.21:8201"
-
-disable_mlock = true  # Required for containers
-
-log_level = "info"
-```
-
-### Vault Auto-Unseal Configuration
-
-**Location:** `configs/vault/scripts/vault-auto-unseal.sh`
-
-This script runs at Vault startup to automatically initialize and unseal:
-
-```bash
-#!/bin/bash
-set -e
-
-export VAULT_ADDR=http://127.0.0.1:8200
-KEYS_FILE=/vault-keys/keys.json
-
-# Start Vault server in background
-vault server -config=/vault/config/config.hcl &
-VAULT_PID=$!
-
-# Wait for Vault to start
-sleep 5
-
-# Check if Vault is initialized
-if ! vault status 2>/dev/null | grep -q "Initialized.*true"; then
-  echo "Initializing Vault..."
-  vault operator init -key-shares=5 -key-threshold=3 -format=json > $KEYS_FILE
-  chmod 600 $KEYS_FILE
-fi
-
-# Unseal Vault
-if vault status 2>/dev/null | grep -q "Sealed.*true"; then
-  echo "Unsealing Vault..."
-  for i in 0 1 2; do
-    UNSEAL_KEY=$(jq -r ".unseal_keys_b64[$i]" < $KEYS_FILE)
-    vault operator unseal $UNSEAL_KEY
-  done
-fi
-
-# Keep Vault running
-wait $VAULT_PID
-```
-
-### Vault Storage Backend
-
-Vault uses file-based storage in development. For production, consider:
-
-```hcl
-# Consul backend (recommended for HA)
-storage "consul" {
-  address = "consul:8500"
-  path    = "vault/"
-}
-
-# PostgreSQL backend
-storage "postgresql" {
-  connection_url = "postgres://vault:password@postgres:5432/vault?sslmode=disable"
-}
-
-# Raft integrated storage (recommended for Vault 1.4+)
-storage "raft" {
-  path    = "/vault/data"
-  node_id = "vault-1"
-}
-```
-
-## Forgejo Configuration
-
-### Forgejo Environment Variables
-
-```bash
-# Network Configuration
-FORGEJO_IP=172.20.0.20
-FORGEJO_HTTP_PORT=3000
-FORGEJO_SSH_PORT=2222
-
-# Database Configuration
-FORGEJO_DB_TYPE=postgres
-FORGEJO_DB_HOST=postgres:5432
-FORGEJO_DB_NAME=forgejo
-FORGEJO_DB_USER=forgejo
-# FORGEJO_DB_PASSWD loaded from Vault
-
-# Application Settings
-FORGEJO_APP_NAME="Colima Dev Git"
-FORGEJO_RUN_MODE=prod
-FORGEJO_DOMAIN=localhost
-FORGEJO_ROOT_URL=http://localhost:3000
-```
-
-### Forgejo Configuration Files
-
-**Location:** `configs/forgejo/app.ini` (generated on first run)
-
-```ini
-[server]
-APP_DATA_PATH = /data/forgejo
-DOMAIN = localhost
-HTTP_PORT = 3000
-ROOT_URL = http://localhost:3000/
-SSH_DOMAIN = localhost
-SSH_PORT = 2222
-START_SSH_SERVER = true
-LFS_START_SERVER = true
-
-[database]
-DB_TYPE = postgres
-HOST = postgres:5432
-NAME = forgejo
-USER = forgejo
-SCHEMA = public
-SSL_MODE = disable
-
-[security]
-INSTALL_LOCK = true
-SECRET_KEY = <generated-at-first-run>
-INTERNAL_TOKEN = <generated-at-first-run>
-
-[service]
-DISABLE_REGISTRATION = false
-REQUIRE_SIGNIN_VIEW = false
-ENABLE_CAPTCHA = false
-
-[log]
-MODE = console
-LEVEL = Info
-
-[repository]
-ROOT = /data/git/repositories
-DEFAULT_BRANCH = main
-
-[mailer]
-ENABLED = false
-```
-
-### Forgejo Database Backend
-
-Forgejo uses PostgreSQL from the devstack-core stack:
-
-**Automatic Database Creation:**
-The `forgejo` database is automatically created during:
-1. **Fresh Installation:** PostgreSQL initialization scripts (`configs/postgres/02-create-forgejo-db.sql`) create the database when the PostgreSQL container is first initialized
-2. **Existing Installations:** Running `./manage-devstack.sh vault-bootstrap` creates the database if it doesn't exist
-
-**Manual Database Creation (if needed):**
-```bash
-# The database is created automatically, but if you need to create it manually:
-docker exec dev-postgres psql -U devuser -d postgres -c "CREATE DATABASE forgejo OWNER devuser;"
-docker exec dev-postgres psql -U devuser -d postgres -c "GRANT ALL PRIVILEGES ON DATABASE forgejo TO devuser;"
-```
-
-**Note:** Forgejo uses the `devuser` PostgreSQL account with credentials fetched from Vault (`secret/postgres`), not a dedicated forgejo user.
-
-### Forgejo SSH Configuration
-
-SSH access is on port 2222:
-
-```bash
-# Clone via SSH
-git clone ssh://git@localhost:2222/username/repo.git
-
-# Add remote
-git remote add origin ssh://git@localhost:2222/username/repo.git
-
-# Configure SSH
-# Add to ~/.ssh/config:
-Host localhost
-  Port 2222
-  User git
-  IdentityFile ~/.ssh/id_ed25519
-```
-
-## Custom Configuration Examples
-
-### Example: Custom PostgreSQL Extensions
-
-Create custom initialization SQL:
-
-**Location:** `configs/postgres/scripts/init.sql`
-
-```sql
--- Enable extensions
-CREATE EXTENSION IF NOT EXISTS "uuid-ossp";
-CREATE EXTENSION IF NOT EXISTS "pg_trgm";
-CREATE EXTENSION IF NOT EXISTS "hstore";
-
--- Create custom schema
-CREATE SCHEMA IF NOT EXISTS app;
-
--- Create custom tables
-CREATE TABLE IF NOT EXISTS app.users (
-  id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
-  username VARCHAR(255) UNIQUE NOT NULL,
-  email VARCHAR(255) UNIQUE NOT NULL,
-  created_at TIMESTAMP DEFAULT NOW()
-);
-
--- Grant permissions
-GRANT ALL PRIVILEGES ON SCHEMA app TO devuser;
-GRANT ALL PRIVILEGES ON ALL TABLES IN SCHEMA app TO devuser;
-```
-
-Mount in docker-compose.yml:
+Add `profiles:` key to each service:
 
 ```yaml
 services:
+  # ALWAYS STARTED (no profile = default)
+  vault:
+    image: vault:latest
+    # No profiles key - starts in all profiles
+
+  # MINIMAL PROFILE
   postgres:
-    volumes:
-      - ./configs/postgres/scripts/init.sql:/docker-entrypoint-initdb.d/init.sql:ro
+    profiles: ["minimal", "standard", "full"]
+    image: postgres:18
+
+  forgejo:
+    profiles: ["minimal", "standard", "full"]
+    image: forgejo:1.21
+
+  redis-1:
+    profiles: ["minimal", "standard", "full"]
+    image: redis:7.4-alpine3.21
+    # In minimal mode, runs standalone (no cluster init)
+
+  # STANDARD PROFILE (adds these)
+  redis-2:
+    profiles: ["standard", "full"]  # NOT in minimal
+    image: redis:7.4-alpine3.21
+
+  redis-3:
+    profiles: ["standard", "full"]  # NOT in minimal
+    image: redis:7.4-alpine3.21
+
+  mysql:
+    profiles: ["standard", "full"]
+    image: mysql:8.0
+
+  mongodb:
+    profiles: ["standard", "full"]
+    image: mongo:7
+
+  rabbitmq:
+    profiles: ["standard", "full"]
+    image: rabbitmq:3-management-alpine
+
+  # FULL PROFILE (adds observability)
+  prometheus:
+    profiles: ["full"]
+    image: prom/prometheus:v2.48.0
+
+  grafana:
+    profiles: ["full"]
+    image: grafana/grafana:10.2.2
+
+  loki:
+    profiles: ["full"]
+    image: grafana/loki:2.9.3
+
+  # REFERENCE APPS (separate profile, combinable)
+  reference-api:
+    profiles: ["reference"]
+    build: ./reference-apps/fastapi
 ```
 
-### Example: Custom Redis Eviction Policy
+### Step 2: profiles.yaml Configuration
 
-Modify `configs/redis/redis.conf`:
+```yaml
+profiles:
+  minimal:
+    description: "Essential services only (Git + single DB)"
+    services:
+      - vault
+      - postgres
+      - pgbouncer
+      - forgejo
+      - redis-1
+    ram_estimate: "2GB"
+    env_overrides:
+      REDIS_CLUSTER_ENABLED: "false"  # Single node mode
 
-```conf
-# Use LFU (Least Frequently Used) instead of LRU
-maxmemory-policy allkeys-lfu
+  standard:
+    description: "Full development stack (multi-DB + Redis cluster)"
+    services:
+      - vault
+      - postgres
+      - pgbouncer
+      - mysql
+      - mongodb
+      - redis-1
+      - redis-2
+      - redis-3
+      - rabbitmq
+      - forgejo
+    ram_estimate: "4GB"
+    env_overrides:
+      REDIS_CLUSTER_ENABLED: "true"  # Enable cluster
 
-# Tune LFU parameters
-lfu-log-factor 10
-lfu-decay-time 1
+  full:
+    description: "Complete suite with observability"
+    extends: standard
+    additional_services:
+      - prometheus
+      - grafana
+      - loki
+      - vector
+      - cadvisor
+      - redis-exporter-1
+      - redis-exporter-2
+      - redis-exporter-3
+    ram_estimate: "6GB"
+
+  reference:
+    description: "Reference API applications"
+    services:
+      - reference-api
+      - api-first
+      - golang-api
+      - nodejs-api
+      - rust-api
+    ram_estimate: "+1GB"
+    combinable: true  # Can combine with other profiles
+
+# Custom user profiles (optional)
+custom_profiles:
+  redis-dev:
+    description: "Redis cluster development only"
+    services:
+      - vault
+      - redis-1
+      - redis-2
+      - redis-3
+    ram_estimate: "1.5GB"
+
+  postgres-dev:
+    description: "PostgreSQL development only"
+    services:
+      - vault
+      - postgres
+      - pgbouncer
+    ram_estimate: "1GB"
 ```
 
-### Example: Custom RabbitMQ Policies
+### Step 3: Python Management Script (manage-devstack.py)
 
-Create policy configuration file:
+```python
+#!/usr/bin/env python3
+"""
+DevStack Core Management Script
+Python-based orchestration with profile support
+"""
+import click
+import subprocess
+import yaml
+from pathlib import Path
+from rich.console import Console
+from rich.table import Table
+from typing import List, Dict, Optional
 
-**Location:** `configs/rabbitmq/definitions.json`
+console = Console()
 
-```json
-{
-  "policies": [
-    {
-      "vhost": "/",
-      "name": "ha-all",
-      "pattern": ".*",
-      "definition": {
-        "ha-mode": "all",
-        "ha-sync-mode": "automatic"
-      }
-    }
-  ],
-  "queues": [
-    {
-      "name": "tasks",
-      "vhost": "/",
-      "durable": true,
-      "auto_delete": false,
-      "arguments": {
-        "x-message-ttl": 86400000,
-        "x-max-length": 10000
-      }
-    }
-  ]
-}
+# Load profiles configuration
+PROFILES_FILE = Path(__file__).parent / "profiles.yaml"
+COMPOSE_FILE = Path(__file__).parent / "docker-compose.yml"
+
+def load_profiles() -> Dict:
+    """Load profile definitions from YAML"""
+    with open(PROFILES_FILE) as f:
+        return yaml.safe_load(f)
+
+def get_profile_services(profile_name: str) -> List[str]:
+    """Get list of services for a profile"""
+    profiles = load_profiles()
+    if profile_name in profiles['profiles']:
+        return profiles['profiles'][profile_name]['services']
+    elif profile_name in profiles.get('custom_profiles', {}):
+        return profiles['custom_profiles'][profile_name]['services']
+    else:
+        raise ValueError(f"Unknown profile: {profile_name}")
+
+@click.group()
+def cli():
+    """DevStack Core - Flexible Development Infrastructure"""
+    pass
+
+@cli.command()
+@click.option('--profile', '-p', multiple=True, default=['standard'],
+              help='Service profile(s) to start (minimal/standard/full/reference)')
+@click.option('--detach/--no-detach', '-d', default=True,
+              help='Run in background (detached mode)')
+def start(profile: tuple, detach: bool):
+    """Start Colima VM and Docker services with specified profile(s)"""
+
+    # Validate profiles
+    profiles_config = load_profiles()
+    for p in profile:
+        if p not in profiles_config['profiles'] and \
+           p not in profiles_config.get('custom_profiles', {}):
+            console.print(f"[red]Error: Unknown profile '{p}'[/red]")
+            return
+
+    # Display what will start
+    console.print(f"\n[cyan]Starting DevStack Core with profile(s): {', '.join(profile)}[/cyan]\n")
+
+    # Start Colima if not running
+    result = subprocess.run(['colima', 'status'],
+                          capture_output=True, text=True)
+    if result.returncode != 0:
+        console.print("[yellow]Starting Colima VM...[/yellow]")
+        subprocess.run(['colima', 'start',
+                       '--cpu', '4', '--memory', '8', '--disk', '60',
+                       '--network-address'])
+
+    # Build docker compose command with profiles
+    cmd = ['docker', 'compose']
+    for p in profile:
+        cmd.extend(['--profile', p])
+    cmd.extend(['up', '-d' if detach else ''])
+
+    # Execute
+    console.print(f"[green]Executing: {' '.join(cmd)}[/green]")
+    subprocess.run(cmd)
+
+    # Show what started
+    console.print("\n[green]✓ Services started successfully[/green]")
+    subprocess.run(['docker', 'compose', 'ps'])
+
+@cli.command()
+@click.option('--profile', '-p', multiple=True,
+              help='Only stop services from specific profile(s)')
+def stop(profile: Optional[tuple]):
+    """Stop Docker services and Colima VM"""
+    if profile:
+        # Stop specific profile services
+        cmd = ['docker', 'compose']
+        for p in profile:
+            cmd.extend(['--profile', p])
+        cmd.append('down')
+        subprocess.run(cmd)
+    else:
+        # Stop everything
+        subprocess.run(['docker', 'compose', 'down'])
+        subprocess.run(['colima', 'stop'])
+
+@cli.command()
+def profiles():
+    """List available service profiles"""
+    profiles_config = load_profiles()
+
+    table = Table(title="Available Service Profiles")
+    table.add_column("Profile", style="cyan")
+    table.add_column("Services", style="green")
+    table.add_column("RAM", style="yellow")
+    table.add_column("Description")
+
+    for name, config in profiles_config['profiles'].items():
+        services = str(len(config['services']))
+        table.add_row(
+            name,
+            services,
+            config.get('ram_estimate', 'N/A'),
+            config['description']
+        )
+
+    console.print(table)
+
+    # Show custom profiles if any
+    if 'custom_profiles' in profiles_config:
+        console.print("\n[cyan]Custom Profiles:[/cyan]")
+        for name, config in profiles_config['custom_profiles'].items():
+            console.print(f"  • {name}: {config['description']}")
+
+@cli.command()
+@click.argument('service', required=False)
+def logs(service: Optional[str]):
+    """View logs for all services or specific service"""
+    if service:
+        subprocess.run(['docker', 'compose', 'logs', '-f', service])
+    else:
+        subprocess.run(['docker', 'compose', 'logs', '-f'])
+
+@cli.command()
+def status():
+    """Show status of all running services"""
+    subprocess.run(['docker', 'compose', 'ps'])
+
+@cli.command()
+@click.argument('service')
+def shell(service: str):
+    """Open shell in a running container"""
+    subprocess.run(['docker', 'compose', 'exec', service, 'sh'])
+
+# ... more commands (health, backup, vault-*, etc.)
+
+if __name__ == '__main__':
+    cli()
 ```
 
-Load via management API:
+## Migration Plan
 
+### Phase 1: Add Profile Support to docker-compose.yml (Week 1)
+
+1. **Add profile labels to all services**
+   - Categorize services into minimal/standard/full
+   - Test each profile independently
+   - Document service dependencies
+
+2. **Create profiles.yaml configuration**
+   - Define profile hierarchies
+   - Set RAM estimates
+   - Add environment overrides
+
+3. **Update documentation**
+   - Add SERVICE_PROFILES.md (this document)
+   - Update INSTALLATION.md with profile examples
+   - Add to README.md quick start
+
+### Phase 2: Create Python Management Script (Week 2)
+
+1. **Implement core functionality**
+   - start/stop/restart with profile support
+   - profile listing and inspection
+   - status and health checks
+
+2. **Add advanced features**
+   - Vault operations
+   - Backup/restore
+   - Forgejo initialization
+
+3. **Parallel operation**
+   - Keep manage-devstack.sh working
+   - Users can choose which to use
+   - Eventually deprecate bash version
+
+### Phase 3: Testing and Refinement (Week 3)
+
+1. **Test all profile combinations**
+   - minimal alone
+   - standard alone
+   - full alone
+   - standard + reference
+   - custom profiles
+
+2. **Performance validation**
+   - Measure actual RAM usage
+   - Verify startup times
+   - Test on different Mac specs
+
+3. **Documentation polish**
+   - Add troubleshooting section
+   - Create video demonstrations
+   - Update all docs to reference profiles
+
+## Usage Examples
+
+### Developer Scenarios
+
+**Scenario 1: Backend Developer (PostgreSQL Only)**
 ```bash
-curl -u devuser:password -X POST \
-  -H "Content-Type: application/json" \
-  -d @configs/rabbitmq/definitions.json \
-  http://localhost:15672/api/definitions
+# Start minimal services
+./manage-devstack.py start --profile minimal
+
+# Work with PostgreSQL
+psql -h localhost -p 5432 -U dev_admin -d dev_database
+
+# Stop when done
+./manage-devstack.py stop
 ```
 
-### Example: Custom Vault Secret Paths
-
-Organize secrets by environment:
-
+**Scenario 2: Redis Cluster Developer (Your Use Case)**
 ```bash
-# Development secrets
-vault kv put secret/dev/postgres password=dev123
-vault kv put secret/dev/mysql password=dev456
+# Start standard profile (includes Redis cluster)
+./manage-devstack.py start --profile standard
 
-# Staging secrets
-vault kv put secret/staging/postgres password=staging123
+# Initialize Redis cluster
+docker exec dev-redis-1 redis-cli --cluster create \
+  172.20.0.13:6379 172.20.0.16:6379 172.20.0.17:6379 \
+  --cluster-yes
 
-# Production secrets
-vault kv put secret/prod/postgres password=prod123
-
-# Update init scripts to read from environment-specific path
-SECRET_PATH="secret/${ENV:-dev}/postgres"
+# Test cluster operations
+redis-cli -c -h localhost -p 6379 cluster nodes
 ```
 
-## Troubleshooting
-
-### Service Won't Start
-
+**Scenario 3: Full-Stack Developer with Observability**
 ```bash
-# Check Vault connectivity
-docker exec <service> curl -v http://vault:8200/v1/sys/health
+# Start everything
+./manage-devstack.py start --profile full
 
-# Check if credentials exist in Vault
-./manage-devstack.sh vault-show-password <service>
+# Access Grafana dashboards
+open http://localhost:3001
 
-# Check init script logs
-docker logs <service> 2>&1 | grep -i vault
+# View metrics in Prometheus
+open http://localhost:9090
 ```
 
-### Configuration Not Applied
-
+**Scenario 4: API Developer Learning Patterns**
 ```bash
-# Restart service to reload config
-docker compose restart <service>
+# Start standard + reference apps
+./manage-devstack.py start --profile standard --profile reference
 
-# Force recreation
-docker compose up -d --force-recreate <service>
-
-# Check mounted config files
-docker exec <service> cat /path/to/config
+# Compare implementations
+curl http://localhost:8000/health  # Python FastAPI
+curl http://localhost:8002/health  # Go Gin
+curl http://localhost:8003/health  # Node.js Express
 ```
 
-### TLS Not Working
+## Environment Variable Overrides
 
+Each profile can have environment overrides in `configs/profiles/`:
+
+**configs/profiles/minimal.env:**
 ```bash
-# Verify certificates exist
-ls -la ~/.config/vault/certs/<service>/
+# Redis single-node mode
+REDIS_CLUSTER_ENABLED=false
 
-# Check certificate validity
-openssl x509 -in ~/.config/vault/certs/<service>/cert.pem -text -noout
-
-# Regenerate certificates
-./scripts/generate-certificates.sh
-docker compose restart <service>
+# Reduced health check intervals (faster startup)
+POSTGRES_HEALTH_INTERVAL=30s
+VAULT_HEALTH_INTERVAL=30s
 ```
 
-### Password Mismatch
-
+**configs/profiles/standard.env:**
 ```bash
-# Verify Vault has correct password
-vault kv get secret/<service>
+# Redis cluster mode
+REDIS_CLUSTER_ENABLED=true
 
-# Update password in Vault
-vault kv put secret/<service> password=newpassword
-
-# Restart service to fetch new password
-docker compose restart <service>
+# Standard health checks
+POSTGRES_HEALTH_INTERVAL=60s
 ```
 
-## Related Pages
+**configs/profiles/full.env:**
+```bash
+# Include all observability features
+ENABLE_METRICS=true
+ENABLE_LOGS=true
+PROMETHEUS_SCRAPE_INTERVAL=15s
+```
 
-- [Environment-Variables](Environment-Variables) - Complete .env reference
-- [TLS-Configuration](TLS-Configuration) - TLS setup guide
-- [Performance-Tuning](Performance-Tuning) - Optimization guide
-- [Vault-Troubleshooting](Vault-Troubleshooting) - Vault-specific issues
-- [Docker-Compose-Reference](Docker-Compose-Reference) - Service definitions
-- [Health-Monitoring](Health-Monitoring) - Health check configuration
-- [Redis-Cluster](Redis-Cluster) - Redis cluster setup
-- [CLI-Reference](CLI-Reference) - Management script commands
+## Advanced: Custom Profiles
+
+Users can define their own profiles in `profiles.yaml`:
+
+```yaml
+custom_profiles:
+  my-microservices:
+    description: "My custom microservices stack"
+    services:
+      - vault
+      - postgres
+      - redis-1
+      - redis-2
+      - redis-3
+      - rabbitmq
+      - prometheus
+    ram_estimate: "3GB"
+    env_file: configs/profiles/my-microservices.env
+```
+
+Then use it:
+```bash
+./manage-devstack.py start --profile my-microservices
+```
+
+## Benefits
+
+1. **Resource Efficiency**
+   - Run only what you need
+   - Minimal: 2GB vs Full: 6GB (3x savings)
+   - Faster startup times
+
+2. **Developer Experience**
+   - Clear service groupings
+   - Easy to understand what runs
+   - Quick profile switching
+
+3. **Maintainability**
+   - Docker Compose native feature
+   - Python for complex logic
+   - YAML for configuration
+   - Easy to extend
+
+4. **Flexibility**
+   - Combine multiple profiles
+   - Create custom profiles
+   - Override environment per profile
+
+5. **Documentation**
+   - Self-documenting profiles
+   - Clear use case descriptions
+   - Built-in help system
+
+## Recommendation Summary
+
+**✅ RECOMMENDED APPROACH:**
+
+1. **Use Docker Compose native profiles** - Add `profiles:` key to services
+2. **Migrate to Python management script** - Replace 1600-line bash with maintainable Python
+3. **YAML-based profile configuration** - Centralized, documented, extensible
+4. **Three core profiles** - minimal/standard/full with reference as add-on
+5. **Parallel operation during migration** - Keep bash script until Python is stable
+
+**Why NOT alternatives:**
+
+- ❌ **Makefile** - Not suitable for complex logic, poor error handling
+- ❌ **Multiple docker-compose files** - Harder to maintain, more complex
+- ❌ **Pure bash with flags** - Already have 1600 lines, would become unmaintainable
+- ❌ **Custom orchestration** - Reinventing Docker Compose features
+
+**Timeline:** 3 weeks to implement, test, and document
+
+**Effort:** ~40 hours of work (spread across 3 weeks)
+
+**Impact:** Significant improvement in developer experience and resource efficiency

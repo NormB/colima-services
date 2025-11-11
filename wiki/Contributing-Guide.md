@@ -1,333 +1,316 @@
-# Contributing Guide
+# Contributing to DevStack Core
+
+Thank you for your interest in contributing to DevStack Core! This document provides guidelines and instructions for contributing to this project.
 
 ## Table of Contents
 
+- [Code of Conduct](#code-of-conduct)
+- [Getting Started](#getting-started)
 - [How to Contribute](#how-to-contribute)
-- [Code Contribution Guidelines](#code-contribution-guidelines)
-- [Documentation Improvements](#documentation-improvements)
-- [Testing Requirements](#testing-requirements)
-- [Git Workflow](#git-workflow)
+- [Development Workflow](#development-workflow)
 - [Pull Request Process](#pull-request-process)
-- [Code Style Guidelines](#code-style-guidelines)
-- [Adding New Services](#adding-new-services)
+- [Coding Standards](#coding-standards)
+- [Testing](#testing)
+- [Documentation](#documentation)
+
+## Code of Conduct
+
+This project adheres to a Code of Conduct that all contributors are expected to follow. Please read [CODE_OF_CONDUCT.md](CODE_OF_CONDUCT.md) before contributing.
+
+## Getting Started
+
+1. **Fork the repository** on GitHub
+2. **Clone your fork** locally:
+   ```bash
+   git clone https://github.com/YOUR_USERNAME/devstack-core.git
+   cd devstack-core
+   ```
+3. **Set up the development environment**:
+   ```bash
+   cp .env.example .env
+   # Edit .env with appropriate values
+   ./manage-devstack.sh start
+   ```
+
+### Setting Up SSH and GPG Keys for Forgejo
+
+To enable authenticated Git operations and commit signing with the local Forgejo instance:
+
+#### Add SSH Key (for git push/pull authentication)
+
+1. **Display your public key:**
+   ```bash
+   cat ~/.ssh/id_ed25519.pub
+   # Or: cat ~/.ssh/id_rsa.pub
+   ```
+
+2. **Add to Forgejo:**
+   - Navigate to http://localhost:3000
+   - Sign in to your account
+   - Go to Settings → SSH / GPG Keys
+   - Click "Add Key" under SSH Keys
+   - Paste your public key
+   - Give it a descriptive name (e.g., "Mac Development Key")
+   - Click "Add Key"
+
+#### Add GPG Key (for signed commits)
+
+1. **List your GPG keys:**
+   ```bash
+   gpg --list-secret-keys --keyid-format LONG
+   ```
+
+2. **Export your public key:**
+   ```bash
+   # Replace KEY_ID with your key ID from the previous command
+   gpg --armor --export KEY_ID
+   ```
+
+3. **Add to Forgejo:**
+   - Navigate to Settings → SSH / GPG Keys
+   - Click "Add Key" under GPG Keys
+   - Paste the entire GPG public key block (including BEGIN/END lines)
+   - Click "Add Key"
+
+#### Configure Git for Signed Commits
+
+```bash
+# Set your GPG key for signing commits
+git config --global user.signingkey YOUR_KEY_ID
+
+# Enable automatic commit signing
+git config --global commit.gpgsign true
+```
+
+#### Configure SSH for Forgejo
+
+Add to your `~/.ssh/config`:
+```
+Host forgejo
+  HostName localhost
+  Port 2222
+  User git
+  IdentityFile ~/.ssh/id_ed25519
+```
+
+Then you can clone and push using:
+```bash
+git clone forgejo:username/repo.git
+```
 
 ## How to Contribute
 
-We welcome contributions! Here are ways to help:
+### Reporting Bugs
 
-- **Report bugs**: Open an issue with reproduction steps
-- **Suggest features**: Describe the feature and use case
-- **Improve documentation**: Fix typos, add examples, clarify concepts
-- **Add tests**: Expand test coverage
-- **Add services**: Integrate new infrastructure services
-- **Fix bugs**: Submit pull requests with fixes
+Before creating bug reports, please check existing issues to avoid duplicates. When creating a bug report, include:
 
-## Code Contribution Guidelines
+- **Clear title and description**
+- **Steps to reproduce** the issue
+- **Expected vs actual behavior**
+- **Environment details**: OS version, Colima version, Docker version
+- **Relevant logs** from `./manage-devstack.sh logs` or Docker logs
+- **Screenshots** if applicable
 
-**Before contributing:**
-1. Check existing issues and PRs
-2. Discuss large changes in an issue first
-3. Follow code style guidelines
-4. Add tests for new features
-5. Update documentation
+### Suggesting Enhancements
 
-**Development setup:**
-```bash
-# Fork repository
-gh repo fork devstack-core
+Enhancement suggestions are welcome! Please include:
 
-# Clone your fork
-git clone https://github.com/your-username/devstack-core.git
-cd devstack-core
+- **Clear use case** - Why is this enhancement needed?
+- **Proposed solution** - How should it work?
+- **Alternatives considered** - What other approaches did you think about?
+- **Impact** - Who benefits and how?
 
-# Add upstream remote
-git remote add upstream https://github.com/original/devstack-core.git
+### Contributing Code
 
-# Start environment
-./manage-devstack.sh start
-./manage-devstack.sh vault-init
-./manage-devstack.sh vault-bootstrap
-```
+We welcome code contributions! Here are the types of contributions we're looking for:
 
-## Documentation Improvements
+- Bug fixes
+- New service integrations
+- Performance improvements
+- Documentation improvements
+- Test coverage improvements
+- Security enhancements
 
-**Areas needing documentation:**
-- User guides and tutorials
-- API documentation
-- Architecture diagrams
-- Troubleshooting guides
-- Video tutorials
+## Development Workflow
 
-**Documentation standards:**
-- Clear, concise writing
-- Code examples for every feature
-- Screenshots where helpful
-- Keep docs up-to-date with code
+1. **Create a branch** for your work:
+   ```bash
+   git checkout -b feature/your-feature-name
+   # or
+   git checkout -b fix/issue-description
+   ```
 
-**How to update docs:**
-```bash
-# Edit markdown files
-nano docs/SERVICES.md
+2. **Make your changes**:
+   - Follow the coding standards below
+   - Add tests if applicable
+   - Update documentation as needed
 
-# Add to wiki
-nano wiki/New-Topic.md
+3. **Test your changes**:
+   ```bash
+   # Start fresh environment
+   ./manage-devstack.sh stop
+   ./manage-devstack.sh clean
+   ./manage-devstack.sh start
 
-# Update README if needed
-nano README.md
+   # Run tests
+   ./scripts/run-tests.sh
 
-# Submit PR
-git add docs/ wiki/ README.md
-git commit -m "docs: improve service configuration guide"
-git push origin feature-docs
-```
+   # Verify health
+   ./manage-devstack.sh health
+   ```
 
-## Testing Requirements
+4. **Commit your changes**:
+   ```bash
+   git add .
+   git commit -m "Type: Brief description
 
-**All contributions must:**
-- Include tests for new features
-- Pass existing tests
-- Maintain or improve coverage
+   More detailed explanation if needed.
 
-**Run tests:**
-```bash
-# All tests
-./tests/run-all-tests.sh
+   Fixes #issue_number"
+   ```
 
-# Specific test suite
-./tests/test-postgres.sh
-./tests/test-vault.sh
+   Commit message types:
+   - `feat:` - New feature
+   - `fix:` - Bug fix
+   - `docs:` - Documentation changes
+   - `refactor:` - Code refactoring
+   - `test:` - Adding or updating tests
+   - `chore:` - Maintenance tasks
 
-# Python tests
-docker exec dev-reference-api pytest tests/ -v
+5. **Push to your fork**:
+   ```bash
+   git push origin feature/your-feature-name
+   ```
 
-# Parity tests
-cd reference-apps/shared/test-suite && uv run pytest -v
-```
-
-**Add new tests:**
-```bash
-# Bash integration test
-cat > tests/test-myservice.sh << 'EOF'
-#!/bin/bash
-source tests/common.sh
-
-test_myservice_connection() {
-    docker exec dev-myservice myservice-cli ping
-    assert_success "MyService connection"
-}
-
-run_tests
-EOF
-
-chmod +x tests/test-myservice.sh
-```
-
-## Git Workflow
-
-**Branch naming:**
-- `feature/add-mongodb-support`
-- `fix/vault-initialization-bug`
-- `docs/update-readme`
-- `test/add-mysql-tests`
-
-**Commit messages:**
-```
-type(scope): brief description
-
-Longer explanation if needed.
-
-Fixes #123
-```
-
-**Types:**
-- `feat`: New feature
-- `fix`: Bug fix
-- `docs`: Documentation
-- `test`: Tests
-- `refactor`: Code restructuring
-- `chore`: Maintenance
-
-**Example:**
-```bash
-git checkout -b feature/add-mongodb
-# Make changes
-git add .
-git commit -m "feat(mongodb): add MongoDB service with Vault integration"
-git push origin feature/add-mongodb
-```
+6. **Create a Pull Request** on GitHub
 
 ## Pull Request Process
 
-**Before submitting:**
-1. Update from upstream:
-```bash
-git fetch upstream
-git rebase upstream/main
-```
+1. **Update documentation** - Ensure README.md and relevant docs are updated
+2. **Update CHANGELOG** - Add entry describing your changes (if applicable)
+3. **Ensure tests pass** - All existing tests should pass
+4. **Add tests** - For new functionality, add appropriate tests
+5. **Clean commits** - Squash commits if needed for clarity
+6. **Descriptive PR** - Include:
+   - What changes were made
+   - Why these changes were needed
+   - How to test the changes
+   - Screenshots/logs if applicable
+   - Related issue numbers
 
-2. Run tests:
-```bash
-./tests/run-all-tests.sh
-```
+7. **Review process**:
+   - Maintainers will review your PR
+   - Address any requested changes
+   - Once approved, a maintainer will merge your PR
 
-3. Update documentation:
-```bash
-# Update relevant docs
-nano docs/SERVICES.md
-nano wiki/MongoDB-Configuration.md
-```
+## Coding Standards
 
-**Submit PR:**
-1. Push to your fork
-2. Open PR on GitHub/Forgejo
-3. Fill out PR template
-4. Wait for review
-5. Address feedback
-6. Merge when approved
+### Shell Scripts
 
-**PR template:**
-```markdown
-## Description
-Brief description of changes
+- Use `bash` (not `sh`)
+- Include shebang: `#!/bin/bash`
+- Use 4-space indentation
+- Quote variables: `"$VARIABLE"`
+- Use `[[` instead of `[` for conditionals
+- Add comments for complex logic
+- Use functions for reusable code
+- Check exit codes: `|| { error "Failed"; exit 1; }`
 
-## Type of change
-- [ ] Bug fix
-- [ ] New feature
-- [ ] Documentation
-- [ ] Tests
+### Docker Compose
+
+- Use version 3.8+ syntax
+- Include health checks for all services
+- Use explicit image tags (not `latest`)
+- Document environment variables
+- Use secrets for sensitive data
+- Add resource limits when appropriate
+- Include descriptive labels
+
+### Configuration Files
+
+- Use clear, descriptive names
+- Include comments explaining purpose
+- Document all options
+- Provide sensible defaults
+- Use environment variables for flexibility
+
+### Documentation
+
+- Use clear, concise language
+- Include code examples
+- Add screenshots for UI elements
+- Keep line length under 100 characters
+- Use proper markdown formatting
+- Update table of contents when adding sections
 
 ## Testing
-- [ ] All tests pass
-- [ ] Added new tests
-- [ ] Tested manually
 
-## Checklist
-- [ ] Code follows style guidelines
-- [ ] Documentation updated
-- [ ] Tests added/updated
-- [ ] No breaking changes
-```
+### Required Tests
 
-## Code Style Guidelines
+Before submitting a PR, verify:
 
-**Bash:**
-```bash
-#!/bin/bash
-set -e  # Exit on error
+1. **Clean installation works**:
+   ```bash
+   ./manage-devstack.sh clean
+   ./manage-devstack.sh start
+   ```
 
-# Use functions
-function my_function() {
-    local var=$1
-    echo "$var"
-}
+2. **All services start healthy**:
+   ```bash
+   ./manage-devstack.sh health
+   ```
 
-# Check errors
-if ! command; then
-    echo "Error: command failed"
-    exit 1
-fi
+3. **Vault operations work**:
+   ```bash
+   ./manage-devstack.sh vault-init
+   ./manage-devstack.sh vault-bootstrap
+   ```
 
-# Use double quotes
-echo "$variable"
-```
+4. **Service-specific tests**:
+   ```bash
+   ./scripts/run-tests.sh
+   ```
 
-**Python:**
-```python
-# Follow PEP 8
-# Use type hints
-def get_user(user_id: int) -> dict:
-    """Get user by ID."""
-    return {"id": user_id}
+5. **No regressions**:
+   - Test existing functionality still works
+   - Check logs for errors: `./manage-devstack.sh logs`
 
-# Use descriptive names
-def calculate_total_price(items: list) -> float:
-    return sum(item.price for item in items)
-```
+### Test Coverage
 
-**YAML:**
-```yaml
-# Consistent indentation (2 spaces)
-services:
-  myservice:
-    image: myservice:latest
-    environment:
-      KEY: value
-```
+- Add tests for new features
+- Update tests for modified functionality
+- Include both positive and negative test cases
+- Test error handling and edge cases
 
-## Adding New Services
+## Documentation
 
-**Steps to add a service:**
+### What to Document
 
-1. **Add to docker-compose.yml:**
-```yaml
-services:
-  myservice:
-    image: myservice:latest
-    container_name: dev-myservice
-    depends_on:
-      vault:
-        condition: service_healthy
-    environment:
-      VAULT_ADDR: http://vault:8200
-      VAULT_TOKEN: ${VAULT_TOKEN}
-    volumes:
-      - ./configs/myservice/init.sh:/init/init.sh:ro
-      - myservice-data:/data
-    networks:
-      dev-services:
-        ipv4_address: 172.20.0.30
-    healthcheck:
-      test: ["CMD", "myservice-cli", "ping"]
-      interval: 10s
-    restart: unless-stopped
+- **New features** - How to use them, why they're useful
+- **Configuration changes** - New options, changed defaults
+- **Breaking changes** - Migration guides, deprecation notices
+- **Architecture changes** - Design decisions, tradeoffs
+- **Troubleshooting** - Common issues and solutions
 
-volumes:
-  myservice-data:
-```
+### Where to Document
 
-2. **Create init script:**
-```bash
-# configs/myservice/scripts/init.sh
-#!/bin/bash
-set -e
+- **README.md** - Main documentation, getting started, overview
+- **Code comments** - Complex logic, non-obvious decisions
+- **Commit messages** - What and why
+- **PR descriptions** - Changes, testing, review notes
+- **Issue tracker** - Bug reports, feature requests, discussions
 
-# Fetch credentials from Vault
-VAULT_ADDR=${VAULT_ADDR:-http://vault:8200}
-RESPONSE=$(curl -s -H "X-Vault-Token: $VAULT_TOKEN" \
-  "$VAULT_ADDR/v1/secret/data/myservice")
+## Questions?
 
-export MYSERVICE_PASSWORD=$(echo $RESPONSE | jq -r '.data.data.password')
+- Open an issue with the `question` label
+- Check existing issues and documentation
+- Review closed issues for similar questions
 
-# Start service
-exec myservice-server
-```
+## Recognition
 
-3. **Add to vault-bootstrap:**
-```bash
-# Store credentials
-vault kv put secret/myservice \
-  username=devuser \
-  password=$(openssl rand -base64 32)
-```
+Contributors will be recognized in:
+- GitHub contributors list
+- CHANGELOG.md for significant contributions
+- Special thanks in release notes
 
-4. **Add tests:**
-```bash
-# tests/test-myservice.sh
-test_myservice_connection() {
-    docker exec dev-myservice myservice-cli ping
-    assert_success
-}
-```
-
-5. **Update documentation:**
-```bash
-# Add to docs/SERVICES.md
-# Add to wiki/Service-Configuration.md
-# Update README.md
-```
-
-## Related Pages
-
-- [Development-Workflow](Development-Workflow)
-- [Service-Configuration](Service-Configuration)
-- [Docker-Compose-Reference](Docker-Compose-Reference)
+Thank you for contributing to DevStack Core!

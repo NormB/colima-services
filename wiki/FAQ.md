@@ -1,315 +1,169 @@
-# FAQ (Frequently Asked Questions)
+# FAQ
 
-Common questions and answers about DevStack Core.
+## Service Profiles (NEW v1.3)
 
-## Table of Contents
+**Q: What are service profiles and why should I use them?**
+A: Service profiles let you start only the services you need, saving resources and startup time:
+- **minimal**: 5 services, 2GB RAM - Git hosting + basic database
+- **standard**: 10 services, 4GB RAM - Full stack + Redis cluster (recommended)
+- **full**: 18 services, 6GB RAM - Everything + observability
+- **reference**: 5 API examples - Educational, combine with standard/full
 
-- [General Questions](#general-questions)
-- [Installation Questions](#installation-questions)
-- [Vault Questions](#vault-questions)
-- [Database Questions](#database-questions)
-- [Performance Questions](#performance-questions)
-- [Security Questions](#security-questions)
+See [SERVICE_PROFILES.md](./SERVICE_PROFILES.md) for complete details.
+
+**Q: Which profile should I use?**
+A: **Standard profile is recommended for most developers:**
+```bash
+./manage-devstack.py start --profile standard
+```
+Use minimal if you have limited RAM (< 8GB), or full if you need Prometheus/Grafana.
+
+**Q: How do I switch between profiles?**
+A: Stop current services and start with new profile:
+```bash
+docker compose down
+./manage-devstack.py start --profile minimal  # or standard, full
+```
+
+**Q: Can I combine profiles?**
+A: Yes! Combine standard/full with reference:
+```bash
+./manage-devstack.py start --profile standard --profile reference
+```
+This gives you infrastructure + 5 educational API examples.
+
+**Q: Do I need to initialize Redis cluster for all profiles?**
+A: Only for standard and full profiles:
+```bash
+./manage-devstack.py start --profile standard
+./manage-devstack.py redis-cluster-init  # Required for cluster
+```
+Minimal profile uses single Redis instance (no initialization needed).
+
+**Q: Can I use the bash script with profiles?**
+A: The bash script (`manage-devstack.sh`) starts all services (no profile support). Use the Python script for profile control:
+```bash
+./manage-devstack.py start --profile standard  # Profile-aware
+./manage-devstack.sh start                     # All services
+```
+
+**Q: How do I check which profile is running?**
+A: Use status or health commands:
+```bash
+./manage-devstack.py status   # Shows running containers
+./manage-devstack.py health   # Shows health status
+docker compose ps             # Shows all running services
+```
+
+**Q: Can I create custom profiles?**
+A: Yes! Create a custom environment file:
+```bash
+# Create custom profile
+cat > configs/profiles/my-custom.env << 'EOF'
+REDIS_CLUSTER_ENABLED=true
+POSTGRES_MAX_CONNECTIONS=200
+ENABLE_METRICS=false
+EOF
+
+# Load and use
+set -a
+source configs/profiles/my-custom.env
+set +a
+docker compose --profile standard up -d
+```
+
+**Q: Where are profile settings stored?**
+A: Profile environment overrides are in `configs/profiles/`:
+- `minimal.env` - Minimal profile settings
+- `standard.env` - Standard profile settings
+- `full.env` - Full profile settings
+- `reference.env` - Reference profile settings
+
+**Q: What's the difference between Python and Bash management scripts?**
+A:
+- **Python script** (`manage-devstack.py`): Profile-aware, colored output, better UX, 850 lines
+- **Bash script** (`manage-devstack.sh`): Traditional, no profiles, starts everything, 1,622 lines
+
+Both are maintained. Use Python for profiles, Bash for backwards compatibility.
 
 ## General Questions
 
-### What is DevStack Core?
+**Q: Can I use this on Intel Mac?**
+A: No, not without significant modifications. The project uses ARM64-specific Docker images (`platform: linux/arm64`) that are incompatible with Intel Macs.
 
-DevStack Core is a complete Docker Compose-based development infrastructure optimized for Apple Silicon Macs. It provides databases (PostgreSQL, MySQL, MongoDB), caching (Redis cluster), messaging (RabbitMQ), secrets management (Vault), Git hosting (Forgejo), and observability tools (Prometheus, Grafana, Loki).
+**If you must run on Intel Mac:**
+1. Use QEMU emulation: `colima start --vm-type qemu --arch aarch64`
+2. Expect significant performance degradation (emulation overhead)
+3. Some services may not work correctly under emulation
+4. You may need to modify `docker-compose.yml` to remove ARM64 platform specifications
 
-### Why use Colima instead of Docker Desktop?
+**Recommended:** Use an Apple Silicon Mac or run on a native ARM64 Linux server.
 
-**Advantages of Colima:**
-- Free and open-source (no licensing fees)
-- Lighter weight and faster on Apple Silicon
-- Native ARM64 support via Apple's Virtualization.framework
-- No Docker Desktop licensing restrictions
-- More control over VM configuration
-
-### How much does it cost?
-
-**$0** - Everything is free and open-source. All tools and services used are open-source projects with permissive licenses.
-
-### Can I use this in production?
-
-This environment is designed for **local development and testing**. For production:
-- Use managed services or dedicated infrastructure
-- Implement proper security hardening (see [Security Hardening](Security-Hardening))
-- Use Vault AppRole authentication instead of root token
-- Enable network firewalls and access controls
-- Review [docs/SECURITY_ASSESSMENT.md](https://github.com/NormB/devstack-core/blob/main/docs/SECURITY_ASSESSMENT.md)
-
-### What's the difference between this and Docker Desktop?
-
-| Feature | DevStack Core | Docker Desktop |
-|---------|-----------------|----------------|
-| **License** | Free (MIT) | Free for personal, paid for business |
-| **Performance** | Optimized for Apple Silicon | Good, but heavier |
-| **Resource Usage** | Lightweight | More resource-intensive |
-| **VM Control** | Full control | Limited control |
-| **Services** | 20+ pre-configured | None included |
-
-## Installation Questions
-
-### How long does installation take?
-
-**Total time:** 20-30 minutes for first-time setup
-- Installing software: 10-15 minutes
-- Starting services: 2-3 minutes
-- Vault initialization: 1-2 minutes
-- Vault bootstrap: 2-3 minutes
-
-### Do I need to install Docker Desktop first?
-
-**No!** In fact, you should **not** have Docker Desktop running. Colima provides the Docker engine, so Docker Desktop is not needed and can cause conflicts.
-
-### Can I run this on Intel Macs?
-
-This guide is optimized for **Apple Silicon** (M Series Processors). While Colima works on Intel Macs, you'll need to adjust architecture settings and some images may not be available for x86_64.
-
-### How do I uninstall everything?
-
+**Q: Can I run multiple Colima instances?**
+A: Yes, use profiles:
 ```bash
-# Stop and remove all services
-./manage-devstack.sh reset
+export COLIMA_PROFILE=project1
+./manage-devstack.sh start
 
-# Stop Colima
-colima stop
-colima delete
-
-# Uninstall software
-brew uninstall colima docker docker-compose
-
-# Remove configuration
-rm -rf ~/.config/vault
-rm -rf ~/devstack-core
+export COLIMA_PROFILE=project2
+./manage-devstack.sh start
 ```
 
-### What if I already have PostgreSQL/MySQL installed?
-
-The services run in containers on **different ports by default**, so they won't conflict with local installations. However, if you have services using the same ports (5432, 3306, etc.), you'll need to either:
-- Stop your local services, or
-- Change ports in `.env` file
-
-## Vault Questions
-
-### What happens if I lose my Vault keys?
-
-**Data is permanently unrecoverable.** Always backup `~/.config/vault/` immediately after initialization. Without the unseal keys, Vault data cannot be accessed.
-
-### Do I need to manually unseal Vault every time?
-
-**No** - Vault auto-unseals on startup using keys stored in `~/.config/vault/keys.json`. You never need to manually unseal unless you lose this file.
-
-### How do I rotate service passwords?
-
+**Q: How do I access services from libvirt VMs?**
+A: Use Colima IP instead of localhost:
 ```bash
-# Generate new password
-NEW_PASSWORD=$(openssl rand -base64 32)
-
-# Update in Vault
-vault kv put secret/postgres password="$NEW_PASSWORD"
-
-# Restart service to pick up new password
-docker compose restart postgres
+COLIMA_IP=$(./manage-devstack.sh ip | grep "Colima IP:" | awk '{print $3}')
+psql -h $COLIMA_IP -p 5432 -U $POSTGRES_USER
 ```
 
-### Can I use Vault for my application secrets?
+**Q: Can I use Docker Desktop instead of Colima?**
+A: Yes, but remove `colima` commands from `manage-devstack.sh`. Just use `docker compose up -d`.
 
-**Yes!** That's exactly what the reference applications demonstrate. See [Reference Applications](Reference-Applications) for code examples.
+**Q: How do I update service versions?**
+A: Edit `docker-compose.yml`:
+```yaml
+# Change
+image: postgres:16-alpine
 
-### How do I access Vault UI?
+# To
+image: postgres:17-alpine
 
-1. Get root token: `cat ~/.config/vault/root-token`
-2. Open: http://localhost:8200/ui
-3. Sign in with the token
-
-## Database Questions
-
-### How do I connect to PostgreSQL?
-
-```bash
-# Get password
-./manage-devstack.sh vault-show-password postgres
-
-# Connect
-psql postgresql://dev_admin@localhost:5432/dev_database
-# Enter password when prompted
+# Then
+docker compose pull postgres
+docker compose up -d postgres
 ```
 
-### Can I use a GUI tool like pgAdmin or MySQL Workbench?
+**Q: What if I lose Vault unseal keys?**
+A: Data is permanently inaccessible. You must:
+1. Stop Vault
+2. Delete vault_data volume
+3. Re-initialize (creates new keys)
+4. Re-enter all secrets
 
-**Yes!** Use these connection details:
-- **Host:** localhost
-- **Port:** 5432 (PostgreSQL), 3306 (MySQL), 27017 (MongoDB)
-- **Username:** dev_admin
-- **Database:** dev_database
-- **Password:** Get from Vault using `./manage-devstack.sh vault-show-password <service>`
+**ALWAYS BACKUP UNSEAL KEYS!**
 
-### Are databases persistent across restarts?
+**Q: Can I use this for production?**
+A: No. Requires:
+- TLS everywhere
+- External secrets management
+- High availability
+- Monitoring/alerting
+- Proper backup strategy
+- Security hardening
 
-**Yes** - All data is stored in Docker volumes that persist across restarts. Data is only lost if you run `./manage-devstack.sh reset` or manually delete volumes.
+**Q: How do I migrate data from old setup?**
+A:
+1. Backup old databases (pg_dump, mysqldump, etc.)
+2. Start DevStack Core services
+3. Restore backups
+4. Test connectivity
+5. Update application connection strings
 
-### How do I backup databases?
+**Q: Redis cluster vs single instance?**
+A: Cluster provides:
+- Horizontal scaling (distribute data)
+- High availability (node failures)
+- Production parity
 
-```bash
-# Backup all databases
-./manage-devstack.sh backup
+Single instance is simpler but doesn't match production.
 
-# Backups saved to: ./backups/YYYY-MM-DD_HH-MM-SS/
-```
-
-### Can I restore from backup?
-
-```bash
-# PostgreSQL
-docker exec -i dev-postgres psql -U dev_admin -d dev_database < backups/2025-10-28/postgres_backup.sql
-
-# MySQL
-docker exec -i dev-mysql mysql -u dev_admin -p dev_database < backups/2025-10-28/mysql_backup.sql
-```
-
-## Performance Questions
-
-### Services are running slowly
-
-**Common causes and solutions:**
-
-1. **Insufficient resources:**
-   ```bash
-   # Increase Colima allocation
-   colima stop
-   colima start --cpu 6 --memory 12 --disk 100
-   ```
-
-2. **Too many services:**
-   ```bash
-   # Stop unused services
-   docker compose stop rust-api nodejs-api golang-api
-   ```
-
-3. **Database query performance:**
-   ```bash
-   # Use connection pooling (PgBouncer)
-   # Connect to port 6432 instead of 5432
-   ```
-
-### How much RAM do I really need?
-
-**Minimum:** 16GB total (8GB for Colima VM)
-**Recommended:** 32GB total (12GB for Colima VM)
-**Heavy usage:** 64GB total (16GB+ for Colima VM)
-
-### Can I run this on an Apple Silicon MacBook Air (8GB RAM)?
-
-**Not recommended.** With only 8GB total RAM, macOS will struggle. You'd need to:
-- Run only essential services
-- Reduce Colima allocation to 4GB
-- Expect slower performance
-
-### How do I optimize startup time?
-
-**Already optimized!** The setup includes:
-- Health-check based dependencies (services wait for Vault)
-- Auto-unsealing Vault (no manual intervention)
-- Parallel service startup where possible
-
-Typical startup: 2-3 minutes
-
-## Security Questions
-
-### Is this secure for development?
-
-**Yes, for local development.** Security considerations:
-- All traffic stays on your machine (localhost)
-- Services run in isolated Docker network
-- Credentials stored in Vault, not .env files
-- TLS available but optional (dev convenience)
-
-### What about for production?
-
-**No** - This setup prioritizes **developer experience** over production security. For production, see [Security Hardening](Security-Hardening).
-
-### Are my credentials safe?
-
-**On your machine: Yes**
-- Stored in Vault (encrypted at rest)
-- Vault data encrypted with master key
-- No passwords in environment files
-
-**If shared:** Never commit `.env` or `~/.config/vault/` to Git!
-
-### Should I use TLS in development?
-
-**Optional** - Services support dual-mode (TLS and non-TLS). Enable TLS if:
-- Testing TLS-specific features
-- Simulating production environment
-- Learning certificate management
-
-Disable for faster iteration during development.
-
-### How do I trust the self-signed CA?
-
-```bash
-# Trust on macOS
-sudo security add-trusted-cert -d -r trustRoot \
-  -k /Library/Keychains/System.keychain \
-  ~/.config/vault/ca/ca-chain.pem
-
-# Verify
-security verify-cert -c ~/.config/vault/ca/ca-chain.pem
-```
-
-## Troubleshooting Questions
-
-### Services won't start - what do I check first?
-
-**Diagnostic sequence:**
-```bash
-# 1. Is Colima running?
-colima status
-
-# 2. Is Vault healthy?
-./manage-devstack.sh vault-status
-
-# 3. Check service logs
-./manage-devstack.sh logs <service-name>
-
-# 4. Run health checks
-./manage-devstack.sh health
-```
-
-### Where can I get more help?
-
-1. **[Common Issues](Common-Issues)** - Quick fixes
-2. **[Troubleshooting](https://github.com/NormB/devstack-core/blob/main/docs/TROUBLESHOOTING.md)** - Detailed guide
-3. **[GitHub Issues](https://github.com/NormB/devstack-core/issues)** - Community support
-4. **Documentation** - Check [docs/](https://github.com/NormB/devstack-core/tree/main/docs)
-
-### What's the best way to report a bug?
-
-Open a GitHub issue with:
-- **System info:** macOS version, Colima version, Docker version
-- **Steps to reproduce:** What you did
-- **Expected behavior:** What should happen
-- **Actual behavior:** What actually happened
-- **Logs:** Output from `./manage-devstack.sh logs <service>`
-
-### Can I contribute to this project?
-
-**Yes!** See [Contributing Guide](https://github.com/NormB/devstack-core/blob/main/.github/CONTRIBUTING.md) for:
-- Code contribution guidelines
-- Documentation improvements
-- Bug reports and feature requests
-- Testing and validation
-
-## More Questions?
-
-- Check [Architecture Overview](Architecture-Overview) - Understand the design
-- Review [Management Commands](Management-Commands) - Learn available commands
-- Explore [Reference Applications](Reference-Applications) - See working examples
-- Visit [Quick Start Guide](Quick-Start-Guide) - Get started quickly
-
----
-
-**Don't see your question?** [Open an issue](https://github.com/NormB/devstack-core/issues) to ask!

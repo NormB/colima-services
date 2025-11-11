@@ -1,11 +1,12 @@
-# Service Overview
+# Services
 
-Complete reference for all services in the DevStack Core infrastructure.
 
 ## Table of Contents
 
-- [Infrastructure Services](#infrastructure-services)
-  - [HashiCorp Vault](#hashicorp-vault)
+  - [Infrastructure Services](#infrastructure-services)
+  - [Observability Stack](#observability-stack)
+  - [Reference Applications](#reference-applications)
+- [Service Configuration](#service-configuration)
   - [PostgreSQL](#postgresql)
   - [PgBouncer](#pgbouncer)
   - [MySQL](#mysql)
@@ -13,246 +14,242 @@ Complete reference for all services in the DevStack Core infrastructure.
   - [RabbitMQ](#rabbitmq)
   - [MongoDB](#mongodb)
   - [Forgejo (Git Server)](#forgejo-git-server)
-- [Observability Stack](#observability-stack)
-  - [Prometheus](#prometheus)
-  - [Grafana](#grafana)
-  - [Loki](#loki)
-  - [Vector](#vector)
-  - [cAdvisor](#cadvisor)
-- [Reference Applications](#reference-applications)
-  - [FastAPI Code-First](#fastapi-code-first)
-  - [FastAPI API-First](#fastapi-api-first)
-  - [Go/Gin API](#gogin-api)
-  - [Node.js/Express API](#nodejsexpress-api)
-  - [Rust/Actix-web API](#rustactix-web-api)
-  - [TypeScript API-First](#typescript-api-first)
+  - [HashiCorp Vault](#hashicorp-vault)
 
 ---
 
-## Infrastructure Services
+### Infrastructure Services
 
-### HashiCorp Vault
+| Service | Version | Port(s) | Purpose | Health Check |
+|---------|---------|---------|---------|--------------|
+| **PostgreSQL** | 16-alpine | 5432 | Git storage + dev database | pg_isready |
+| **PgBouncer** | latest | 6432 | Connection pooling | psql test |
+| **MySQL** | 8.0 | 3306 | Legacy database support | mysqladmin ping |
+| **Redis Cluster** | 7-alpine | 6379, 6380, 6381 | Distributed cache (3 nodes) | redis-cli ping |
+| **RabbitMQ** | 3-management-alpine | 5672, 15672 | Message queue + UI | rabbitmq-diagnostics |
+| **MongoDB** | 7 | 27017 | NoSQL database | mongosh ping |
+| **Forgejo** | 1.21 | 3000, 2222 | Self-hosted Git server | curl /api/healthz |
+| **Vault** | latest | 8200 | Secrets management | wget /sys/health |
 
-**Purpose:** Centralized secrets management and PKI (Public Key Infrastructure).
+### Observability Stack
 
-**Key Features:**
-- 🔐 Stores all service credentials (passwords, API keys)
-- 🔑 Two-tier PKI (Root CA → Intermediate CA → Service Certificates)
-- 🔓 Auto-unseals on startup (no manual intervention)
-- 🌐 Web UI at http://localhost:8200/ui
-- 📝 Audit logging for all secret access
+| Service | Version | Port(s) | Purpose | Health Check |
+|---------|---------|---------|---------|--------------|
+| **Prometheus** | 2.48.0 | 9090 | Metrics collection & time-series DB | wget /metrics |
+| **Grafana** | 10.2.2 | 3001 | Visualization & dashboards | curl /-/health |
+| **Loki** | 2.9.3 | 3100 | Log aggregation system | wget /ready |
 
-**Configuration:**
-- **Image:** `hashicorp/vault:latest`
-- **Port:** 8200 (HTTP API + UI)
-- **Static IP:** 172.20.0.21
-- **Storage:** File backend (persistent across restarts)
-- **Seal Type:** Shamir (3 of 5 keys required)
+### Reference Applications
 
-**Critical Files:**
-```bash
-~/.config/vault/keys.json       # 5 unseal keys (BACKUP!)
-~/.config/vault/root-token      # Root token for admin access
-~/.config/vault/ca/             # CA certificates
-~/.config/vault/certs/          # Service certificates
-```
+| Service | Version | Port(s) | Purpose | Health Check |
+|---------|---------|---------|---------|--------------|
+| **FastAPI (Code-First)** | Python 3.11 | 8000 (HTTP), 8443 (HTTPS) | Comprehensive code-first API | curl /health |
+| **FastAPI (API-First)** | Python 3.11 | 8001 (HTTP), 8444 (HTTPS) | OpenAPI-driven implementation | curl /health |
+| **Go Reference API** | Go 1.23+ | 8002 (HTTP), 8445 (HTTPS) | Production-ready Go implementation | curl /health |
+| **Node.js Reference API** | Node.js 18+ | 8003 (HTTP), 8446 (HTTPS) | Modern async/await patterns | curl /health |
+| **Rust Reference API** | Rust 1.70+ | 8004 (HTTP), 8447 (HTTPS) | High-performance async API | curl /health |
 
-**Common Operations:**
-```bash
-# Check Vault status
-./manage-devstack.sh vault-status
+**Implementation Patterns:**
+- **FastAPI Code-First** (port 8000): Implementation drives documentation - typical rapid development approach
+- **FastAPI API-First** (port 8001): OpenAPI specification drives implementation - contract-first approach
+- **Go/Gin** (port 8002): Compiled binary with goroutines for concurrency
+- **Node.js/Express** (port 8003): Event-driven with async/await patterns
+- **Rust/Actix-web** (port 8004): Memory-safe, zero-cost abstractions, comprehensive testing (~40% complete)
+- **Shared Test Suite**: Automated tests ensuring consistent behavior across all implementations
+- **Performance Benchmarks**: Compare throughput, latency, and resource usage
 
-# View root token
-./manage-devstack.sh vault-token
+All 5 implementations demonstrate identical core functionality with language-specific patterns. See `reference-apps/README.md` for architecture details and `tests/performance-benchmark.sh` for performance comparisons.
 
-# Get service password
-./manage-devstack.sh vault-show-password postgres
+**Resource Allocation:**
+- Total memory: ~4-5GB (with all services running)
+- Colima VM: 8GB allocated (4 CPU cores)
+- Each service has memory limits and health checks
 
-# Access UI
-open http://localhost:8200/ui
-# Token: cat ~/.config/vault/root-token
-```
-
-**First-Time Setup:**
-```bash
-# 1. Start services
-./manage-devstack.sh start
-
-# 2. Initialize Vault (auto-creates keys + token)
-./manage-devstack.sh vault-init
-
-# 3. Bootstrap PKI + store all credentials
-./manage-devstack.sh vault-bootstrap
-```
-
-⚠️ **CRITICAL:** Backup `~/.config/vault/` immediately! Data cannot be recovered without these files.
-
----
+## Service Configuration
 
 ### PostgreSQL
 
-**Purpose:** Primary relational database for Forgejo (Git server) and local development.
+**Purpose:** Primary database for Forgejo (Git server) and local development.
 
 **Configuration:**
-- **Image:** `postgres:16-alpine` (ARM64 native)
-- **Port:** 5432
-- **Static IP:** 172.20.0.10
-- **Credentials:** Auto-fetched from Vault at `secret/postgres`
-- **Storage:** Docker volume (`postgres_data`)
-- **Encoding:** UTF8, Locale: C
-- **Max Connections:** 100
+- Image: `postgres:18` (Debian-based, ARM64 native)
+- **Credentials:** Auto-fetched from Vault at startup via `configs/postgres/scripts/init.sh`
+  - Stored in Vault at `secret/postgres`
+  - Fields: `user`, `password`, `database`
+  - Password retrieved using `scripts/read-vault-secret.py`
+- **Authentication Mode:** MD5 (for PgBouncer compatibility, not SCRAM-SHA-256)
+- Storage: File-based in `/var/lib/postgresql/data`
+- Encoding: UTF8, Locale: C
+- Max connections: 100 (reduced for dev/Git only)
+- Shared buffers: 256MB
+- Effective cache: 1GB
+- **Optional TLS:** Configurable via `POSTGRES_ENABLE_TLS=true`
+- **PostgreSQL 18 Compatibility Layer:** Includes `configs/postgres/01-pg18-compatibility.sql`
+  - Creates `compat.pg_stat_bgwriter` view for backward compatibility with monitoring tools
+  - Maps new PostgreSQL 18 statistics columns to pre-PG17 column names
+  - Enables Vector metrics collection without modifications
 
-**Performance Tuning:**
+**Key Settings** (`docker-compose.yml:68-78`):
 ```yaml
-shared_buffers: 256MB
-effective_cache_size: 1GB
-work_mem: 8MB
+command:
+  - "postgres"
+  - "-c"
+  - "max_connections=100"
+  - "-c"
+  - "shared_buffers=256MB"
+  - "-c"
+  - "effective_cache_size=1GB"
+  - "-c"
+  - "work_mem=8MB"
 ```
-
-**Connection Examples:**
-```bash
-# From macOS (host)
-psql -h localhost -p 5432 -U dev_admin -d dev_database
-
-# Get password first
-./manage-devstack.sh vault-show-password postgres
-
-# From Docker network
-psql -h postgres -p 5432 -U dev_admin -d dev_database
-
-# Using management script
-./manage-devstack.sh shell postgres
-```
-
-**Health Check:**
-```bash
-# Automatic (every 60s)
-pg_isready -U dev_admin
-
-# Manual
-docker exec dev-postgres pg_isready -U dev_admin
-```
-
-**Optional TLS:**
-- Enable: Set `POSTGRES_ENABLE_TLS=true` in `.env`
-- Certificates: Auto-generated by Vault PKI
-- Dual-mode: Accepts both TLS and non-TLS connections
-
----
-
-### PgBouncer
-
-**Purpose:** Connection pooling for PostgreSQL (reduces connection overhead).
-
-**Configuration:**
-- **Image:** `edoburu/pgbouncer:latest`
-- **Port:** 6432
-- **Static IP:** 172.20.0.11
-- **Pool Mode:** Transaction (best for web apps)
-- **Max Connections:** 100
-- **Default Pool Size:** 10
-
-**When to Use:**
-- ✅ Web applications (connection-per-request)
-- ✅ APIs with high request frequency
-- ✅ Microservices connecting to shared database
-- ❌ Long-lived connections (use direct PostgreSQL)
-- ❌ Admin tasks (use direct PostgreSQL)
 
 **Connection:**
 ```bash
-# Through PgBouncer (port 6432)
-psql -h localhost -p 6432 -U dev_admin -d dev_database
+# From Mac
+psql -h localhost -p 5432 -U $POSTGRES_USER -d $POSTGRES_DB
 
-# Direct PostgreSQL (port 5432) - for comparison
-psql -h localhost -p 5432 -U dev_admin -d dev_database
+# From inside container
+docker exec -it dev-postgres psql -U $POSTGRES_USER -d $POSTGRES_DB
+
+# Using management script
+./manage-devstack.sh shell postgres
+# Then: psql -U $POSTGRES_USER -d $POSTGRES_DB
 ```
 
-**Comparison:**
-| Feature | Direct (5432) | PgBouncer (6432) |
-|---------|---------------|------------------|
-| Use Case | Admin, long connections | APIs, web apps |
-| Overhead | Higher | Lower |
-| Connection Limit | 100 (PostgreSQL) | 100 clients → 10 pool |
-| Session Variables | Full support | Limited support |
+**Init Scripts:**
+- Place `.sql` files in `configs/postgres/` to run on first start
+- Executed in alphabetical order
+- Useful for creating additional databases or users
 
----
+**Health Check:**
+```bash
+# Automatic (runs every 60 seconds)
+pg_isready -U $POSTGRES_USER
+
+# Manual check
+docker exec dev-postgres pg_isready -U $POSTGRES_USER
+```
+
+**Performance Tuning:**
+- Tuned for Git server workload (many small transactions)
+- Increased for dev workloads: adjust `max_connections`, `shared_buffers`
+- Monitor: `./manage-devstack.sh status` shows CPU/memory usage
+
+### PgBouncer
+
+**Purpose:** Connection pooling for PostgreSQL to reduce connection overhead.
+
+**Configuration:**
+- Pool mode: `transaction` (best for web applications)
+- Max client connections: 100
+- Default pool size: 10
+- Reduces PostgreSQL connection overhead
+- **Authentication:** Uses MD5 (PostgreSQL configured for MD5, not SCRAM-SHA-256)
+- **Credentials:** Loaded from Vault via environment variables (`scripts/load-vault-env.sh`)
+
+**When to Use:**
+- High-frequency connections (web apps, APIs)
+- Connection-per-request patterns
+- Microservices connecting to shared database
+
+**Connection:**
+```bash
+psql -h localhost -p 6432 -U $POSTGRES_USER -d $POSTGRES_DB
+```
+
+**Direct PostgreSQL vs PgBouncer:**
+- Direct (5432): For long-lived connections, admin tasks
+- PgBouncer (6432): For application connections, APIs
 
 ### MySQL
 
 **Purpose:** Legacy database support during migration period.
 
 **Configuration:**
-- **Image:** `mysql:8.0`
-- **Port:** 3306
-- **Static IP:** 172.20.0.12
-- **Credentials:** Auto-fetched from Vault at `secret/mysql`
-- **Character Set:** utf8mb4
-- **Collation:** utf8mb4_unicode_ci
-- **Max Connections:** 100
-- **InnoDB Buffer Pool:** 256MB
+- Image: `mysql:8.0`
+- **Credentials:** Auto-fetched from Vault at startup via `configs/mysql/scripts/init.sh`
+  - Stored in Vault at `secret/mysql`
+  - Fields: `root_password`, `user`, `password`, `database`
+- Character set: utf8mb4
+- Collation: utf8mb4_unicode_ci
+- Max connections: 100
+- InnoDB buffer pool: 256MB
+- **Optional TLS:** Configurable via `MYSQL_ENABLE_TLS=true`
 
 **Connection:**
 ```bash
-# Interactive (prompts for password)
-mysql -h 127.0.0.1 -u dev_admin -p
+mysql -h 127.0.0.1 -u $MYSQL_USER -p$MYSQL_PASSWORD $MYSQL_DATABASE
 
-# Non-interactive (use carefully)
-mysql -h 127.0.0.1 -u dev_admin -p$(./manage-devstack.sh vault-show-password mysql) dev_database
-
-# From container
-docker exec -it dev-mysql mysql -u dev_admin -p
+# Or interactively
+mysql -h 127.0.0.1 -u $MYSQL_USER -p
+# Enter password when prompted
 ```
 
-**Health Check:**
-```bash
-mysqladmin -u dev_admin -p$(cat ~/.config/vault/password) ping
-```
-
-**Optional TLS:**
-- Enable: Set `MYSQL_ENABLE_TLS=true` in `.env`
-- Certificates: Auto-generated by Vault PKI
-
----
+**Init Scripts:**
+- Place `.sql` files in `configs/mysql/`
+- Executed on first container start
 
 ### Redis Cluster
 
 **Purpose:** Distributed caching with high availability and horizontal scaling.
 
 **Architecture:**
-- **3 Master Nodes** (no replicas in dev mode)
-  - Node 1 (172.20.0.13): Slots 0-5460
-  - Node 2 (172.20.0.16): Slots 5461-10922
-  - Node 3 (172.20.0.17): Slots 10923-16383
-- **Total Hash Slots:** 16,384 (distributed across nodes)
-- **Memory per Node:** 256MB (768MB total)
-- **Eviction Policy:** allkeys-lru
+- 3 master nodes (no replicas in dev mode)
+- **Credentials:** All nodes share same password from Vault at `secret/redis-1`
+  - Auto-fetched at startup via `configs/redis/scripts/init.sh`
+  - Field: `password`
+- 16,384 hash slots distributed across nodes
+  - Node 1 (172.20.0.13): slots 0-5460
+  - Node 2 (172.20.0.16): slots 5461-10922
+  - Node 3 (172.20.0.17): slots 10923-16383
+- Total memory: 768MB (256MB per node)
+- Automatic slot allocation and data sharding
+- **Optional TLS:** Configurable via `REDIS_ENABLE_TLS=true`
 
-**Configuration:**
-- **Image:** `redis:7-alpine`
-- **Ports:**
-  - 6379, 6380, 6381 (data ports)
-  - 16379, 16380, 16381 (cluster bus - internal)
-- **Credentials:** Shared password from Vault at `secret/redis-1`
-- **Persistence:** AOF (Append-Only File) + RDB snapshots
+**Configuration Files:**
+- `configs/redis/redis-cluster.conf` - Cluster-specific settings
+- `configs/redis/redis.conf` - Standalone Redis config (reference)
+
+**Key Settings:**
+```conf
+# Cluster mode enabled
+cluster-enabled yes
+cluster-config-file nodes.conf
+cluster-node-timeout 5000
+cluster-require-full-coverage no  # Dev mode: operate with partial coverage
+
+# Persistence
+appendonly yes  # AOF enabled for cluster reliability
+save 900 1      # RDB snapshots
+
+# Memory
+maxmemory 256mb
+maxmemory-policy allkeys-lru
+```
+
+**Ports:**
+- **6379, 6380, 6381:** Redis data ports (mapped to host)
+- **16379, 16380, 16381:** Cluster bus ports (internal)
 
 **Connection:**
 ```bash
 # ALWAYS use -c flag for cluster mode!
-redis-cli -c -a $(./manage-devstack.sh vault-show-password redis-1) -p 6379
+redis-cli -c -a $REDIS_PASSWORD -p 6379
 
-# Connect to specific nodes
-redis-cli -c -a $REDIS_PASSWORD -p 6380  # Node 2
-redis-cli -c -a $REDIS_PASSWORD -p 6381  # Node 3
+# Connect to specific node
+redis-cli -c -a $REDIS_PASSWORD -p 6380
+redis-cli -c -a $REDIS_PASSWORD -p 6381
 ```
 
-**First-Time Initialization:**
+**First-Time Cluster Initialization:**
 ```bash
 # After starting containers for the first time
 ./configs/redis/scripts/redis-cluster-init.sh
 
-# Verify cluster is healthy
-docker exec dev-redis-1 redis-cli -a $REDIS_PASSWORD cluster info
+# Or manually
+docker exec dev-redis-1 redis-cli --cluster create \
+  172.20.0.13:6379 172.20.0.16:6379 172.20.0.17:6379 \
+  --cluster-yes -a $REDIS_PASSWORD
 ```
 
 **Cluster Operations:**
@@ -260,60 +257,76 @@ docker exec dev-redis-1 redis-cli -a $REDIS_PASSWORD cluster info
 # Check cluster status
 docker exec dev-redis-1 redis-cli -a $REDIS_PASSWORD cluster info
 
-# List all nodes and their roles
+# List all nodes
 docker exec dev-redis-1 redis-cli -a $REDIS_PASSWORD cluster nodes
 
-# View slot distribution
+# Check slot distribution
 docker exec dev-redis-1 redis-cli -a $REDIS_PASSWORD cluster slots
 
-# Comprehensive health check
+# Find which node owns a key
+docker exec dev-redis-1 redis-cli -a $REDIS_PASSWORD cluster keyslot <key-name>
+
+# Comprehensive cluster check
 docker exec dev-redis-1 redis-cli --cluster check 172.20.0.13:6379 -a $REDIS_PASSWORD
 ```
 
+**FastAPI Cluster Inspection APIs:**
+
+The reference application provides REST APIs for cluster inspection (see [Reference Application](#reference-application-fastapi)):
+
+```bash
+# Get cluster nodes and slot assignments
+curl http://localhost:8000/redis/cluster/nodes
+
+# Get slot distribution with coverage percentage
+curl http://localhost:8000/redis/cluster/slots
+
+# Get cluster state and statistics
+curl http://localhost:8000/redis/cluster/info
+
+# Get detailed info for specific node
+curl http://localhost:8000/redis/nodes/redis-1/info
+```
+
 **Data Distribution:**
-- Keys automatically sharded based on CRC16(key) % 16384
-- Client follows redirects automatically with `-c` flag
-- Example: `SET user:1000 "data"` → hashed → routed to correct node
+- Keys are automatically sharded based on CRC16 hash
+- Client redirects handled automatically with `-c` flag
+- Example: `SET user:1000 "data"` → hashed → assigned to appropriate node
 
 **Why Cluster vs Single Node?**
-- ✅ **High Availability:** Continues if one node fails
-- ✅ **Horizontal Scaling:** Distribute data across nodes
-- ✅ **Performance:** Parallel read/write operations
-- ✅ **Production Parity:** Dev environment matches production
-
-**Optional TLS:**
-- Enable: Set `REDIS_ENABLE_TLS=true` in `.env`
-- Dual ports: 6379 (non-TLS), 6380 (TLS)
-
----
+- **High Availability:** If one node fails, others continue serving
+- **Horizontal Scaling:** Distribute data across nodes
+- **Performance:** Parallel read/write operations
+- **Production Parity:** Dev environment matches production architecture
 
 ### RabbitMQ
 
 **Purpose:** Message queue for asynchronous communication between services.
 
 **Configuration:**
-- **Image:** `rabbitmq:3-management-alpine`
-- **Ports:**
-  - 5672 (AMQP protocol)
-  - 15672 (Management UI)
-- **Static IP:** 172.20.0.14
-- **Credentials:** Auto-fetched from Vault at `secret/rabbitmq`
-- **Virtual Host:** `dev_vhost`
-- **Plugins:** Management UI enabled
+- Image: `rabbitmq:3-management-alpine`
+- **Credentials:** Auto-fetched from Vault at startup via `configs/rabbitmq/scripts/init.sh`
+  - Stored in Vault at `secret/rabbitmq`
+  - Fields: `user`, `password`, `vhost`
+- Protocols: AMQP (5672), Management HTTP (15672)
+- Virtual host: `dev_vhost`
+- Plugins: Management UI enabled
+- **Optional TLS:** Configurable via `RABBITMQ_ENABLE_TLS=true`
 
 **Access:**
-```bash
-# Management UI
-open http://localhost:15672
-# Username: dev_admin
-# Password: (from Vault)
-
-# AMQP connection string
-amqp://dev_admin:password@localhost:5672/dev_vhost
-```
+- **AMQP:** `amqp://dev_admin:password@localhost:5672/dev_vhost`
+- **Management UI:** http://localhost:15672
+  - Username: `$RABBITMQ_USER` (from .env)
+  - Password: `$RABBITMQ_PASSWORD` (from .env)
 
 **Common Operations:**
 ```bash
+# View logs
+./manage-devstack.sh logs rabbitmq
+
+# Shell access
+docker exec -it dev-rabbitmq sh
+
 # List queues
 docker exec dev-rabbitmq rabbitmqctl list_queues
 
@@ -322,549 +335,140 @@ docker exec dev-rabbitmq rabbitmqctl list_exchanges
 
 # List connections
 docker exec dev-rabbitmq rabbitmqctl list_connections
-
-# View logs
-./manage-devstack.sh logs rabbitmq
 ```
-
-**Use Cases:**
-- Task queues (background jobs)
-- Event-driven architecture
-- Microservice communication
-- Decoupling services
-
-**Optional TLS:**
-- Enable: Set `RABBITMQ_ENABLE_TLS=true` in `.env`
-- AMQPS port: 5671
-
----
 
 ### MongoDB
 
 **Purpose:** NoSQL document database for unstructured data.
 
 **Configuration:**
-- **Image:** `mongo:7`
-- **Port:** 27017
-- **Static IP:** 172.20.0.15
-- **Credentials:** Auto-fetched from Vault at `secret/mongodb`
-- **Authentication:** SCRAM-SHA-256
-- **Storage Engine:** WiredTiger
-- **Default Database:** `dev_database`
+- Image: `mongo:7`
+- **Credentials:** Auto-fetched from Vault at startup via `configs/mongodb/scripts/init.sh`
+  - Stored in Vault at `secret/mongodb`
+  - Fields: `user`, `password`, `database`
+- Authentication: SCRAM-SHA-256
+- Storage engine: WiredTiger
+- Default database: `dev_database`
+- **Optional TLS:** Configurable via `MONGODB_ENABLE_TLS=true`
 
 **Connection:**
 ```bash
 # Using mongosh (MongoDB Shell)
 mongosh --host localhost --port 27017 \
-  --username dev_admin \
-  --password $(./manage-devstack.sh vault-show-password mongodb) \
+  --username $MONGODB_USER \
+  --password $MONGODB_PASSWORD \
   --authenticationDatabase admin
 
 # Connection string
 mongodb://dev_admin:password@localhost:27017/dev_database?authSource=admin
 ```
 
-**Common Operations:**
-```bash
-# Shell access
-docker exec -it dev-mongodb mongosh -u dev_admin -p
-
-# View databases
-docker exec dev-mongodb mongosh --eval "show dbs"
-
-# View collections
-docker exec dev-mongodb mongosh dev_database --eval "show collections"
-```
-
-**Optional TLS:**
-- Enable: Set `MONGODB_ENABLE_TLS=true` in `.env`
-- Certificates: Auto-generated by Vault PKI
-
----
+**Init Scripts:**
+- Place `.js` files in `configs/mongodb/`
+- Executed in alphabetical order on first start
 
 ### Forgejo (Git Server)
 
 **Purpose:** Self-hosted Git server (Gitea fork) for private repositories.
 
 **Configuration:**
-- **Image:** `codeberg.org/forgejo/forgejo:1.21`
-- **Ports:**
-  - 3000 (HTTP/HTTPS web interface)
-  - 2222 (SSH - avoids conflict with macOS SSH on 22)
-- **Static IP:** 172.20.0.20
-- **Database:** PostgreSQL (uses existing PostgreSQL service)
-- **Storage:** Docker volume (`forgejo_data`)
+- Uses PostgreSQL for metadata storage
+- Git data stored in Docker volume (`forgejo_data`)
+- SSH port mapped to 2222 (to avoid conflict with Mac's SSH on 22)
 
 **First-Time Setup:**
-1. Open http://localhost:3000
+1. Navigate to http://localhost:3000
 2. Complete installation wizard:
-   - **Database Type:** PostgreSQL
-   - **Host:** `postgres:5432`
-   - **Database:** `forgejo`
-   - **Username/Password:** Same as PostgreSQL (from Vault)
+   - Database type: PostgreSQL
+   - Host: `postgres:5432` (internal network)
+   - Database: `forgejo`
+   - Username/Password: Same as PostgreSQL (auto-configured via env vars)
 3. Create admin account
-4. Start creating repositories!
+4. Start creating repositories
 
 **Git Operations:**
 ```bash
 # Clone via HTTP
 git clone http://localhost:3000/username/repo.git
 
-# Clone via SSH (port 2222)
+# Clone via SSH
 git clone ssh://git@localhost:2222/username/repo.git
 
-# Configure SSH for easier access
-cat >> ~/.ssh/config <<EOF
+# Configure SSH
+# Add to ~/.ssh/config:
 Host forgejo
   HostName localhost
   Port 2222
   User git
   IdentityFile ~/.ssh/id_rsa
-EOF
 
-# Then clone with short alias
+# Then clone with:
 git clone forgejo:username/repo.git
 ```
 
+**SSH and GPG Keys:**
+For setting up SSH keys (for authenticated push/pull) and GPG keys (for signed commits), see the detailed guide in [CONTRIBUTING.md](../Contributing-Guide#setting-up-ssh-and-gpg-keys-for-forgejo).
+
 **Access from Network:**
 - Set `FORGEJO_DOMAIN` to Colima IP in `.env`
+- Access from libvirt VMs or other machines on network
 - Example: http://192.168.106.2:3000
-- Useful for accessing from UTM VMs or other machines
 
-**Features:**
-- Git repository hosting
-- Pull requests and code review
-- Issue tracking
-- Wiki pages
-- CI/CD (Actions)
-- Package registry
-- LFS (Large File Storage)
+### HashiCorp Vault
 
----
-
-## Observability Stack
-
-### Prometheus
-
-**Purpose:** Metrics collection and time-series database.
+**Purpose:** Centralized secrets management and encryption as a service.
 
 **Configuration:**
-- **Image:** `prom/prometheus:v2.48.0`
-- **Port:** 9090
-- **Static IP:** 172.20.0.101
-- **Storage:** Docker volume (`prometheus_data`)
-- **Retention:** 15 days
-
-**Access:**
-```bash
-# Web UI
-open http://localhost:9090
-
-# Query metrics
-curl http://localhost:9090/api/v1/query?query=up
-
-# Health check
-curl http://localhost:9090/-/healthy
-```
-
-**Monitored Services:**
-- PostgreSQL (via postgres-exporter)
-- Redis (via redis-exporters)
-- RabbitMQ (built-in metrics)
-- All reference applications
-- Vault
-- Container metrics (via cAdvisor)
-
-**Example Queries:**
-```promql
-# CPU usage by container
-rate(container_cpu_usage_seconds_total[5m])
-
-# Redis operations per second
-rate(redis_commands_processed_total[1m])
-
-# HTTP request rate
-rate(http_requests_total[5m])
-```
-
----
-
-### Grafana
-
-**Purpose:** Visualization and dashboards for metrics and logs.
-
-**Configuration:**
-- **Image:** `grafana/grafana:10.2.2`
-- **Port:** 3001
-- **Static IP:** 172.20.0.102
-- **Default Credentials:** admin/admin (change on first login)
-- **Data Sources:** Prometheus, Loki (pre-configured)
-
-**Access:**
-```bash
-open http://localhost:3001
-# Username: admin
-# Password: admin (change on first login)
-```
-
-**Pre-configured Dashboards:**
-- Docker Container Metrics
-- PostgreSQL Performance
-- Redis Cluster Overview
-- RabbitMQ Monitoring
-- Application Request Rates
-
-**Features:**
-- Real-time metrics visualization
-- Log exploration (via Loki)
-- Alerting
-- Dashboard sharing
-- Custom panels and queries
-
----
-
-### Loki
-
-**Purpose:** Log aggregation system (like Prometheus, but for logs).
-
-**Configuration:**
-- **Image:** `grafana/loki:2.9.3`
-- **Port:** 3100
-- **Static IP:** 172.20.0.103
-- **Storage:** Docker volume (`loki_data`)
-
-**Log Collection:**
-- Logs collected by Vector
-- Shipped to Loki for storage
-- Queried via Grafana or LogCLI
-
-**Access:**
-```bash
-# Query logs via API
-curl http://localhost:3100/loki/api/v1/query?query='{service="postgres"}'
-
-# View in Grafana
-open http://localhost:3001/explore
-# Select Loki data source
-```
-
-**LogQL Examples:**
-```logql
-# All PostgreSQL logs
-{service="postgres"}
-
-# Error logs from all services
-{level="error"}
-
-# Redis logs in last 5 minutes
-{service="redis"} |= "error" [5m]
-```
-
----
-
-### Vector
-
-**Purpose:** Unified observability data pipeline (logs + metrics).
-
-**Configuration:**
-- **Image:** `timberio/vector:latest`
-- **Port:** 8686 (health/metrics)
-- **Static IP:** 172.20.0.104
-
-**What Vector Does:**
-- Collects logs from all Docker containers
-- Scrapes metrics from databases (Postgres, MySQL, MongoDB)
-- Ships logs to Loki
-- Exposes metrics to Prometheus
-- Replaces multiple single-purpose exporters
-
-**Benefits:**
-- Single data pipeline (reduces container count)
-- Consistent log formatting
-- Efficient resource usage
-- Centralized configuration
-
----
-
-### cAdvisor
-
-**Purpose:** Container resource monitoring (CPU, memory, network, disk).
-
-**Configuration:**
-- **Image:** `gcr.io/cadvisor/cadvisor:latest`
-- **Port:** 8080
-- **Metrics Exposed:** Port 8080 (scraped by Prometheus)
-
-**Access:**
-```bash
-# Web UI
-open http://localhost:8080
-
-# View container metrics
-curl http://localhost:8080/metrics
-```
-
-**Metrics Provided:**
-- CPU usage per container
-- Memory usage and limits
-- Network I/O
-- Disk I/O
-- Container lifecycle events
-
----
-
-## Reference Applications
-
-All reference applications demonstrate identical core functionality using different languages/frameworks.
-
-### Common Features
-
-**All applications provide:**
-- ✅ Vault integration (credential retrieval)
-- ✅ PostgreSQL CRUD operations
-- ✅ Redis Cluster operations
-- ✅ RabbitMQ messaging
-- ✅ MongoDB operations
-- ✅ Health checks for all dependencies
-- ✅ Dual HTTP/HTTPS support
-- ✅ Prometheus metrics
-- ✅ OpenAPI documentation
-
-**Endpoints:**
-- `GET /health` - Overall health status
-- `GET /health/postgres` - PostgreSQL connection
-- `GET /health/redis` - Redis cluster status
-- `GET /health/rabbitmq` - RabbitMQ connection
-- `GET /health/mongodb` - MongoDB connection
-- `GET /metrics` - Prometheus metrics
-- `GET /docs` - API documentation
-
----
-
-### FastAPI Code-First
-
-**Implementation approach:** Code drives documentation (typical rapid development).
-
-**Configuration:**
-- **Language:** Python 3.11
-- **Framework:** FastAPI
-- **Ports:** 8000 (HTTP), 8443 (HTTPS)
-- **Static IP:** 172.20.0.100
+- Storage backend: File (persistent across restarts)
+- Seal type: Shamir (3 of 5 keys required to unseal)
+- Auto-unseal: Enabled on container start (see [Vault Auto-Unseal](#vault-auto-unseal))
+- UI: Enabled at http://localhost:8200/ui
 
 **Key Features:**
-- Most comprehensive implementation (reference)
-- Extensive test coverage (254 unit tests)
-- Advanced patterns: caching, rate limiting, circuit breakers
-- Detailed logging and error handling
+- **Secrets Management:** Store API keys, passwords, certificates
+- **Dynamic Secrets:** Generate database credentials on-demand
+- **Encryption as a Service:** Encrypt/decrypt data via API
+- **Audit Logging:** Track all secret access
+- **Policy-Based Access:** Fine-grained permissions
 
-**Access:**
+**File Locations:**
+```
+~/.config/vault/keys.json        # 5 unseal keys
+~/.config/vault/root-token       # Root token for admin access
+```
+
+**⚠️ CRITICAL:** Backup these files! Cannot be recovered if lost.
+
+**Access Vault:**
 ```bash
-# HTTP
-curl http://localhost:8000/health
+# Set environment
+export VAULT_ADDR=http://localhost:8200
+export VAULT_TOKEN=$(cat ~/.config/vault/root-token)
 
-# HTTPS (self-signed cert)
-curl -k https://localhost:8443/health
+# Check status
+vault status
 
-# OpenAPI docs
-open http://localhost:8000/docs
+# List secrets
+vault kv list secret/
+
+# Store secret
+vault kv put secret/myapp/config api_key=123456
+
+# Retrieve secret
+vault kv get secret/myapp/config
+
+# Use management script
+./manage-devstack.sh vault-status
+./manage-devstack.sh vault-token
 ```
 
----
+**Vault Workflow:**
+1. Container starts → Vault server starts sealed
+2. Auto-unseal script waits for Vault to be ready
+3. Script reads `~/.config/vault/keys.json`
+4. Script POSTs 3 of 5 unseal keys to `/v1/sys/unseal`
+5. Vault unseals and becomes operational
+6. Script sleeps indefinitely (zero CPU overhead)
 
-### FastAPI API-First
+See [Vault Auto-Unseal](#vault-auto-unseal) for detailed information.
 
-**Implementation approach:** OpenAPI specification drives code (contract-first).
-
-**Configuration:**
-- **Language:** Python 3.11
-- **Framework:** FastAPI
-- **Ports:** 8001 (HTTP), 8444 (HTTPS)
-- **Static IP:** 172.20.0.101
-
-**Key Difference:**
-- Starts with OpenAPI spec (`api/openapi.yaml`)
-- Code implements the contract
-- Ensures API consistency
-- Better for team collaboration
-
----
-
-### Go/Gin API
-
-**Implementation approach:** Production-ready compiled binary with goroutines.
-
-**Configuration:**
-- **Language:** Go 1.23+
-- **Framework:** Gin
-- **Ports:** 8002 (HTTP), 8445 (HTTPS)
-- **Static IP:** 172.20.0.102
-
-**Key Features:**
-- Fast startup time
-- Low memory footprint
-- Native concurrency (goroutines)
-- Single binary deployment
-
----
-
-### Node.js/Express API
-
-**Implementation approach:** Event-driven with async/await patterns.
-
-**Configuration:**
-- **Language:** Node.js 18+
-- **Framework:** Express
-- **Ports:** 8003 (HTTP), 8446 (HTTPS)
-- **Static IP:** 172.20.0.103
-
-**Key Features:**
-- Non-blocking I/O
-- NPM ecosystem
-- JavaScript/TypeScript familiarity
-- Rapid prototyping
-
----
-
-### Rust/Actix-web API
-
-**Implementation approach:** Memory-safe, high-performance async API.
-
-**Configuration:**
-- **Language:** Rust 1.70+
-- **Framework:** Actix-web
-- **Ports:** 8004 (HTTP), 8447 (HTTPS)
-- **Static IP:** 172.20.0.104
-
-**Key Features:**
-- Memory safety without garbage collection
-- Zero-cost abstractions
-- Excellent performance
-- Compile-time guarantees
-
----
-
-### TypeScript API-First
-
-**Implementation approach:** OpenAPI-driven with TypeScript type safety.
-
-**Configuration:**
-- **Language:** TypeScript/Node.js
-- **Framework:** Express
-- **Ports:** 8005 (HTTP), 8448 (HTTPS)
-- **Static IP:** 172.20.0.105
-
-**Key Features:**
-- Type safety
-- OpenAPI contract enforcement
-- Modern JavaScript features
-- IDE autocomplete support
-
----
-
-## Service Dependencies
-
-**Dependency Graph:**
-```
-Vault (first)
-  ├── PostgreSQL → PgBouncer
-  ├── MySQL
-  ├── Redis Cluster (3 nodes)
-  ├── RabbitMQ
-  ├── MongoDB
-  └── Forgejo
-      └── Uses PostgreSQL
-
-Observability (parallel)
-  ├── Prometheus
-  ├── Grafana → Prometheus + Loki
-  ├── Loki
-  ├── Vector → Loki + Prometheus
-  └── cAdvisor → Prometheus
-
-Reference Apps (last)
-  ├── FastAPI Code-First
-  ├── FastAPI API-First
-  ├── Go/Gin
-  ├── Node.js/Express
-  ├── Rust/Actix-web
-  └── TypeScript API-First
-```
-
-**Startup Order:**
-1. Vault starts and auto-unseals
-2. All infrastructure services start (fetch credentials from Vault)
-3. Observability stack starts
-4. Reference applications start
-
----
-
-## Resource Allocation
-
-**Total Memory Usage:** ~4-5GB (all services running)
-
-**Per Service (approximate):**
-- Vault: 128MB
-- PostgreSQL: 512MB
-- Redis Cluster (3 nodes): 768MB (256MB each)
-- RabbitMQ: 256MB
-- MongoDB: 512MB
-- Prometheus: 512MB
-- Grafana: 256MB
-- Reference APIs: ~200MB each
-- Others: ~100-200MB each
-
-**Recommended Colima VM:**
-- **CPU:** 4-6 cores
-- **Memory:** 8-12GB
-- **Disk:** 60GB+
-
-**Adjust with:**
-```bash
-colima stop
-colima start --cpu 6 --memory 12 --disk 100
-```
-
----
-
-## Port Reference
-
-**Quick port lookup:**
-
-| Service | HTTP | HTTPS/TLS | Other |
-|---------|------|-----------|-------|
-| Vault | 8200 | - | - |
-| PostgreSQL | - | - | 5432 |
-| PgBouncer | - | - | 6432 |
-| MySQL | - | - | 3306 |
-| Redis Node 1 | - | - | 6379, 16379 |
-| Redis Node 2 | - | - | 6380, 16380 |
-| Redis Node 3 | - | - | 6381, 16381 |
-| RabbitMQ | 15672 (UI) | - | 5672 (AMQP) |
-| MongoDB | - | - | 27017 |
-| Forgejo | 3000 | - | 2222 (SSH) |
-| Prometheus | 9090 | - | - |
-| Grafana | 3001 | - | - |
-| Loki | 3100 | - | - |
-| cAdvisor | 8080 | - | - |
-| FastAPI Code-First | 8000 | 8443 | - |
-| FastAPI API-First | 8001 | 8444 | - |
-| Go API | 8002 | 8445 | - |
-| Node.js API | 8003 | 8446 | - |
-| Rust API | 8004 | 8447 | - |
-| TypeScript API | 8005 | 8448 | - |
-
----
-
-## Next Steps
-
-- **[Quick Start Guide](Quick-Start-Guide)** - Get started in 5 minutes
-- **[Installation](Installation)** - Detailed installation instructions
-- **[First-Time Setup](First-Time-Setup)** - Vault initialization and bootstrap
-- **[Management Commands](Management-Commands)** - CLI reference
-- **[Common Issues](Common-Issues)** - Troubleshooting
-- **[Reference Applications](Reference-Applications)** - Multi-language API guide
-- **[Architecture Overview](Architecture-Overview)** - System architecture
-
----
-
-**Questions?** See [FAQ](FAQ) or [open an issue](https://github.com/NormB/devstack-core/issues).
