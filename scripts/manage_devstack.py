@@ -1200,6 +1200,7 @@ def restore(backup_name):
         if mongodb_backup.exists():
             task = progress.add_task("Restoring MongoDB...", total=None)
             try:
+                import subprocess
                 with open(mongodb_backup, 'rb') as f:
                     result = subprocess.run(
                         ["docker", "compose", "exec", "-T", "mongodb", "mongorestore", "--archive", "--drop"],
