@@ -1,306 +1,129 @@
-# DevStack Core - Complete Development Environment
+# DevStack Core
 
-> **Comprehensive local development infrastructure for VoIP services on Apple Silicon (M Series Processors) using Colima**
+> **Complete Docker-based development infrastructure for Apple Silicon, optimized with Colima**
 
-A production-ready, Docker-based development environment running on Colima that provides Git hosting, databases, caching, message queuing, and secrets management optimized for Apple Silicon Macs.
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](./LICENSE)
+[![Docker Compose](https://img.shields.io/badge/docker--compose-v2.0+-blue.svg)](https://docs.docker.com/compose/)
+[![Colima](https://img.shields.io/badge/colima-latest-brightgreen.svg)](https://github.com/abiosoft/colima)
+[![Platform](https://img.shields.io/badge/platform-Apple%20Silicon%20%7C%20Intel-lightgrey.svg)](https://www.apple.com/mac/)
 
-## Table of Contents
+A production-ready, self-contained development environment providing Git hosting (Forgejo), databases (PostgreSQL, MySQL, MongoDB), caching (Redis Cluster), message queuing (RabbitMQ), secrets management (Vault), and observability (Prometheus, Grafana, Loki) - all running locally on your Mac.
 
-- [Reference Applications](#reference-applications)
-- [Overview](#overview)
-- [Service Profiles](#service-profiles)
-- [Quick Start](#quick-start)
-- [Documentation](#documentation)
-- [Features](#features)
-- [Getting Help](#getting-help)
+---
 
-## Reference Applications
+## ✨ Key Features
 
-This repository includes production-ready reference implementations demonstrating how to integrate with all infrastructure services (Vault, databases, caching, messaging). These implementations showcase language-agnostic patterns for secrets management, dynamic credentials, health checks, and service integration.
+- **🚀 Complete Infrastructure** - Everything you need: Git, databases, caching, messaging, secrets, observability
+- **🎯 Service Profiles** - Choose your stack: minimal (2GB), standard (4GB), or full (6GB) with observability
+- **🍎 Apple Silicon Optimized** - Native ARM64 support via Colima's Virtualization.framework
+- **🔒 Vault-First Security** - All credentials managed by HashiCorp Vault with dynamic generation
+- **📦 Zero Cloud Dependencies** - Runs entirely on your Mac, perfect for offline development
+- **🛠️ Easy Management** - Single CLI script with 21 commands for all operations
+- **📚 Reference Apps** - Production-ready examples in Python, Go, Node.js, TypeScript, and Rust
+- **🔍 Full Observability** - Built-in Prometheus, Grafana, and Loki for monitoring and logging
 
-### Available Implementations
+## 🚀 Quick Start
 
-| Language | Implementation | Description | Ports | Documentation |
-|----------|---------------|-------------|-------|---------------|
-| **Python** | FastAPI (Code-First) | Comprehensive code-first API with full service integration | 8000 (HTTP), 8443 (HTTPS) | [README](./reference-apps/fastapi/README.md) |
-| **Python** | FastAPI (API-First) | OpenAPI specification-driven implementation with shared test suite | 8001 (HTTP), 8444 (HTTPS) | [README](./reference-apps/fastapi-api-first/README.md) |
-| **Go** | Gin Framework | Production-ready Go implementation with concurrent patterns | 8002 (HTTP), 8445 (HTTPS) | [README](./reference-apps/golang/README.md) |
-| **Node.js** | Express Framework | Modern async/await patterns with Express | 8003 (HTTP), 8446 (HTTPS) | [README](./reference-apps/nodejs/README.md) |
-| **Rust** | Actix-web (Partial) | High-performance async API with comprehensive testing | 8004 (HTTP), 8447 (HTTPS) | [README](./reference-apps/rust/README.md) |
-
-### Key Features
-
-All reference applications demonstrate:
-
-- **Vault Integration**: Dynamic secret retrieval, KV secrets management, PKI certificate issuance
-- **Database Connections**: PostgreSQL, MySQL, MongoDB with Vault-managed credentials
-- **Caching**: Redis cluster operations with connection pooling
-- **Messaging**: RabbitMQ queue management and message publishing
-- **Observability**: Prometheus metrics, structured logging, health checks
-- **Security**: TLS/SSL support, secrets management, secure credential handling
-- **Testing**: Comprehensive test suites with executable tests for all implementations
-- **API Synchronization**: Automated validation between code-first and API-first implementations
-
-### Quick Start
-
-Each implementation can be started via Docker Compose:
-
-```bash
-# Start all reference applications
-docker compose up -d reference-api api-first golang-api nodejs-api rust-api
-
-# Or start individual services
-docker compose up -d golang-api
-```
-
-**API Synchronization and Validation:**
-
-```bash
-# Validate API synchronization (for contributors)
-make validate       # Run all validation checks
-make sync-check     # Check API drift
-make test           # Run shared test suite
-make help           # Show all available targets
-```
-
-See [Reference Apps Overview](./reference-apps/README.md) for architecture details and design patterns used across implementations.
-
-## Overview
-
-### What is Colima?
-
-**Colima** (Containers on Linux on macOS) is a container runtime for macOS and Linux that provides a minimal, lightweight alternative to Docker Desktop. It runs containers in a Linux VM using:
-
-- **Lima** (Linux virtual machines on macOS)
-- **containerd** or **Docker** as the container runtime
-- **QEMU** or **VZ** (Virtualization.framework) as the hypervisor
-
-**Key Benefits:**
-- Free and open-source (no licensing fees)
-- Minimal resource overhead
-- Native Apple Silicon (ARM64) support
-- Full Docker CLI compatibility
-- Faster than Docker Desktop on M-series Macs
-- Supports multiple profiles/instances
-- Uses macOS native Virtualization.framework (VZ) for better performance
-
-### Why This Stack?
-
-This repository provides a **complete, self-contained development environment** that:
-
-1. **Runs Entirely on Your Mac** - No cloud dependencies
-2. **Optimized for Apple Silicon** - Native ARM64 support via Colima's VZ backend
-3. **Production-Like** - Services configured similarly to production environments
-4. **Version Controlled** - Infrastructure as code using Docker Compose
-5. **Isolated** - Separate network and volumes, doesn't conflict with other projects
-6. **Persistent** - Data survives container restarts via Docker volumes
-7. **Manageable** - Single script (`manage-devstack`) for all operations
-
-**Use Cases:**
-- VoIP application development (primary purpose)
-- Microservices development
-- Learning container orchestration
-- Testing database migrations
-- Git repository hosting (Forgejo)
-- Secrets management (Vault)
-- Message queue development (RabbitMQ)
-
-### Architecture Philosophy
-
-**Separation of Concerns:**
-- DevStack Core environment: Git hosting (Forgejo) + development databases
-- Separate libvirt VMs: Production VoIP services (OpenSIPS, Asterisk, RTPEngine)
-- Benefit: Network latency minimization, clear environment boundaries, full kernel access for RTPEngine
-
-**Design Principles:**
-1. **Minimal Complexity** - Use standard Docker images, avoid custom builds
-2. **Configuration Over Customization** - Leverage environment variables and config files
-3. **Performance First** - Optimized health checks, resource limits
-4. **Security Aware** - Password protection, network isolation (development setup)
-5. **Observable** - Health checks, logging, easy status inspection
-
-## Service Profiles
-
-DevStack Core supports flexible service profiles to match your development needs. Choose the profile that fits your use case:
-
-| Profile | Services | RAM | Use Case |
-|---------|----------|-----|----------|
-| **minimal** | 5 services | 2GB | Git hosting + essential development (single Redis) |
-| **standard** | 10 services | 4GB | Full development stack + Redis cluster (recommended) |
-| **full** | 18 services | 6GB | Complete suite + observability (Prometheus, Grafana, Loki) |
-| **reference** | +5 services | +1GB | Educational API examples (combine with standard/full) |
-
-### Profile Quick Start
-
-```bash
-# Start with standard profile (recommended for most developers)
-./manage-devstack start --profile standard
-
-# Or use minimal profile (lightweight, single Redis instance)
-./manage-devstack start --profile minimal
-
-# Or use full profile (includes Prometheus, Grafana, Loki)
-./manage-devstack start --profile full
-
-# Combine profiles (standard + reference apps)
-./manage-devstack start --profile standard --profile reference
-
-# Check health of all running services
-./manage-devstack health
-
-# Initialize Redis cluster (required for standard/full profiles, first time only)
-./manage-devstack redis-cluster-init
-```
-
-**See [docs/SERVICE_PROFILES.md](./docs/SERVICE_PROFILES.md) for complete profile documentation.**
-
-## Quick Start
-
-### Quick Start Steps
+Get up and running in 5 minutes:
 
 ```bash
 # 1. Install prerequisites
-brew install colima docker docker-compose
+brew install colima docker docker-compose uv
 
-# Optional: Modern Rust-based CLI tools (not required)
-# brew install ripgrep fd-find bat eza
-
-# 2. Clone repository
+# 2. Clone and setup
 git clone https://github.com/NormB/devstack-core.git ~/devstack-core
 cd ~/devstack-core
 
-# 3. Install Python dependencies (one-time setup)
-uv venv
-uv pip install -r scripts/requirements.txt
+# 3. Install Python dependencies
+uv venv && uv pip install -r scripts/requirements.txt
 
 # 4. Configure environment
 cp .env.example .env
-nano .env  # Set strong passwords
 
 # 5. Start with standard profile (recommended)
 ./manage-devstack start --profile standard
 
 # 6. Initialize Vault (first time only)
 ./manage-devstack vault-init
-
-# 7. Bootstrap Vault PKI and credentials (first time only)
 ./manage-devstack vault-bootstrap
 
-# 8. Initialize Redis cluster (for standard/full profiles, first time only)
+# 7. Initialize Redis cluster (first time only, for standard/full profiles)
 ./manage-devstack redis-cluster-init
 
-# 9. Check health
+# 8. Verify everything is running
 ./manage-devstack health
 ```
 
-**Alternative profiles:**
-```bash
-# Lightweight (single Redis, 5 services, 2GB RAM)
-./manage-devstack start --profile minimal
-
-# Complete with observability (18 services, 6GB RAM)
-./manage-devstack start --profile full
-
-# Combine profiles for reference apps
-./manage-devstack start --profile standard --profile reference
-```
-
-**Note:** The wrapper script automatically uses the virtual environment. No need to activate it manually!
-
-**Getting Help:**
-```bash
-# Main help - shows all 21 commands
-./manage-devstack --help
-
-# Help for specific command - shows all options and examples
-./manage-devstack start --help
-./manage-devstack logs --help
-./manage-devstack vault-show-password --help
-```
-
-**Optional:** Add `~/devstack-core` to your PATH to use `manage-devstack` without `./`:
-```bash
-echo 'export PATH="$HOME/devstack-core:$PATH"' >> ~/.zshrc
-source ~/.zshrc
-# Then use: manage-devstack status (anywhere)
-```
-
-**See [docs/PYTHON_MANAGEMENT_SCRIPT.md](./docs/PYTHON_MANAGEMENT_SCRIPT.md) for complete Python script documentation.**
-
-**Access Services:**
+**Access your services:**
 - **Forgejo (Git):** http://localhost:3000
 - **Vault UI:** http://localhost:8200/ui
 - **RabbitMQ Management:** http://localhost:15672
-- **PostgreSQL:** `localhost:5432`
-- **Redis Cluster:** `localhost:6379/6380/6381`
-- **Reference APIs:** http://localhost:8000-8004
-- **Prometheus:** http://localhost:9090
 - **Grafana:** http://localhost:3001 (admin/admin)
+- **Prometheus:** http://localhost:9090
 
-For detailed installation instructions, see [docs/INSTALLATION.md](./docs/INSTALLATION.md).
+## 📋 Prerequisites
 
-## Documentation
+**Required:**
+- macOS (Apple Silicon M1/M2/M3 or Intel)
+- Homebrew package manager
+- 8GB+ RAM (16GB recommended)
+- 50GB+ free disk space
 
-### Core Documentation
+**Software (auto-installed via Homebrew):**
+- Colima (container runtime)
+- Docker CLI
+- Docker Compose
+- uv (Python package installer)
 
-- **[Installation Guide](./docs/INSTALLATION.md)** - Complete step-by-step installation with pre-flight checks, software setup, and verification
-- **[Service Profiles](./docs/SERVICE_PROFILES.md)** - Flexible service profiles (minimal, standard, full, reference) for different development needs
-- **[Python Management Script](./docs/PYTHON_MANAGEMENT_SCRIPT.md)** - Modern Python CLI with profile support, colored output, and comprehensive commands
-- **[Services Overview](./docs/SERVICES.md)** - Detailed configuration for PostgreSQL, MySQL, MongoDB, Redis, RabbitMQ, Forgejo, and Vault
-- **[Vault Integration](./docs/VAULT.md)** - Vault PKI setup, certificate management, auto-unseal configuration, and Vault commands
-- **[Redis Cluster](./docs/REDIS.md)** - Redis cluster architecture, setup, operations, and troubleshooting
-- **[Management Script](./docs/MANAGEMENT.md)** - Complete guide to manage-devstack commands and workflows
-- **[Observability Stack](./docs/OBSERVABILITY.md)** - Prometheus, Grafana, Loki setup and troubleshooting
-- **[Best Practices](./docs/BEST_PRACTICES.md)** - Development best practices and integration patterns
-- **[FAQ](./docs/FAQ.md)** - Frequently asked questions and common issues
+**For development:**
+- Python 3.8+ (for management script)
+- Git (for cloning repository)
 
-### Additional Documentation
+## 📖 Service Profiles
 
-- **[Architecture](./docs/ARCHITECTURE.md)** - System architecture with Mermaid diagrams
-- **[Troubleshooting](./docs/TROUBLESHOOTING.md)** - Comprehensive troubleshooting guide with diagnostic procedures
-- **[Performance Tuning](./docs/PERFORMANCE_TUNING.md)** - Performance optimization strategies and resource tuning
-- **[Security Assessment](./docs/SECURITY_ASSESSMENT.md)** - Security hardening and assessment guide
-- **[Test Results](./docs/TEST_RESULTS.md)** - Latest test execution results
-- **[Vault Security](./docs/VAULT_SECURITY.md)** - Vault hardening and security best practices
+Choose the profile that fits your needs:
 
-### Reference Application Documentation
+| Profile | Services | RAM | Use Case |
+|---------|----------|-----|----------|
+| **minimal** | 5 services | 2GB | Git hosting + essential development (single Redis) |
+| **standard** | 10 services | 4GB | **Full development stack + Redis cluster (RECOMMENDED)** |
+| **full** | 18 services | 6GB | Complete suite + observability (Prometheus, Grafana, Loki) |
+| **reference** | +5 services | +1GB | Educational API examples (combine with standard/full) |
 
-- **[Reference Apps Overview](./reference-apps/README.md)** - Architecture and patterns overview
-- **[Python FastAPI (Code-First)](./reference-apps/fastapi/README.md)** - Complete implementation guide
-- **[Python FastAPI (API-First)](./reference-apps/fastapi-api-first/README.md)** - OpenAPI-driven implementation
-- **[Go Implementation](./reference-apps/golang/README.md)** - Go implementation guide
-- **[Node.js Implementation](./reference-apps/nodejs/README.md)** - Node.js/Express implementation guide
-- **[Rust Implementation](./reference-apps/rust/README.md)** - Rust/Actix-web implementation guide
-- **[Shared Test Suite](./reference-apps/shared/test-suite/README.md)** - Reusable test framework
+### Profile Commands
 
-### Testing Documentation
+```bash
+# Start with different profiles
+./manage-devstack start --profile minimal   # Lightweight
+./manage-devstack start --profile standard  # Recommended
+./manage-devstack start --profile full      # Everything
 
-- **[Tests Overview](./tests/README.md)** - Infrastructure testing guide
-- **[Test Coverage](./tests/TEST_COVERAGE.md)** - Detailed test coverage metrics
+# Combine profiles for reference apps
+./manage-devstack start --profile standard --profile reference
 
-### Project Documentation
+# Check what's running
+./manage-devstack status
+./manage-devstack health
+```
 
-- **[CHANGELOG.md](./.github/CHANGELOG.md)** - Version history and changes
-- **[CONTRIBUTING.md](./.github/CONTRIBUTING.md)** - Contribution guidelines
-- **[CODE_OF_CONDUCT.md](./.github/CODE_OF_CONDUCT.md)** - Community standards
-- **[SECURITY.md](./.github/SECURITY.md)** - Security policy and reporting
+**See [Service Profiles Guide](./docs/SERVICE_PROFILES.md) for detailed information.**
 
-## Features
+## 🏗️ Architecture
 
 ### Infrastructure Services
 
-| Service | Version | Purpose | Access |
-|---------|---------|---------|--------|
-| **PostgreSQL** | 18 | Primary relational database | localhost:5432 |
-| **PgBouncer** | Latest | Connection pooling for PostgreSQL | localhost:6432 |
-| **MySQL** | 8.0 | Legacy application support | localhost:3306 |
-| **MongoDB** | 7 | NoSQL document database | localhost:27017 |
-| **Redis Cluster** | Latest | 3-node cluster for caching | localhost:6379-6381 |
-| **RabbitMQ** | Latest | Message queue + Management UI | localhost:5672, 15672 |
-| **Forgejo** | Latest | Self-hosted Git server | localhost:3000 |
-| **HashiCorp Vault** | Latest | Secrets management + PKI | localhost:8200 |
+| Service | Purpose | Access |
+|---------|---------|--------|
+| **HashiCorp Vault** | Secrets management + PKI | localhost:8200 |
+| **PostgreSQL 18** | Primary relational database | localhost:5432 |
+| **PgBouncer** | PostgreSQL connection pooling | localhost:6432 |
+| **MySQL 8.0** | Legacy application support | localhost:3306 |
+| **MongoDB 7** | NoSQL document database | localhost:27017 |
+| **Redis Cluster** | 3-node distributed cache | localhost:6379-6381 |
+| **RabbitMQ** | Message queue + UI | localhost:5672, 15672 |
+| **Forgejo** | Self-hosted Git server | localhost:3000 |
 
-### Observability Stack
+### Observability Stack (Full Profile)
 
 | Service | Purpose | Access |
 |---------|---------|--------|
@@ -308,61 +131,212 @@ For detailed installation instructions, see [docs/INSTALLATION.md](./docs/INSTAL
 | **Grafana** | Metrics visualization | localhost:3001 |
 | **Loki** | Log aggregation | localhost:3100 |
 | **Vector** | Unified observability pipeline | - |
-| **cAdvisor** | Container resource monitoring | localhost:8080 |
+| **cAdvisor** | Container monitoring | localhost:8080 |
 
-### Key Capabilities
+### Reference Applications
 
-- **Vault PKI Integration** - Automatic TLS certificate generation and rotation
-- **Vault Auto-Unseal** - Seamless Vault restarts without manual intervention
-- **Dynamic Credentials** - Vault-managed database credentials with rotation
-- **Redis Cluster** - High-availability caching with automatic failover
-- **Comprehensive Monitoring** - Prometheus + Grafana with pre-configured dashboards
-- **Centralized Logging** - Loki + Vector for log aggregation
-- **Management Script** - 20+ commands for easy service management
-- **Health Checks** - Automated health monitoring for all services
+Production-ready API implementations in multiple languages:
 
-## Getting Help
+| Language | Framework | Ports | Status |
+|----------|-----------|-------|--------|
+| **Python** | FastAPI (Code-First) | 8000, 8443 | ✅ Complete |
+| **Python** | FastAPI (API-First) | 8001, 8444 | ✅ Complete |
+| **Go** | Gin | 8002, 8445 | ✅ Complete |
+| **Node.js** | Express | 8003, 8446 | ✅ Complete |
+| **Rust** | Actix-web | 8004, 8447 | ⚠️ Partial (~40%) |
 
-### Quick Links
+All reference apps demonstrate:
+- Vault integration for secrets
+- Database connections (PostgreSQL, MySQL, MongoDB)
+- Redis cluster operations
+- RabbitMQ messaging
+- Health checks and metrics
+- TLS/SSL support
 
-- **Documentation:** [docs/](./docs/)
-- **Installation Issues:** [docs/INSTALLATION.md](./docs/INSTALLATION.md)
-- **Service Configuration:** [docs/SERVICES.md](./docs/SERVICES.md)
-- **Troubleshooting:** [docs/TROUBLESHOOTING.md](./docs/TROUBLESHOOTING.md)
-- **FAQ:** [docs/FAQ.md](./docs/FAQ.md)
+**See [Reference Apps Overview](./reference-apps/README.md) for details.**
 
-### Common Commands
+## 💻 Usage
+
+### Management Commands
+
+The `manage-devstack` script provides all essential operations:
 
 ```bash
-# Check status of all services
-./manage-devstack status
+# Service management
+./manage-devstack start [--profile PROFILE]  # Start services
+./manage-devstack stop                        # Stop services
+./manage-devstack restart                     # Restart services
+./manage-devstack status                      # Show status
+./manage-devstack health                      # Health checks
 
-# View logs for a specific service
-./manage-devstack logs vault
+# Logs and debugging
+./manage-devstack logs [SERVICE]              # View logs
+./manage-devstack shell SERVICE               # Open shell in container
 
-# Restart a service
-./manage-devstack restart postgres
+# Vault operations
+./manage-devstack vault-init                  # Initialize Vault
+./manage-devstack vault-bootstrap             # Setup PKI + credentials
+./manage-devstack vault-status                # Check Vault status
+./manage-devstack vault-show-password SERVICE # Get service password
 
-# Health check all services
-./manage-devstack health
+# Redis cluster
+./manage-devstack redis-cluster-init          # Initialize cluster
 
-# View all available commands
-./manage-devstack --help
+# Profiles
+./manage-devstack profiles                    # List available profiles
+
+# Help
+./manage-devstack --help                      # Show all commands
+./manage-devstack COMMAND --help              # Command-specific help
 ```
 
-### Need More Help?
+### Example Workflows
 
-1. Check the [Troubleshooting Guide](./docs/TROUBLESHOOTING.md)
-2. Review the [FAQ](./docs/FAQ.md)
-3. Search existing [GitHub Issues](https://github.com/NormB/devstack-core/issues)
-4. Open a new issue with details about your problem
+**Daily Development:**
+```bash
+# Morning: Start development environment
+./manage-devstack start --profile standard
 
-## License
+# Check everything is healthy
+./manage-devstack health
 
-MIT License - see [LICENSE](./LICENSE) for details.
+# View logs if needed
+./manage-devstack logs postgres
 
-## Acknowledgements
+# Evening: Stop everything (or leave running)
+./manage-devstack stop
+```
 
-This project is built on the shoulders of giants. We are grateful for the excellent open-source software and tools that make this project possible.
+**Database Operations:**
+```bash
+# Get database password
+./manage-devstack vault-show-password postgres
 
-See the complete list of [acknowledged projects and their licenses](./docs/ACKNOWLEDGEMENTS.md).
+# Connect to PostgreSQL
+psql -h localhost -p 5432 -U devuser -d devdb
+
+# Connect to MySQL
+mysql -h 127.0.0.1 -P 3306 -u devuser -p
+
+# Connect to MongoDB
+mongosh "mongodb://localhost:27017" --username devuser
+```
+
+**Troubleshooting:**
+```bash
+# Check service health
+./manage-devstack health
+
+# View service logs
+./manage-devstack logs vault
+./manage-devstack logs redis-1
+
+# Restart specific service
+docker compose restart postgres
+
+# Open shell for debugging
+./manage-devstack shell postgres
+```
+
+## 📚 Documentation
+
+### Getting Started
+- **[Installation Guide](./docs/INSTALLATION.md)** - Comprehensive setup with troubleshooting
+- **[Quick Start Tutorial](./docs/USAGE.md)** - Step-by-step usage guide
+- **[Service Profiles](./docs/SERVICE_PROFILES.md)** - Profile selection and configuration
+
+### Core Documentation
+- **[Architecture Overview](./docs/ARCHITECTURE.md)** - System design with diagrams
+- **[Services Guide](./docs/SERVICES.md)** - Detailed service configurations
+- **[Management Script](./docs/MANAGEMENT.md)** - Complete CLI reference
+- **[Python CLI Guide](./docs/PYTHON_MANAGEMENT_SCRIPT.md)** - Modern Python CLI documentation
+
+### Infrastructure
+- **[Vault Integration](./docs/VAULT.md)** - PKI setup and secrets management
+- **[Redis Cluster](./docs/REDIS.md)** - Cluster architecture and operations
+- **[Observability Stack](./docs/OBSERVABILITY.md)** - Prometheus, Grafana, Loki setup
+
+### Development
+- **[Reference Apps Overview](./reference-apps/README.md)** - Multi-language examples
+- **[Best Practices](./docs/BEST_PRACTICES.md)** - Development patterns
+- **[Testing Guide](./tests/README.md)** - Testing infrastructure
+- **[Test Coverage](./tests/TEST_COVERAGE.md)** - Coverage metrics
+
+### Operations
+- **[Troubleshooting](./docs/TROUBLESHOOTING.md)** - Common issues and solutions
+- **[Performance Tuning](./docs/PERFORMANCE_TUNING.md)** - Optimization strategies
+- **[Disaster Recovery](./docs/DISASTER_RECOVERY.md)** - Backup and restore procedures
+- **[Security Assessment](./docs/SECURITY_ASSESSMENT.md)** - Security hardening
+
+### Project
+- **[FAQ](./docs/FAQ.md)** - Frequently asked questions
+- **[Changelog](./.github/CHANGELOG.md)** - Version history
+- **[Contributing](./.github/CONTRIBUTING.md)** - Contribution guidelines
+- **[Security Policy](./.github/SECURITY.md)** - Security reporting
+
+## 🤝 Contributing
+
+We welcome contributions! Here's how to get started:
+
+1. **Fork the repository** on GitHub
+2. **Clone your fork:** `git clone https://github.com/YOUR_USERNAME/devstack-core.git`
+3. **Create a feature branch:** `git checkout -b feature/amazing-feature`
+4. **Make your changes** and test thoroughly
+5. **Commit your changes:** `git commit -m 'feat: add amazing feature'`
+6. **Push to your fork:** `git push origin feature/amazing-feature`
+7. **Open a Pull Request** with a clear description
+
+### Contribution Guidelines
+
+- Follow existing code style and conventions
+- Add tests for new features
+- Update documentation for any changes
+- Use conventional commit messages
+- Ensure CI/CD checks pass
+
+**See [CONTRIBUTING.md](./.github/CONTRIBUTING.md) for detailed guidelines.**
+
+## 🐛 Issues and Support
+
+**Found a bug?** [Open an issue](https://github.com/NormB/devstack-core/issues/new) with:
+- Clear description of the problem
+- Steps to reproduce
+- Expected vs actual behavior
+- System information (OS, Colima version, etc.)
+
+**Need help?**
+1. Check the [FAQ](./docs/FAQ.md)
+2. Review [Troubleshooting Guide](./docs/TROUBLESHOOTING.md)
+3. Search [existing issues](https://github.com/NormB/devstack-core/issues)
+4. Ask in [Discussions](https://github.com/NormB/devstack-core/discussions)
+
+## 📜 License
+
+This project is licensed under the **MIT License** - see the [LICENSE](./LICENSE) file for details.
+
+You are free to:
+- ✅ Use commercially
+- ✅ Modify
+- ✅ Distribute
+- ✅ Private use
+
+## 🙏 Acknowledgements
+
+Built with excellent open-source software:
+
+- [Colima](https://github.com/abiosoft/colima) - Container runtime for macOS
+- [HashiCorp Vault](https://www.vaultproject.io/) - Secrets management
+- [PostgreSQL](https://www.postgresql.org/) - Advanced relational database
+- [Redis](https://redis.io/) - In-memory data store
+- [RabbitMQ](https://www.rabbitmq.com/) - Message broker
+- [Forgejo](https://forgejo.org/) - Self-hosted Git service
+- [Prometheus](https://prometheus.io/) - Monitoring system
+- [Grafana](https://grafana.com/) - Observability platform
+
+**See complete list:** [ACKNOWLEDGEMENTS.md](./docs/ACKNOWLEDGEMENTS.md)
+
+---
+
+**Made with ❤️ for the developer community**
+
+For questions or feedback, visit our [GitHub repository](https://github.com/NormB/devstack-core).
