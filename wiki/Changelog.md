@@ -43,6 +43,69 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+- Rust linting and testing infrastructure
+  - Added `rust-lint` job to `.github/workflows/lint.yml` with `cargo fmt` and `cargo clippy`
+  - Created comprehensive `tests/test-rust.sh` script with 7 endpoint tests
+  - Added 5 unit tests to `reference-apps/rust/src/main.rs` for API endpoints and serialization
+  - Updated test suite documentation to include Rust testing
+
+### Changed
+- Enhanced `vault-show-password` command to display complete Forgejo credentials
+  - Now shows username, email, and password for Forgejo (previously only showed password)
+  - Improved implementation using `docker exec` for more reliable Vault access
+  - Updated documentation to reflect credential retrieval vs. password-only retrieval
+- Updated Rust implementation documentation to accurately reflect actual completeness
+  - Changed completion estimate from ~15% to ~40% based on comprehensive analysis
+  - Updated tone from "INTENTIONALLY INCOMPLETE" to "PARTIAL IMPLEMENTATION"
+  - Added detailed "What's Implemented" section highlighting test coverage, CORS, Vault integration
+  - Updated across all documentation files: CLAUDE.md, README.md, reference-apps/README.md, docs/ARCHITECTURE.md, docs/SERVICES.md, docs/PERFORMANCE_BASELINE.md
+
+### Fixed
+- Automatic Forgejo database creation during PostgreSQL initialization and vault-bootstrap
+  - Added `configs/postgres/02-create-forgejo-db.sql` to create forgejo database automatically
+  - Updated `manage-devstack.sh` vault-bootstrap to ensure forgejo database exists
+  - Prevents "installation page" issue when forgejo database is missing
+
+### Removed
+- Removed redundant historical documentation files from project root
+  - Deleted `RUST_DOCUMENTATION_UPDATE.md` (297 lines) - historical analysis already captured in changelog
+  - Deleted `FIXES.md` (174 lines) - test suite fixes already applied to codebase
+  - Enforces project mandate: all documentation must be in `docs/` subdirectory
+  - Only `README.md` and `CLAUDE.md` remain in project root (per project standards)
+
+---
+
+## [1.3.0] - 2025-11-05
+
+### Changed
+
+- **PostgreSQL upgraded from 16.6 to 18.0**
+  - Switched from Alpine-based (`postgres:16.6-alpine3.21`) to Debian-based (`postgres:18`) image
+  - Updated init script (`configs/postgres/scripts/init.sh`) to use `apt-get` instead of `apk` and `curl` instead of `wget`
+  - Updated volume mount from `/var/lib/postgresql/data` to `/var/lib/postgresql` (PostgreSQL 18 requirement)
+  - All databases restored successfully with zero data loss
+  - All 370+ tests passing (16/16 test suites)
+
+### Added
+
+- **PostgreSQL 18 compatibility layer for monitoring tools**
+  - Created `configs/postgres/01-pg18-compatibility.sql` with backward-compatible statistics views
+  - Implemented `compat.pg_stat_bgwriter` view that maps new PG18 column names to pre-PG17 names:
+    - `pg_stat_checkpointer.num_timed` → `checkpoints_timed`
+    - `pg_stat_checkpointer.num_requested` → `checkpoints_req`
+    - `pg_stat_checkpointer.write_time` → `checkpoint_write_time`
+    - `pg_stat_io` aggregations → `buffers_backend`, `buffers_backend_fsync`
+  - Configured database search_path to prioritize `compat` schema
+  - Vector PostgreSQL metrics collection fully operational without code changes
+
+### Fixed
+
+- **Backup script unbound variable error**
+  - Added `load_vault_credentials()` call to `manage-devstack.sh` backup command
+  - Updated `scripts/load-vault-env.sh` to load MySQL password from Vault
+  - Backup script now successfully loads all required credentials
+
 ---
 
 ## [1.2.1] - 2025-10-30
@@ -130,7 +193,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Go reference API implementation (port 8002)
 - Node.js reference API implementation (port 8003) with Express, async/await patterns, and full infrastructure integration
 - Node.js test suite using Jest and Supertest for comprehensive API testing
-- Rust minimal reference API implementation (port 8004) with Actix-web demonstrating high-performance patterns
+- Rust partial reference API implementation (port 8004, ~40% complete) with Actix-web demonstrating high-performance patterns and comprehensive testing
 - Performance benchmark suite (tests/performance-benchmark.sh) for comparing all reference implementations
 - TypeScript API-First scaffolding for future OpenAPI code generation implementation
 - Focused documentation files extracted from massive README:
