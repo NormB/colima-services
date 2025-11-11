@@ -33,7 +33,6 @@ License: MIT
 import os
 import sys
 import subprocess
-import time
 from pathlib import Path
 from typing import List, Dict, Optional, Tuple
 
@@ -42,7 +41,6 @@ try:
     import yaml
     from rich.console import Console
     from rich.table import Table
-    from rich.panel import Panel
     from rich.progress import Progress, SpinnerColumn, TextColumn
     from rich import box
     from dotenv import dotenv_values
@@ -1012,7 +1010,7 @@ def backup():
         size = result.stdout.split()[0]
         console.print(f"\n[green]✓ Backup completed:[/green] {backup_dir}")
         console.print(f"[cyan]Backup size:[/cyan] {size}\n")
-    except:
+    except Exception:
         console.print(f"\n[green]✓ Backup completed:[/green] {backup_dir}\n")
 
 
@@ -1090,7 +1088,7 @@ def restore(backup_name):
                 date_str = backup.name
                 dt = datetime.strptime(date_str, "%Y%m%d_%H%M%S")
                 formatted_date = dt.strftime("%Y-%m-%d %H:%M:%S")
-            except:
+            except Exception:
                 formatted_date = backup.name
 
             # Get size
@@ -1102,7 +1100,7 @@ def restore(backup_name):
                     text=True
                 )
                 size = result.stdout.split()[0]
-            except:
+            except Exception:
                 size = "Unknown"
 
             table.add_row(backup.name, formatted_date, size)
@@ -1220,6 +1218,7 @@ def restore(backup_name):
         if forgejo_backup.exists():
             task = progress.add_task("Restoring Forgejo...", total=None)
             try:
+                import subprocess  # Explicit import to prevent UnboundLocalError
                 with open(forgejo_backup, 'rb') as f:
                     result = subprocess.run(
                         ["docker", "compose", "exec", "-T", "forgejo", "sh", "-c", "rm -rf /data/* && tar xzf - -C /"],
@@ -1430,9 +1429,7 @@ def vault_bootstrap():
             capture=True
         )
         if returncode == 0:
-            # Read SQL file and pipe to psql
-            with open(forgejo_sql) as f:
-                sql_content = f.read()
+            # SQL file exists for reference but not used in automated initialization
             run_command(
                 ["docker", "compose", "exec", "-T", "postgres", "psql", "-U", "devuser", "-d", "postgres"],
                 check=False
@@ -1534,8 +1531,6 @@ def vault_show_password(service: str):
         console.print("[red]Error: VAULT_TOKEN not set[/red]")
         console.print("[yellow]Run './manage-devstack vault-init' first[/yellow]\n")
         sys.exit(1)
-
-    env = {"VAULT_TOKEN": token, "VAULT_ADDR": "http://localhost:8200"}
 
     console.print("\n[yellow]⚠ Password will be displayed in plaintext[/yellow]")
     console.print("[yellow]Ensure terminal is secure[/yellow]\n")
