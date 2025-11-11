@@ -13,14 +13,14 @@ A comprehensive, self-contained development environment providing Git hosting (F
 
 ## ✨ Key Features
 
-- **🚀 Complete Infrastructure** - Everything you need: Git, databases, caching, messaging, secrets, observability
-- **🎯 Service Profiles** - Choose your stack: minimal (2GB), standard (4GB), or full (6GB) with observability
-- **🍎 Apple Silicon Optimized** - Native ARM64 support via Colima's Virtualization.framework
-- **🔒 Vault-First Security** - All credentials managed by HashiCorp Vault with dynamic generation
+- **🚀 [Complete Infrastructure](#-architecture)** - Everything you need: Git, databases, caching, messaging, secrets, observability
+- **🎯 [Service Profiles](./docs/SERVICE_PROFILES.md)** - Choose your stack: minimal (2GB), standard (4GB), or full (6GB) with observability
+- **🍎 [Apple Silicon Optimized](#-prerequisites)** - Native ARM64 support via Colima's Virtualization.framework
+- **🔒 [Vault-First Security](./docs/VAULT.md)** - All credentials managed by HashiCorp Vault with dynamic generation
 - **📦 Zero Cloud Dependencies** - Runs entirely on your Mac, perfect for offline development
-- **🛠️ Easy Management** - Single CLI script with 21 commands for all operations
-- **📚 Reference Apps** - Production-quality examples in Python, Go, Node.js, TypeScript, and Rust
-- **🔍 Full Observability** - Built-in Prometheus, Grafana, and Loki for monitoring and logging
+- **🛠️ [Easy Management](./docs/PYTHON_MANAGEMENT_SCRIPT.md)** - Single CLI script with 21 commands for all operations
+- **📚 [Reference Apps](./reference-apps/README.md)** - Production-quality examples in Python, Go, Node.js, TypeScript, and Rust
+- **🔍 [Full Observability](./docs/OBSERVABILITY.md)** - Built-in Prometheus, Grafana, and Loki for monitoring and logging
 
 ## 🚀 Quick Start
 
