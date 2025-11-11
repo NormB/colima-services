@@ -89,12 +89,15 @@ Both are maintained. Use Python for profiles, Bash for backwards compatibility.
 ## General Questions
 
 **Q: Can I use this on Intel Mac?**
-A: Yes, but change VM type:
-```bash
-export COLIMA_CPU=4
-export COLIMA_MEMORY=8
-colima start --vm-type qemu  # Instead of vz
-```
+A: No, not without significant modifications. The project uses ARM64-specific Docker images (`platform: linux/arm64`) that are incompatible with Intel Macs.
+
+**If you must run on Intel Mac:**
+1. Use QEMU emulation: `colima start --vm-type qemu --arch aarch64`
+2. Expect significant performance degradation (emulation overhead)
+3. Some services may not work correctly under emulation
+4. You may need to modify `docker-compose.yml` to remove ARM64 platform specifications
+
+**Recommended:** Use an Apple Silicon Mac or run on a native ARM64 Linux server.
 
 **Q: Can I run multiple Colima instances?**
 A: Yes, use profiles:

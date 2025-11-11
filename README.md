@@ -1,13 +1,13 @@
 # DevStack Core
 
-> **Complete Docker-based development infrastructure for Apple Silicon, optimized with Colima**
+> **Complete Docker-based development infrastructure for Apple Silicon Macs, optimized with Colima**
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](./LICENSE)
 [![Docker Compose](https://img.shields.io/badge/docker--compose-v2.0+-blue.svg)](https://docs.docker.com/compose/)
 [![Colima](https://img.shields.io/badge/colima-latest-brightgreen.svg)](https://github.com/abiosoft/colima)
-[![Platform](https://img.shields.io/badge/platform-Apple%20Silicon%20%7C%20Intel-lightgrey.svg)](https://www.apple.com/mac/)
+[![Platform](https://img.shields.io/badge/platform-Apple%20Silicon-lightgrey.svg)](https://www.apple.com/mac/)
 
-A production-ready, self-contained development environment providing Git hosting (Forgejo), databases (PostgreSQL, MySQL, MongoDB), caching (Redis Cluster), message queuing (RabbitMQ), secrets management (Vault), and observability (Prometheus, Grafana, Loki) - all running locally on your Mac.
+A comprehensive, self-contained development environment providing Git hosting (Forgejo), databases (PostgreSQL, MySQL, MongoDB), caching (Redis Cluster), message queuing (RabbitMQ), secrets management (Vault), and observability (Prometheus, Grafana, Loki) - all running locally on your Mac.
 
 ---
 
@@ -19,12 +19,12 @@ A production-ready, self-contained development environment providing Git hosting
 - **🔒 Vault-First Security** - All credentials managed by HashiCorp Vault with dynamic generation
 - **📦 Zero Cloud Dependencies** - Runs entirely on your Mac, perfect for offline development
 - **🛠️ Easy Management** - Single CLI script with 21 commands for all operations
-- **📚 Reference Apps** - Production-ready examples in Python, Go, Node.js, TypeScript, and Rust
+- **📚 Reference Apps** - Production-quality examples in Python, Go, Node.js, TypeScript, and Rust
 - **🔍 Full Observability** - Built-in Prometheus, Grafana, and Loki for monitoring and logging
 
 ## 🚀 Quick Start
 
-Get up and running in 5 minutes:
+Get up and running in 10 minutes (5 minutes if prerequisites already installed):
 
 ```bash
 # 1. Install prerequisites
@@ -64,7 +64,8 @@ cp .env.example .env
 ## 📋 Prerequisites
 
 **Required:**
-- macOS (Apple Silicon M1/M2/M3 or Intel)
+- macOS with Apple Silicon (M1/M2/M3/M4)
+- **Note:** Intel Macs are not supported due to ARM64 architecture requirements
 - Homebrew package manager
 - 8GB+ RAM (16GB recommended)
 - 50GB+ free disk space
@@ -119,7 +120,7 @@ Choose the profile that fits your needs:
 | **PgBouncer** | PostgreSQL connection pooling | localhost:6432 |
 | **MySQL 8.0** | Legacy application support | localhost:3306 |
 | **MongoDB 7** | NoSQL document database | localhost:27017 |
-| **Redis Cluster** | 3-node distributed cache | localhost:6379-6381 |
+| **Redis Cluster** | 3-node distributed cache | localhost:6379-6381 (non-TLS), 6390-6392 (TLS) |
 | **RabbitMQ** | Message queue + UI | localhost:5672, 15672 |
 | **Forgejo** | Self-hosted Git server | localhost:3000 |
 
@@ -135,7 +136,7 @@ Choose the profile that fits your needs:
 
 ### Reference Applications
 
-Production-ready API implementations in multiple languages:
+Production-quality API implementations in multiple languages:
 
 | Language | Framework | Ports | Status |
 |----------|-----------|-------|--------|
