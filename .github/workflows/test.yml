@@ -259,24 +259,69 @@ jobs:
           docker compose config > /dev/null
           echo "✓ Docker Compose configuration is valid"
 
-      - name: Check service definitions
+      - name: Check service definitions (no profile)
         run: |
           services=$(docker compose config --services)
+          echo "Services with no profile: $services"
+
+          # Vault should always be available (no profile)
+          if ! echo "$services" | grep -q "^vault$"; then
+            echo "✗ Missing vault (should have no profile)"
+            exit 1
+          fi
+
+          echo "✓ Vault is defined (no profile required)"
+
+      - name: Check minimal profile services
+        run: |
+          services=$(docker compose --profile minimal config --services)
           expected_services=(
-            "postgres"
             "vault"
+            "postgres"
+            "pgbouncer"
             "redis-1"
-            "rabbitmq"
+            "forgejo"
           )
+
+          echo "Minimal profile services:"
+          echo "$services"
 
           for service in "${expected_services[@]}"; do
             if ! echo "$services" | grep -q "^${service}$"; then
-              echo "✗ Missing expected service: $service"
+              echo "✗ Missing expected service in minimal profile: $service"
               exit 1
             fi
           done
 
-          echo "✓ All expected services are defined"
+          echo "✓ All minimal profile services are defined"
+
+      - name: Check standard profile services
+        run: |
+          services=$(docker compose --profile standard config --services)
+          expected_services=(
+            "vault"
+            "postgres"
+            "pgbouncer"
+            "mysql"
+            "mongodb"
+            "redis-1"
+            "redis-2"
+            "redis-3"
+            "rabbitmq"
+            "forgejo"
+          )
+
+          echo "Standard profile services:"
+          echo "$services"
+
+          for service in "${expected_services[@]}"; do
+            if ! echo "$services" | grep -q "^${service}$"; then
+              echo "✗ Missing expected service in standard profile: $service"
+              exit 1
+            fi
+          done
+
+          echo "✓ All standard profile services are defined"
 
   test-summary:
     name: Test Summary
