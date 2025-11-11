@@ -924,7 +924,7 @@ Simplest approach - keep VoIP completely separate:
 colima start devstack-core
 docker context use colima-devstack-core
 cd ~/devstack-core
-./manage-devstack.sh start
+./manage-devstack start
 
 # Forgejo, databases, observability running
 # Edit code, commit to Forgejo

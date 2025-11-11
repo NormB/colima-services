@@ -198,7 +198,7 @@ reference-apps/typescript-api-first/
 
 ### OpenAPI Specification
 
-The API contract is defined in `openapi/spec.yaml`:
+The API contract is defined in `../shared/openapi.yaml`:
 
 ```yaml
 openapi: 3.0.3
@@ -229,7 +229,7 @@ Types and validators are auto-generated from the OpenAPI spec:
 npm run generate
 
 # Or manually
-npx openapi-typescript openapi/spec.yaml -o src/generated/types.ts
+npx openapi-typescript ../shared/openapi.yaml -o src/generated/types.ts
 ```
 
 Generated types provide full compile-time safety:
@@ -484,7 +484,7 @@ For production, implement:
 - **Reference Apps Overview**: [../README.md](../README.md)
 - **API Patterns**: [../API_PATTERNS.md](../API_PATTERNS.md)
 - **API-First Comparison**: [../fastapi-api-first/README.md](../fastapi-api-first/README.md)
-- **OpenAPI Specification**: [openapi/spec.yaml](openapi/spec.yaml)
+- **OpenAPI Specification**: [../shared/openapi.yaml](../shared/openapi.yaml)
 
 ## Client Examples
 

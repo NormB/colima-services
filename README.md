@@ -8,6 +8,7 @@ A production-ready, Docker-based development environment running on Colima that 
 
 - [Reference Applications](#reference-applications)
 - [Overview](#overview)
+- [Service Profiles](#service-profiles)
 - [Quick Start](#quick-start)
 - [Documentation](#documentation)
 - [Features](#features)
@@ -38,6 +39,7 @@ All reference applications demonstrate:
 - **Observability**: Prometheus metrics, structured logging, health checks
 - **Security**: TLS/SSL support, secrets management, secure credential handling
 - **Testing**: Comprehensive test suites with executable tests for all implementations
+- **API Synchronization**: Automated validation between code-first and API-first implementations
 
 ### Quick Start
 
@@ -49,6 +51,16 @@ docker compose up -d reference-api api-first golang-api nodejs-api rust-api
 
 # Or start individual services
 docker compose up -d golang-api
+```
+
+**API Synchronization and Validation:**
+
+```bash
+# Validate API synchronization (for contributors)
+make validate       # Run all validation checks
+make sync-check     # Check API drift
+make test           # Run shared test suite
+make help           # Show all available targets
 ```
 
 See [Reference Apps Overview](./reference-apps/README.md) for architecture details and design patterns used across implementations.
@@ -82,7 +94,7 @@ This repository provides a **complete, self-contained development environment** 
 4. **Version Controlled** - Infrastructure as code using Docker Compose
 5. **Isolated** - Separate network and volumes, doesn't conflict with other projects
 6. **Persistent** - Data survives container restarts via Docker volumes
-7. **Manageable** - Single script (`manage-devstack.sh`) for all operations
+7. **Manageable** - Single script (`manage-devstack`) for all operations
 
 **Use Cases:**
 - VoIP application development (primary purpose)
@@ -107,32 +119,113 @@ This repository provides a **complete, self-contained development environment** 
 4. **Security Aware** - Password protection, network isolation (development setup)
 5. **Observable** - Health checks, logging, easy status inspection
 
-## Quick Start
+## Service Profiles
+
+DevStack Core supports flexible service profiles to match your development needs. Choose the profile that fits your use case:
+
+| Profile | Services | RAM | Use Case |
+|---------|----------|-----|----------|
+| **minimal** | 5 services | 2GB | Git hosting + essential development (single Redis) |
+| **standard** | 10 services | 4GB | Full development stack + Redis cluster (recommended) |
+| **full** | 18 services | 6GB | Complete suite + observability (Prometheus, Grafana, Loki) |
+| **reference** | +5 services | +1GB | Educational API examples (combine with standard/full) |
+
+### Profile Quick Start
 
 ```bash
-# 1. Install Colima (if not already installed)
+# Start with standard profile (recommended for most developers)
+./manage-devstack start --profile standard
+
+# Or use minimal profile (lightweight, single Redis instance)
+./manage-devstack start --profile minimal
+
+# Or use full profile (includes Prometheus, Grafana, Loki)
+./manage-devstack start --profile full
+
+# Combine profiles (standard + reference apps)
+./manage-devstack start --profile standard --profile reference
+
+# Check health of all running services
+./manage-devstack health
+
+# Initialize Redis cluster (required for standard/full profiles, first time only)
+./manage-devstack redis-cluster-init
+```
+
+**See [docs/SERVICE_PROFILES.md](./docs/SERVICE_PROFILES.md) for complete profile documentation.**
+
+## Quick Start
+
+### Quick Start Steps
+
+```bash
+# 1. Install prerequisites
 brew install colima docker docker-compose
+
+# Optional: Modern Rust-based CLI tools (not required)
+# brew install ripgrep fd-find bat eza
 
 # 2. Clone repository
 git clone https://github.com/NormB/devstack-core.git ~/devstack-core
 cd ~/devstack-core
 
-# 3. Configure environment
+# 3. Install Python dependencies (one-time setup)
+uv venv
+uv pip install -r scripts/requirements.txt
+
+# 4. Configure environment
 cp .env.example .env
 nano .env  # Set strong passwords
 
-# 4. Start everything
-./manage-devstack.sh start
+# 5. Start with standard profile (recommended)
+./manage-devstack start --profile standard
 
-# 5. Initialize Vault (first time only)
-./manage-devstack.sh vault-init
+# 6. Initialize Vault (first time only)
+./manage-devstack vault-init
 
-# 6. Bootstrap Vault PKI and credentials (first time only)
-./manage-devstack.sh vault-bootstrap
+# 7. Bootstrap Vault PKI and credentials (first time only)
+./manage-devstack vault-bootstrap
 
-# 7. Check status
-./manage-devstack.sh status
+# 8. Initialize Redis cluster (for standard/full profiles, first time only)
+./manage-devstack redis-cluster-init
+
+# 9. Check health
+./manage-devstack health
 ```
+
+**Alternative profiles:**
+```bash
+# Lightweight (single Redis, 5 services, 2GB RAM)
+./manage-devstack start --profile minimal
+
+# Complete with observability (18 services, 6GB RAM)
+./manage-devstack start --profile full
+
+# Combine profiles for reference apps
+./manage-devstack start --profile standard --profile reference
+```
+
+**Note:** The wrapper script automatically uses the virtual environment. No need to activate it manually!
+
+**Getting Help:**
+```bash
+# Main help - shows all 21 commands
+./manage-devstack --help
+
+# Help for specific command - shows all options and examples
+./manage-devstack start --help
+./manage-devstack logs --help
+./manage-devstack vault-show-password --help
+```
+
+**Optional:** Add `~/devstack-core` to your PATH to use `manage-devstack` without `./`:
+```bash
+echo 'export PATH="$HOME/devstack-core:$PATH"' >> ~/.zshrc
+source ~/.zshrc
+# Then use: manage-devstack status (anywhere)
+```
+
+**See [docs/PYTHON_MANAGEMENT_SCRIPT.md](./docs/PYTHON_MANAGEMENT_SCRIPT.md) for complete Python script documentation.**
 
 **Access Services:**
 - **Forgejo (Git):** http://localhost:3000
@@ -151,10 +244,12 @@ For detailed installation instructions, see [docs/INSTALLATION.md](./docs/INSTAL
 ### Core Documentation
 
 - **[Installation Guide](./docs/INSTALLATION.md)** - Complete step-by-step installation with pre-flight checks, software setup, and verification
+- **[Service Profiles](./docs/SERVICE_PROFILES.md)** - Flexible service profiles (minimal, standard, full, reference) for different development needs
+- **[Python Management Script](./docs/PYTHON_MANAGEMENT_SCRIPT.md)** - Modern Python CLI with profile support, colored output, and comprehensive commands
 - **[Services Overview](./docs/SERVICES.md)** - Detailed configuration for PostgreSQL, MySQL, MongoDB, Redis, RabbitMQ, Forgejo, and Vault
 - **[Vault Integration](./docs/VAULT.md)** - Vault PKI setup, certificate management, auto-unseal configuration, and Vault commands
 - **[Redis Cluster](./docs/REDIS.md)** - Redis cluster architecture, setup, operations, and troubleshooting
-- **[Management Script](./docs/MANAGEMENT.md)** - Complete guide to manage-devstack.sh commands and workflows
+- **[Management Script](./docs/MANAGEMENT.md)** - Complete guide to manage-devstack commands and workflows
 - **[Observability Stack](./docs/OBSERVABILITY.md)** - Prometheus, Grafana, Loki setup and troubleshooting
 - **[Best Practices](./docs/BEST_PRACTICES.md)** - Development best practices and integration patterns
 - **[FAQ](./docs/FAQ.md)** - Frequently asked questions and common issues
@@ -240,19 +335,19 @@ For detailed installation instructions, see [docs/INSTALLATION.md](./docs/INSTAL
 
 ```bash
 # Check status of all services
-./manage-devstack.sh status
+./manage-devstack status
 
 # View logs for a specific service
-./manage-devstack.sh logs vault
+./manage-devstack logs vault
 
 # Restart a service
-./manage-devstack.sh restart postgres
+./manage-devstack restart postgres
 
 # Health check all services
-./manage-devstack.sh health
+./manage-devstack health
 
 # View all available commands
-./manage-devstack.sh help
+./manage-devstack --help
 ```
 
 ### Need More Help?

@@ -410,7 +410,7 @@ Potential areas for additional testing:
 All tests require the Colima environment to be running:
 
 ```bash
-./manage-devstack.sh start
+./manage-devstack start
 ```
 
 ### Credentials

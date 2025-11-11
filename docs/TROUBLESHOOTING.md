@@ -6,17 +6,318 @@ Comprehensive troubleshooting guide for common issues in the DevStack Core infra
 
 ## Table of Contents
 
-1. [Startup Issues](#startup-issues)
-2. [Service Health Check Failures](#service-health-check-failures)
-3. [Network Connectivity Problems](#network-connectivity-problems)
-4. [Database Issues](#database-issues)
-5. [Redis Cluster Issues](#redis-cluster-issues)
-6. [Vault Issues](#vault-issues)
-7. [Docker/Colima Issues](#dockercolima-issues)
-8. [Testing Failures](#testing-failures)
-9. [Performance Issues](#performance-issues)
-10. [TLS/Certificate Issues](#tlscertificate-issues)
-11. [Diagnostic Commands](#diagnostic-commands)
+1. [Service Profile Issues (NEW v1.3)](#service-profile-issues-new-v13)
+2. [Startup Issues](#startup-issues)
+3. [Service Health Check Failures](#service-health-check-failures)
+4. [Network Connectivity Problems](#network-connectivity-problems)
+5. [Database Issues](#database-issues)
+6. [Redis Cluster Issues](#redis-cluster-issues)
+7. [Vault Issues](#vault-issues)
+8. [Docker/Colima Issues](#dockercolima-issues)
+9. [Testing Failures](#testing-failures)
+10. [Performance Issues](#performance-issues)
+11. [TLS/Certificate Issues](#tlscertificate-issues)
+12. [Diagnostic Commands](#diagnostic-commands)
+
+---
+
+## Service Profile Issues (NEW v1.3)
+
+### Issue: Wrong Services Starting
+
+**Symptoms:**
+```bash
+# Expected 10 services (standard profile)
+$ docker ps
+# But seeing 18 services (full profile) or 5 services (minimal)
+```
+
+**Cause:** Profile not specified or wrong profile used
+
+**Solution:**
+```bash
+# Check which services are defined for a profile
+docker compose --profile standard config --services
+
+# Stop all and restart with correct profile
+docker compose down
+./manage-devstack start --profile standard
+
+# Verify correct services running
+./manage-devstack status
+```
+
+### Issue: Redis Cluster Init Fails on Minimal Profile
+
+**Symptoms:**
+```bash
+$ ./manage-devstack redis-cluster-init
+Error: redis-2 and redis-3 not found
+```
+
+**Cause:** Minimal profile only has redis-1 (standalone mode)
+
+**Solution:**
+Minimal profile uses standalone Redis, no cluster initialization needed:
+```bash
+# Use standard or full profile for Redis cluster
+docker compose down
+./manage-devstack start --profile standard
+./manage-devstack redis-cluster-init
+```
+
+### Issue: Python Script Command Not Found
+
+**Symptoms:**
+```bash
+$ ./manage-devstack start --profile standard
+ModuleNotFoundError: No module named 'click'
+```
+
+**Cause:** Python dependencies not installed
+
+**Solution:**
+```bash
+# Install dependencies using uv (recommended)
+uv venv
+uv pip install -r scripts/requirements.txt
+
+# The wrapper script automatically uses the venv
+# No manual activation needed!
+
+# Verify installation
+python3 -c "import click, rich, yaml; print('All dependencies installed!')"
+
+# Try again
+./manage-devstack start --profile standard
+```
+
+### Issue: Profile Environment Variables Not Taking Effect
+
+**Symptoms:**
+```bash
+# Started with minimal profile but Redis cluster is enabled
+$ ./manage-devstack start --profile minimal
+$ docker exec dev-redis-1 redis-cli INFO cluster | grep cluster_enabled
+cluster_enabled:1  # Should be 0 for minimal
+```
+
+**Cause:** Environment variables from previous session or shell environment overriding profile
+
+**Solution:**
+```bash
+# Check for conflicting env vars
+env | grep REDIS
+
+# Unset any conflicting variables
+unset REDIS_CLUSTER_ENABLED
+
+# Stop and restart with profile
+docker compose down
+./manage-devstack start --profile minimal
+
+# Verify
+docker exec dev-redis-1 redis-cli INFO cluster | grep cluster_enabled
+# Should show: cluster_enabled:0
+```
+
+### Issue: Cannot Combine Minimal and Standard Profiles
+
+**Symptoms:**
+```bash
+$ ./manage-devstack start --profile minimal --profile standard
+# Only seeing standard services, minimal services ignored
+```
+
+**Cause:** Docker Compose uses all specified profiles, but standard includes all minimal services
+
+**Explanation:**
+- minimal ⊂ standard ⊂ full (profiles are hierarchical)
+- Specifying both is redundant
+- Standard profile includes all minimal services plus additional ones
+
+**Solution:**
+```bash
+# Just use the larger profile
+./manage-devstack start --profile standard
+```
+
+### Issue: Missing Services After Profile Switch
+
+**Symptoms:**
+```bash
+# Previously running full profile, switched to minimal
+$ ./manage-devstack start --profile minimal
+# Prometheus, Grafana still showing as stopped in docker ps -a
+```
+
+**Cause:** Old containers from previous profile still exist (stopped)
+
+**Solution:**
+```bash
+# Clean shutdown removes old containers
+docker compose down  # Removes stopped containers
+./manage-devstack start --profile minimal
+
+# Or remove all containers manually
+docker compose down -v  # WARNING: Removes volumes too
+```
+
+### Issue: Reference Profile Services Not Starting
+
+**Symptoms:**
+```bash
+$ ./manage-devstack start --profile reference
+# Reference APIs failing to start, database connection errors
+```
+
+**Cause:** Reference profile requires infrastructure services (must combine with standard/full)
+
+**Solution:**
+```bash
+# Stop and restart with combined profiles
+docker compose down
+./manage-devstack start --profile standard --profile reference
+
+# Verify both profiles running
+docker ps | grep -E "dev-postgres|dev-reference-api"
+```
+
+### Issue: Observability Services Not Available
+
+**Symptoms:**
+```bash
+# Started with standard profile
+$ curl http://localhost:9090
+Connection refused
+```
+
+**Cause:** Prometheus/Grafana only included in full profile
+
+**Solution:**
+```bash
+# Use full profile for observability
+docker compose down
+./manage-devstack start --profile full
+
+# Access services
+curl http://localhost:9090  # Prometheus
+curl http://localhost:3001  # Grafana
+```
+
+### Issue: Profile Command Help Not Working
+
+**Symptoms:**
+```bash
+$ ./manage-devstack --help
+# No output or error
+```
+
+**Cause:** Script not executable or Python dependencies missing
+
+**Solution:**
+```bash
+# Make script executable
+chmod +x manage-devstack
+
+# Check she bang line
+head -1 manage-devstack
+# Should be: #!/usr/bin/env python3
+
+# Install dependencies
+uv venv && uv pip install -r scripts/requirements.txt
+
+# Try again (wrapper script auto-uses venv)
+./manage-devstack --help
+```
+
+### Issue: Script Errors with Rust CLI Tool Aliases
+
+**Symptoms:**
+```bash
+# Scripts failing with unexpected errors
+$ ./scripts/check-markdown-links.sh
+rg: error parsing flag -E: grep config error: unknown encoding: \[([^]]+)\]\(([^)]+)\)
+
+# Or grep/find commands behaving differently than expected
+```
+
+**Cause:** Shell has aliased standard Unix tools to Rust alternatives (e.g., `grep→rg`, `find→fd`)
+
+**Background:**
+- Modern Rust-based CLI tools (ripgrep, fd, bat, eza) are popular replacements for grep, find, cat, ls
+- These tools have different syntax and command-line flags
+- DevStack Core scripts explicitly use `/usr/bin/grep`, `/usr/bin/awk`, etc. to avoid conflicts
+- However, some edge cases may still exist
+
+**Verification:**
+```bash
+# Check what tools are aliased
+which grep    # May show: grep: aliased to rg
+which find    # May show: find: aliased to fd
+which ls      # May show: ls: aliased to eza
+which cat     # May show: cat: aliased to bat
+
+# Check actual tool locations
+/usr/bin/grep --version   # Should show: grep (BSD grep) or GNU grep
+```
+
+**Solution 1: Scripts Already Handle This (Recommended)**
+All DevStack Core scripts are designed to work with Rust tool aliases:
+```bash
+# Scripts use full paths to avoid aliases
+# No action needed - just run the script normally
+./scripts/check-markdown-links.sh
+./scripts/generate-certificates.sh
+./tests/test-vault.sh
+```
+
+**Solution 2: Verify Script Compatibility**
+If a script still fails:
+```bash
+# Check if script uses full paths
+grep -n "grep\|find\|awk\|sed" scripts/<script-name>.sh
+
+# Scripts should use:
+# - /usr/bin/grep (not just grep)
+# - /usr/bin/awk (not just awk)
+# Standard paths for awk, sed (these aren't typically aliased)
+```
+
+**Solution 3: Temporary Alias Removal (Last Resort)**
+```bash
+# Only if a specific script fails - run without aliases
+unalias grep find ls cat
+./scripts/<problematic-script>.sh
+
+# Re-alias after (add to ~/.zshrc if desired)
+alias grep='rg'
+alias find='fd'
+# etc.
+```
+
+**Note:** Rust CLI tools are **optional** and not required for DevStack Core. See [INSTALLATION.md](./INSTALLATION.md#step-2-install-required-software) for details on optional tools.
+
+### Diagnostic: Check Profile Configuration
+
+```bash
+# List available profiles
+./manage-devstack profiles
+
+# Check which services are in a profile
+docker compose --profile minimal config --services
+docker compose --profile standard config --services
+docker compose --profile full config --services
+
+# Verify profile .env files exist
+ls -la configs/profiles/*.env
+
+# Check environment loading
+set -a
+source configs/profiles/standard.env
+set +a
+env | grep REDIS_CLUSTER_ENABLED
+```
 
 ---
 
@@ -114,7 +415,7 @@ docker ps --format "table {{.Names}}\t{{.Status}}"
 All services should show `Up` and `healthy` within 60 seconds.
 
 **Prevention:**
-Add automatic bootstrap check to `manage-devstack.sh start` (see [Future Enhancements](#future-enhancements)).
+Add automatic bootstrap check to `manage-devstack start` (see [Future Enhancements](#future-enhancements)).
 
 ---
 
@@ -122,7 +423,7 @@ Add automatic bootstrap check to `manage-devstack.sh start` (see [Future Enhance
 
 **Symptoms:**
 ```bash
-$ ./manage-devstack.sh start
+$ ./manage-devstack start
 ERRO[0000] error starting vm: error creating instance
 ```
 
@@ -134,7 +435,7 @@ ERRO[0000] error starting vm: error creating instance
 df -h ~
 
 # Solution: Free up disk space or adjust COLIMA_DISK
-COLIMA_DISK=100 ./manage-devstack.sh start
+COLIMA_DISK=100 ./manage-devstack start
 ```
 
 2. **VZ framework issue (macOS Ventura+)**
@@ -147,7 +448,7 @@ brew upgrade colima
 
 # Restart with fresh config
 colima delete
-./manage-devstack.sh start
+./manage-devstack start
 ```
 
 3. **Port conflicts**
@@ -662,7 +963,7 @@ colima start
 
 Or use manage script:
 ```bash
-./manage-devstack.sh start
+./manage-devstack start
 ```
 
 3. **If stuck, force restart:**
@@ -728,7 +1029,7 @@ colima start
 colima stop
 
 # Start with more resources
-COLIMA_CPU=8 COLIMA_MEMORY=16 ./manage-devstack.sh start
+COLIMA_CPU=8 COLIMA_MEMORY=16 ./manage-devstack start
 ```
 
 2. **Check resource usage:**
@@ -809,6 +1110,114 @@ pytest tests/test_api.py::test_health_check -v
 - **Import errors:** Check virtual environment is activated
 - **Connection errors:** Ensure services are healthy
 - **Credential errors:** Run Vault bootstrap
+
+---
+
+### Issue: Docker Build Failures - Python Dependency Conflicts
+
+**Symptoms:**
+```bash
+$ docker compose build reference-api
+ERROR: Cannot install -r requirements.txt (line 32) and pytest==9.0.0 because these package versions have conflicting dependencies.
+The user requested pytest==9.0.0
+pytest-asyncio 1.2.0 depends on pytest<9 and >=8.2
+
+# OR
+
+ERROR: Cannot install fastapi-cache2[redis]==0.2.2 and redis==7.0.1 because these package versions have conflicting dependencies.
+fastapi-cache2[redis] 0.2.2 depends on redis<5.0.0 and >=4.2.0rc1; extra == "redis"
+```
+
+**Cause:**
+- Pinned dependency versions with incompatible requirements
+- `pytest-asyncio 1.2.0` incompatible with `pytest 9.0.0`
+- `fastapi-cache2[redis]` extra requires `redis<5.0.0` but we need `redis 7.0.1`
+
+**Solution (without downgrades):**
+
+1. **Fix pytest-asyncio conflict:**
+```python
+# In requirements.txt, change:
+pytest-asyncio==1.2.0
+
+# To (let pip resolve compatible version):
+pytest-asyncio  # Let pip resolve compatible version
+```
+
+2. **Fix fastapi-cache2 redis conflict:**
+```python
+# In requirements.txt, change:
+fastapi-cache2[redis]==0.2.2
+
+# To (install without redis extra):
+fastapi-cache2==0.2.2  # Install without [redis] extra to avoid dependency conflict
+```
+
+3. **Rebuild Docker image:**
+```bash
+docker compose build reference-api
+docker compose up -d reference-api
+```
+
+**Result:** Build succeeds while maintaining `pytest 9.0.0` and `redis 7.0.1`
+
+**Reference:** Fixed in November 2025 - see `reference-apps/fastapi/requirements.txt`
+
+---
+
+### Issue: FastAPI /health/all Endpoint Returns 500 Error
+
+**Symptoms:**
+```bash
+$ curl http://localhost:8000/health/all
+{"error":"InternalServerError","message":"An unexpected error occurred","status_code":500}
+
+# Logs show:
+AssertionError: You must call init first!
+```
+
+**Cause:**
+- Redis connection fails at startup (e.g., Redis not running or credentials missing)
+- Startup exception handler catches Redis error but doesn't initialize FastAPICache
+- `/health/all` endpoint has `@cache()` decorator
+- Decorator tries to use uninitialized FastAPICache → AssertionError
+
+**Solution:**
+
+Add InMemoryBackend fallback in startup exception handler:
+
+```python
+# In reference-apps/fastapi/app/main.py startup event
+try:
+    # Try to initialize Redis cache
+    redis_creds = await vault_client.get_secret("redis-1")
+    redis_password = redis_creds.get("password", "")
+    redis_url = f"redis://:{redis_password}@{settings.REDIS_HOST}:{settings.REDIS_PORT}"
+    await cache_manager.init(redis_url, prefix="cache:")
+except Exception as e:
+    logger.error(f"Failed to initialize cache: {e}")
+    logger.warning("Application will continue without caching")
+    # Initialize FastAPICache with InMemoryBackend as fallback to prevent decorator errors
+    from fastapi_cache import FastAPICache
+    from fastapi_cache.backends.inmemory import InMemoryBackend
+    FastAPICache.init(InMemoryBackend(), prefix="cache:")
+```
+
+**Result:** Endpoint returns 200 with "degraded" status instead of crashing
+
+**Verification:**
+```bash
+# Test endpoint
+curl http://localhost:8000/health/all | jq
+
+# Should return:
+{
+  "status": "degraded",  # or "healthy" if all services up
+  "services": { ... }
+}
+```
+
+**Reference:** Fixed in November 2025 - see `reference-apps/fastapi/app/main.py:369-375`
 
 ---
 
@@ -908,12 +1317,73 @@ services:
 
 3. **Increase Colima memory:**
 ```bash
-COLIMA_MEMORY=16 ./manage-devstack.sh start
+COLIMA_MEMORY=16 ./manage-devstack start
 ```
 
 ---
 
 ## TLS/Certificate Issues
+
+### Issue: Vault Certificate Issuance Fails - Common Name Not Allowed
+
+**Symptoms:**
+```bash
+$ vault write pki_int/issue/postgres-role common_name="postgres" ttl=1h
+Error writing data to pki_int/issue/postgres-role: Error making API request.
+
+URL: PUT http://localhost:8200/v1/pki_int/issue/postgres-role
+Code: 400. Errors:
+
+* common name postgres not allowed by this role
+```
+
+**Cause:**
+- Vault PKI role has `allowed_domains` configuration
+- Common name must match one of the allowed patterns
+- For postgres role: allowed domains are `postgres.dev-services.local` and `localhost`
+- Using bare `postgres` doesn't match the allowed pattern
+
+**Solution:**
+
+Use the correct common name matching PKI role configuration:
+
+```bash
+# Check allowed domains for a role
+vault read pki_int/roles/postgres-role
+
+# Should show:
+# allowed_domains: [postgres.dev-services.local, localhost]
+
+# Issue certificate with correct common name
+vault write pki_int/issue/postgres-role \
+  common_name="postgres.dev-services.local" \
+  ttl=1h
+
+# OR for localhost
+vault write pki_int/issue/postgres-role \
+  common_name="localhost" \
+  ttl=1h
+```
+
+**Common allowed domains by service:**
+- **postgres**: `postgres.dev-services.local`, `localhost`
+- **mysql**: `mysql.dev-services.local`, `localhost`
+- **redis**: `redis.dev-services.local`, `localhost`
+- **mongodb**: `mongodb.dev-services.local`, `localhost`
+- **rabbitmq**: `rabbitmq.dev-services.local`, `localhost`
+
+**Verification:**
+```bash
+# List all PKI roles
+vault list pki_int/roles
+
+# Check specific role configuration
+vault read pki_int/roles/<service>-role
+```
+
+**Reference:** Fixed in tests/test-vault.sh:483 (November 2025)
+
+---
 
 ### Issue: Certificate Verification Failed
 
@@ -1078,14 +1548,14 @@ docker exec dev-postgres-1 psql -U dev_admin -d dev_database -c \
 **Planned improvements to reduce troubleshooting:**
 
 1. **Automatic Vault Bootstrap Detection**
-   - Add check to `manage-devstack.sh start`
+   - Add check to `manage-devstack start`
    - Auto-run bootstrap if credentials missing
    - Make startup truly "one command"
 
 2. **Health Dashboard**
    - Quick status showing all 28 services
    - Vault bootstrap status indicator
-   - Add to `./manage-devstack.sh status`
+   - Add to `./manage-devstack status`
 
 3. **Enhanced Error Messages**
    - Better service log output

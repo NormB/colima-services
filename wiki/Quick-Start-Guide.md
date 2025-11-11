@@ -40,7 +40,7 @@ cp .env.example .env
 
 ```bash
 # This starts Colima VM and all services
-./manage-devstack.sh start
+./manage-devstack start
 ```
 
 **What happens:**
@@ -54,7 +54,7 @@ cp .env.example .env
 
 ```bash
 # Initialize Vault PKI and store all service credentials
-./manage-devstack.sh vault-bootstrap
+./manage-devstack vault-bootstrap
 ```
 
 **What happens:**
@@ -69,10 +69,10 @@ cp .env.example .env
 
 ```bash
 # Check service status
-./manage-devstack.sh status
+./manage-devstack status
 
 # Run health checks
-./manage-devstack.sh health
+./manage-devstack health
 ```
 
 **Expected output:** All services should show as "running" and "healthy"
@@ -97,7 +97,7 @@ cp .env.example .env
 psql postgresql://dev_admin@localhost:5432/dev_database
 
 # Get password from Vault
-./manage-devstack.sh vault-show-password postgres
+./manage-devstack vault-show-password postgres
 
 # MySQL
 mysql -h 127.0.0.1 -u dev_admin -p dev_database
@@ -122,20 +122,20 @@ Now that you're up and running:
 
 ```bash
 # View all commands
-./manage-devstack.sh help
+./manage-devstack --help
 
 # View logs
-./manage-devstack.sh logs vault
-./manage-devstack.sh logs postgres
+./manage-devstack logs vault
+./manage-devstack logs postgres
 
 # Restart a service
-./manage-devstack.sh restart redis-1
+./manage-devstack restart redis-1
 
 # Stop everything
-./manage-devstack.sh stop
+./manage-devstack stop
 
 # Backup databases
-./manage-devstack.sh backup
+./manage-devstack backup
 ```
 
 ## Troubleshooting
@@ -144,7 +144,7 @@ Now that you're up and running:
 
 ```bash
 # Check Vault status
-./manage-devstack.sh vault-status
+./manage-devstack vault-status
 
 # If Vault is sealed, restart
 docker compose restart vault
@@ -157,14 +157,14 @@ docker compose restart vault
 docker compose ps
 
 # Check logs for errors
-./manage-devstack.sh logs <service-name>
+./manage-devstack logs <service-name>
 ```
 
 ### Need to Reset Everything?
 
 ```bash
 # Complete reset (destroys all data)
-./manage-devstack.sh reset
+./manage-devstack reset
 ```
 
 **⚠️ Warning:** This deletes ALL data including databases, Vault keys, and configuration.
@@ -173,10 +173,10 @@ docker compose ps
 
 | Issue | Solution |
 |-------|----------|
-| Colima won't start | `colima delete && ./manage-devstack.sh start` |
+| Colima won't start | `colima delete && ./manage-devstack start` |
 | Vault sealed | `docker compose restart vault` (auto-unseals) |
 | Port already in use | Stop conflicting service or change port in `.env` |
-| Out of memory | Increase Colima RAM: edit `manage-devstack.sh` line 42 |
+| Out of memory | Increase Colima RAM: edit `manage-devstack` line 42 |
 
 ## Getting Help
 
