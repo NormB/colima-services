@@ -86,7 +86,8 @@ def run_command(
     cmd: List[str],
     check: bool = True,
     capture: bool = False,
-    env: Optional[Dict[str, str]] = None
+    env: Optional[Dict[str, str]] = None,
+    input: Optional[str] = None
 ) -> Tuple[int, str, str]:
     """
     Run a shell command with optional environment variables.
@@ -96,6 +97,7 @@ def run_command(
         check: Raise error if command fails
         capture: Capture stdout/stderr
         env: Additional environment variables
+        input: Input data to send to stdin
 
     Returns:
         Tuple of (returncode, stdout, stderr)
@@ -112,11 +114,12 @@ def run_command(
                 check=check,
                 capture_output=True,
                 text=True,
-                env=cmd_env
+                env=cmd_env,
+                input=input
             )
             return result.returncode, result.stdout, result.stderr
         else:
-            result = subprocess.run(cmd, check=check, env=cmd_env)
+            result = subprocess.run(cmd, check=check, env=cmd_env, input=input, text=True if input else False)
             return result.returncode, "", ""
     except subprocess.CalledProcessError as e:
         if check:
@@ -1147,7 +1150,7 @@ def restore(backup_name):
                         ["docker", "compose", "exec", "-T", "postgres", "psql", "-U", "dev_admin", "postgres"],
                         capture=False,
                         check=False,
-                        input_data=f.read()
+                        input=f.read()
                     )
                 if returncode == 0:
                     progress.update(task, description="[green]✓ PostgreSQL restored[/green]")
@@ -1181,7 +1184,7 @@ def restore(backup_name):
                              f"mysql -u root -p'{mysql_pass}'"],
                             capture=False,
                             check=False,
-                            input_data=f.read()
+                            input=f.read()
                         )
                     if returncode == 0:
                         progress.update(task, description="[green]✓ MySQL restored[/green]")
