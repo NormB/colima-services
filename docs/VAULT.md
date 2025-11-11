@@ -87,7 +87,7 @@ exec docker-entrypoint.sh postgres
 
 ```bash
 # Via management script
-./manage-devstack.sh vault-show-password postgres
+./manage-devstack vault-show-password postgres
 
 # Via Vault CLI
 export VAULT_ADDR=http://localhost:8200
@@ -292,26 +292,26 @@ mongosh "mongodb://$MONGO_USER:$MONGO_PASS@localhost:27017/dev_database"
 
 ```bash
 # Initialize Vault (first time only)
-./manage-devstack.sh vault-init
+./manage-devstack vault-init
 
 # Check Vault status
-./manage-devstack.sh vault-status
+./manage-devstack vault-status
 
 # Get root token
-./manage-devstack.sh vault-token
+./manage-devstack vault-token
 
 # Unseal Vault manually (if needed)
-./manage-devstack.sh vault-unseal
+./manage-devstack vault-unseal
 
 # Bootstrap PKI and service credentials
-./manage-devstack.sh vault-bootstrap
+./manage-devstack vault-bootstrap
 
 # Export CA certificates
-./manage-devstack.sh vault-ca-cert
+./manage-devstack vault-ca-cert
 
 # Show service password
-./manage-devstack.sh vault-show-password postgres
-./manage-devstack.sh vault-show-password mysql
+./manage-devstack vault-show-password postgres
+./manage-devstack vault-show-password mysql
 ```
 
 **Vault Bootstrap Process:**
@@ -410,7 +410,7 @@ with urllib.request.urlopen(req) as response:
 
 **When Credentials Are Loaded:**
 
-The `manage-devstack.sh` script automatically loads credentials during startup:
+The `manage-devstack.py` script automatically loads credentials during startup:
 
 1. Start Vault container
 2. Wait 5 seconds for Vault to be ready
@@ -469,7 +469,7 @@ entrypoint: >
 ```bash
 ./configs/vault/scripts/vault-init.sh
 # Or
-./manage-devstack.sh vault-init
+./manage-devstack vault-init
 ```
 
 **What Happens:**
@@ -527,7 +527,7 @@ while true; do sleep 3600; done
 
 **Check Vault Status:**
 ```bash
-./manage-devstack.sh vault-status
+./manage-devstack vault-status
 
 # Or directly
 export VAULT_ADDR=http://localhost:8200
@@ -537,7 +537,7 @@ vault status
 
 **Manually Unseal:**
 ```bash
-./manage-devstack.sh vault-unseal
+./manage-devstack vault-unseal
 
 # Or using vault CLI
 vault operator unseal  # Repeat 3 times with different keys
@@ -630,7 +630,7 @@ echo "Vault: $VAULT_ADDR"
 # Check Vault is unsealed
 if ! vault status > /dev/null 2>&1; then
   echo "❌ Error: Vault is not accessible or is sealed"
-  echo "Run: ./manage-devstack.sh vault-unseal"
+  echo "Run: ./manage-devstack vault-unseal"
   exit 1
 fi
 
@@ -657,7 +657,7 @@ done
 
 echo ""
 echo "🔄 Restarting services to load new certificates..."
-./manage-devstack.sh restart
+./manage-devstack restart
 
 echo ""
 echo "✅ Certificate renewal complete!"
@@ -687,7 +687,7 @@ cp -r ~/.config/vault/certs ~/.config/vault/certs-backup-$(date +%Y%m%d)
 ./scripts/generate-certificates.sh
 
 # 4. Restart services
-./manage-devstack.sh restart
+./manage-devstack restart
 
 # 5. Verify new certificates
 for service in postgres mysql redis-1; do
@@ -738,10 +738,10 @@ vault read pki_int/ca/pem | openssl x509 -noout -text | grep "Not After"
 ./scripts/generate-certificates.sh
 
 # 8. Restart all services
-./manage-devstack.sh restart
+./manage-devstack restart
 
 # 9. Verify everything works
-./manage-devstack.sh health
+./manage-devstack health
 ```
 
 **Post-Renewal Verification:**
@@ -755,7 +755,7 @@ vault write pki_int/issue/postgres-role \
   ttl=1h
 
 # Verify service health
-./manage-devstack.sh health
+./manage-devstack health
 ```
 
 ### Root CA Renewal
@@ -943,7 +943,7 @@ vault read pki_int/crl
 6. **Verify After Renewal:**
    - Check certificate dates with `openssl x509`
    - Verify services restart successfully
-   - Run health checks: `./manage-devstack.sh health`
+   - Run health checks: `./manage-devstack health`
    - Test TLS connections to services
 
 ### Troubleshooting Certificate Issues
@@ -989,7 +989,7 @@ openssl verify -verbose -CAfile ~/.config/vault/ca/ca.pem \
 vault list pki_int/roles
 
 # If missing, re-run vault-bootstrap
-./manage-devstack.sh vault-bootstrap
+./manage-devstack vault-bootstrap
 
 # Check intermediate CA is configured
 vault read pki_int/cert/ca
@@ -1009,8 +1009,8 @@ vault read pki_int/cert/ca
 - [ ] Backup `~/.config/vault/` directory
 - [ ] Run `renew-certificates.sh` script
 - [ ] Verify new certificate dates
-- [ ] Restart services: `./manage-devstack.sh restart`
-- [ ] Verify services healthy: `./manage-devstack.sh health`
+- [ ] Restart services: `./manage-devstack restart`
+- [ ] Verify services healthy: `./manage-devstack health`
 - [ ] Test TLS connections
 - [ ] Monitor service logs for TLS errors
 

@@ -242,7 +242,7 @@ Runs all 7 test suites and provides comprehensive summary.
 ## Continuous Testing
 
 Run tests after:
-- ✅ Initial setup (`./manage-devstack.sh start`)
+- ✅ Initial setup (`./manage-devstack start`)
 - ✅ Configuration changes
 - ✅ Certificate regeneration
 - ✅ Service restarts
@@ -296,7 +296,7 @@ curl http://localhost:8000/health/all
 **Database Tests Fail:**
 ```bash
 # Check Vault credentials
-./manage-devstack.sh vault-show-password postgres
+./manage-devstack vault-show-password postgres
 
 # Check container health
 docker ps

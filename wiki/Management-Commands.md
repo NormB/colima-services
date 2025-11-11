@@ -1,6 +1,6 @@
 # Management Commands
 
-Complete reference for the `manage-devstack.sh` script - the primary interface for managing all DevStack Core operations.
+Complete reference for the `manage-devstack` script - the primary interface for managing all DevStack Core operations.
 
 ## Table of Contents
 
@@ -15,7 +15,7 @@ Complete reference for the `manage-devstack.sh` script - the primary interface f
 
 ## Overview
 
-The `manage-devstack.sh` script provides a unified interface for:
+The `manage-devstack` script provides a unified interface for:
 - Starting/stopping the entire environment
 - Managing Vault initialization and configuration
 - Monitoring service health
@@ -26,10 +26,10 @@ The `manage-devstack.sh` script provides a unified interface for:
 
 ```bash
 # Show all available commands
-./manage-devstack.sh help
+./manage-devstack --help
 
 # Show version
-./manage-devstack.sh version
+./manage-devstack --version
 ```
 
 ## Core Commands
@@ -39,7 +39,7 @@ The `manage-devstack.sh` script provides a unified interface for:
 Start the entire DevStack Core environment.
 
 ```bash
-./manage-devstack.sh start
+./manage-devstack start
 ```
 
 **What it does:**
@@ -67,7 +67,7 @@ Start the entire DevStack Core environment.
 Stop all services and Colima VM.
 
 ```bash
-./manage-devstack.sh stop
+./manage-devstack stop
 ```
 
 **What it does:**
@@ -94,7 +94,7 @@ Stop all services and Colima VM.
 Restart all Docker Compose services without restarting Colima VM.
 
 ```bash
-./manage-devstack.sh restart
+./manage-devstack restart
 ```
 
 **What it does:**
@@ -114,7 +114,7 @@ Restart all Docker Compose services without restarting Colima VM.
 Display status of all services with resource usage.
 
 ```bash
-./manage-devstack.sh status
+./manage-devstack status
 ```
 
 **What it shows:**
@@ -141,7 +141,7 @@ dev-redis-1       running   healthy   0.08%    12.3MB      0.0.0.0:6379->6379/tc
 Initialize Vault for first time use.
 
 ```bash
-./manage-devstack.sh vault-init
+./manage-devstack vault-init
 ```
 
 **What it does:**
@@ -173,7 +173,7 @@ Initialize Vault for first time use.
 Bootstrap Vault with PKI and service credentials.
 
 ```bash
-./manage-devstack.sh vault-bootstrap
+./manage-devstack vault-bootstrap
 ```
 
 **What it does:**
@@ -207,7 +207,7 @@ Bootstrap Vault with PKI and service credentials.
 Check Vault initialization and seal status.
 
 ```bash
-./manage-devstack.sh vault-status
+./manage-devstack vault-status
 ```
 
 **What it shows:**
@@ -233,7 +233,7 @@ Vault Status:
 Manually unseal Vault (rarely needed due to auto-unseal).
 
 ```bash
-./manage-devstack.sh vault-unseal
+./manage-devstack vault-unseal
 ```
 
 **What it does:**
@@ -253,7 +253,7 @@ Manually unseal Vault (rarely needed due to auto-unseal).
 Display the Vault root token.
 
 ```bash
-./manage-devstack.sh vault-token
+./manage-devstack vault-token
 ```
 
 **What it shows:**
@@ -278,7 +278,7 @@ Export with:
 Retrieve a service password from Vault.
 
 ```bash
-./manage-devstack.sh vault-show-password <service>
+./manage-devstack vault-show-password <service>
 ```
 
 **Supported services:**
@@ -291,7 +291,7 @@ Retrieve a service password from Vault.
 **Example:**
 ```bash
 # Get PostgreSQL password
-./manage-devstack.sh vault-show-password postgres
+./manage-devstack vault-show-password postgres
 
 # Output: <password-string>
 ```
@@ -309,25 +309,25 @@ View logs for a specific service or all services.
 
 ```bash
 # View logs for one service
-./manage-devstack.sh logs <service-name>
+./manage-devstack logs <service-name>
 
 # View all logs
-./manage-devstack.sh logs
+./manage-devstack logs
 
 # Follow logs (real-time)
-./manage-devstack.sh logs <service-name> -f
+./manage-devstack logs <service-name> -f
 ```
 
 **Examples:**
 ```bash
 # View Vault logs
-./manage-devstack.sh logs vault
+./manage-devstack logs vault
 
 # Follow PostgreSQL logs
-./manage-devstack.sh logs postgres -f
+./manage-devstack logs postgres -f
 
 # View last 100 lines
-./manage-devstack.sh logs redis-1 --tail 100
+./manage-devstack logs redis-1 --tail 100
 ```
 
 **Service names:**
@@ -346,7 +346,7 @@ View logs for a specific service or all services.
 Open interactive shell in a container.
 
 ```bash
-./manage-devstack.sh shell <service-name>
+./manage-devstack shell <service-name>
 ```
 
 **What it does:**
@@ -356,13 +356,13 @@ Open interactive shell in a container.
 **Examples:**
 ```bash
 # Shell into PostgreSQL container
-./manage-devstack.sh shell postgres
+./manage-devstack shell postgres
 
 # Now you can run:
 # psql -U dev_admin -d dev_database
 
 # Shell into Vault container
-./manage-devstack.sh shell vault
+./manage-devstack shell vault
 
 # Now you can run:
 # vault status
@@ -375,7 +375,7 @@ Open interactive shell in a container.
 Run health checks on all services.
 
 ```bash
-./manage-devstack.sh health
+./manage-devstack health
 ```
 
 **What it checks:**
@@ -401,7 +401,7 @@ Run health checks on all services.
 Display real-time resource usage statistics.
 
 ```bash
-./manage-devstack.sh stats
+./manage-devstack stats
 ```
 
 **What it shows:**
@@ -423,7 +423,7 @@ Display real-time resource usage statistics.
 Create backups of all databases.
 
 ```bash
-./manage-devstack.sh backup
+./manage-devstack backup
 ```
 
 **What it backs up:**
@@ -457,7 +457,7 @@ cp -r ~/.config/vault ~/vault-backup-$(date +%Y%m%d)
 **⚠️ DESTRUCTIVE:** Delete all data and reset environment.
 
 ```bash
-./manage-devstack.sh reset
+./manage-devstack reset
 ```
 
 **What it does:**
@@ -482,9 +482,9 @@ cp -r ~/.config/vault ~/vault-backup-$(date +%Y%m%d)
 
 **After reset:**
 ```bash
-./manage-devstack.sh start
-./manage-devstack.sh vault-init
-./manage-devstack.sh vault-bootstrap
+./manage-devstack start
+./manage-devstack vault-init
+./manage-devstack vault-bootstrap
 ```
 
 ## Command Reference
@@ -512,41 +512,41 @@ cp -r ~/.config/vault ~/vault-backup-$(date +%Y%m%d)
 
 **First Time Setup:**
 ```bash
-./manage-devstack.sh start
-./manage-devstack.sh vault-init
-./manage-devstack.sh vault-bootstrap
-./manage-devstack.sh health
+./manage-devstack start
+./manage-devstack vault-init
+./manage-devstack vault-bootstrap
+./manage-devstack health
 ```
 
 **Daily Startup:**
 ```bash
-./manage-devstack.sh start
-./manage-devstack.sh status
+./manage-devstack start
+./manage-devstack status
 ```
 
 **Debugging Issues:**
 ```bash
-./manage-devstack.sh status
-./manage-devstack.sh health
-./manage-devstack.sh logs <problematic-service>
-./manage-devstack.sh shell <problematic-service>
+./manage-devstack status
+./manage-devstack health
+./manage-devstack logs <problematic-service>
+./manage-devstack shell <problematic-service>
 ```
 
 **Before Updates:**
 ```bash
-./manage-devstack.sh backup
+./manage-devstack backup
 # Make changes
-./manage-devstack.sh restart
-./manage-devstack.sh health
+./manage-devstack restart
+./manage-devstack health
 ```
 
 **Clean Slate:**
 ```bash
-./manage-devstack.sh backup  # Save what you need
-./manage-devstack.sh reset
-./manage-devstack.sh start
-./manage-devstack.sh vault-init
-./manage-devstack.sh vault-bootstrap
+./manage-devstack backup  # Save what you need
+./manage-devstack reset
+./manage-devstack start
+./manage-devstack vault-init
+./manage-devstack vault-bootstrap
 ```
 
 ## Makefile Commands

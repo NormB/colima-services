@@ -15,8 +15,8 @@
 
 DevStack Core provides two management interfaces:
 
-1. **Python Script (Recommended)**: `manage-devstack.py` - Modern CLI with service profile support
-2. **Bash Script (Traditional)**: `manage-devstack.sh` - Backward compatible, starts all services
+1. **Python Script (Recommended)**: `manage-devstack` - Modern CLI with service profile support
+2. **Bash Script (Traditional)**: `manage-devstack` - Backward compatible, starts all services
 
 **Which Should You Use?**
 
@@ -35,73 +35,74 @@ The modern Python management script provides profile-aware service orchestration
 
 ```bash
 # Install dependencies
-pip3 install --user -r requirements-dev.txt
+uv venv
+uv pip install -r scripts/requirements.txt
 
-# Make executable (if needed)
-chmod +x manage-devstack.py
+# The wrapper script automatically uses the venv
+chmod +x manage-devstack
 
 # Verify
-./manage-devstack.py --version
+./manage-devstack --version
 ```
 
 ### Python Script Commands
 
 ```bash
-./manage-devstack.py <command> [options]
+./manage-devstack <command> [options]
 ```
 
 | Command | Description | Example |
 |---------|-------------|---------|
-| `start --profile <name>` | Start services with profile | `./manage-devstack.py start --profile standard` |
-| `stop [--profile <name>]` | Stop services (optionally by profile) | `./manage-devstack.py stop` |
-| `status` | Show service status with resources | `./manage-devstack.py status` |
-| `health` | Check service health (colored table) | `./manage-devstack.py health` |
-| `logs <service>` | View service logs | `./manage-devstack.py logs postgres` |
-| `shell <service>` | Open shell in container | `./manage-devstack.py shell postgres` |
-| `profiles` | List available profiles | `./manage-devstack.py profiles` |
-| `ip` | Show Colima IP address | `./manage-devstack.py ip` |
-| `redis-cluster-init` | Initialize Redis cluster | `./manage-devstack.py redis-cluster-init` |
-| `--help` | Show help message | `./manage-devstack.py --help` |
+| `start --profile <name>` | Start services with profile | `./manage-devstack start --profile standard` |
+| `stop [--profile <name>]` | Stop services (optionally by profile) | `./manage-devstack stop` |
+| `status` | Show service status with resources | `./manage-devstack status` |
+| `health` | Check service health (colored table) | `./manage-devstack health` |
+| `logs <service>` | View service logs | `./manage-devstack logs postgres` |
+| `shell <service>` | Open shell in container | `./manage-devstack shell postgres` |
+| `profiles` | List available profiles | `./manage-devstack profiles` |
+| `ip` | Show Colima IP address | `./manage-devstack ip` |
+| `redis-cluster-init` | Initialize Redis cluster | `./manage-devstack redis-cluster-init` |
+| `--help` | Show help message | `./manage-devstack --help` |
 
 ### Python Script Workflows
 
 **Start with Standard Profile (Recommended):**
 ```bash
 # Start full development stack
-./manage-devstack.py start --profile standard
+./manage-devstack start --profile standard
 
 # Initialize Redis cluster (first time only)
-./manage-devstack.py redis-cluster-init
+./manage-devstack redis-cluster-init
 
 # Check health
-./manage-devstack.py health
+./manage-devstack health
 ```
 
 **Start with Minimal Profile (Lightweight):**
 ```bash
 # Start essential services only
-./manage-devstack.py start --profile minimal
+./manage-devstack start --profile minimal
 
 # Check what's running
-./manage-devstack.py status
+./manage-devstack status
 ```
 
 **Start with Full Profile (Observability):**
 ```bash
 # Start everything including Prometheus/Grafana
-./manage-devstack.py start --profile full
+./manage-devstack start --profile full
 
 # Check health
-./manage-devstack.py health
+./manage-devstack health
 ```
 
 **Combine Profiles:**
 ```bash
 # Start standard infrastructure + reference APIs
-./manage-devstack.py start --profile standard --profile reference
+./manage-devstack start --profile standard --profile reference
 
 # Verify
-./manage-devstack.py status
+./manage-devstack status
 ```
 
 **For complete Python script documentation, see [PYTHON_MANAGEMENT_SCRIPT.md](./PYTHON_MANAGEMENT_SCRIPT.md).**
@@ -110,85 +111,87 @@ chmod +x manage-devstack.py
 
 ## Bash Script (Traditional)
 
-The `manage-devstack.sh` script provides a unified interface for all operations. **Note:** This script starts ALL services (no profile support).
+The `manage-devstack` script provides a unified interface for all operations. **Note:** This script starts ALL services (no profile support).
 
 ### Available Commands
 
 ```bash
-./manage-devstack.sh <command> [options]
+./manage-devstack <command> [options]
 ```
 
 | Command | Description | Example |
 |---------|-------------|---------|
-| `start` | Start Colima VM and all services | `./manage-devstack.sh start` |
-| `stop` | Stop services and Colima VM | `./manage-devstack.sh stop` |
-| `restart` | Restart Docker services | `./manage-devstack.sh restart` |
-| `status` | Show Colima and service status | `./manage-devstack.sh status` |
-| `logs [service]` | View service logs | `./manage-devstack.sh logs postgres` |
-| `shell [service]` | Open shell in container | `./manage-devstack.sh shell postgres` |
-| `ip` | Get Colima IP address | `./manage-devstack.sh ip` |
-| `health` | Check service health | `./manage-devstack.sh health` |
-| `backup` | Backup all service data | `./manage-devstack.sh backup` |
-| `reset` | Delete and reset Colima VM | `./manage-devstack.sh reset` |
-| `vault-init` | Initialize Vault | `./manage-devstack.sh vault-init` |
-| `vault-unseal` | Manually unseal Vault | `./manage-devstack.sh vault-unseal` |
-| `vault-status` | Show Vault status | `./manage-devstack.sh vault-status` |
-| `vault-token` | Print Vault root token | `./manage-devstack.sh vault-token` |
-| `vault-bootstrap` | Setup Vault PKI and service credentials | `./manage-devstack.sh vault-bootstrap` |
-| `vault-ca-cert` | Export CA certificates | `./manage-devstack.sh vault-ca-cert` |
-| `vault-show-password <service>` | Show service password from Vault | `./manage-devstack.sh vault-show-password postgres` |
-| `help` | Show help message | `./manage-devstack.sh help` |
+| `start` | Start Colima VM and all services | `./manage-devstack start` |
+| `stop` | Stop services and Colima VM | `./manage-devstack stop` |
+| `restart` | Restart Docker services | `./manage-devstack restart` |
+| `status` | Show Colima and service status | `./manage-devstack status` |
+| `logs [service]` | View service logs | `./manage-devstack logs postgres` |
+| `shell [service]` | Open shell in container | `./manage-devstack shell postgres` |
+| `ip` | Get Colima IP address | `./manage-devstack ip` |
+| `health` | Check service health | `./manage-devstack health` |
+| `backup` | Backup all service data | `./manage-devstack backup` |
+| `reset` | Delete and reset Colima VM | `./manage-devstack reset` |
+| `vault-init` | Initialize Vault | `./manage-devstack vault-init` |
+| `vault-unseal` | Manually unseal Vault | `./manage-devstack vault-unseal` |
+| `vault-status` | Show Vault status | `./manage-devstack vault-status` |
+| `vault-token` | Print Vault root token | `./manage-devstack vault-token` |
+| `vault-bootstrap` | Setup Vault PKI and service credentials | `./manage-devstack vault-bootstrap` |
+| `vault-ca-cert` | Export CA certificates | `./manage-devstack vault-ca-cert` |
+| `vault-show-password <service>` | Show service password from Vault | `./manage-devstack vault-show-password postgres` |
+| `--help` | Show help message | `./manage-devstack --help` |
+
+**Note:** The bash script uses `help` as a command, while the Python script uses `--help` as a standard flag.
 
 ### Common Workflows
 
 **Daily Development:**
 ```bash
 # Morning: Start everything
-./manage-devstack.sh start
+./manage-devstack start
 
 # Check what's running
-./manage-devstack.sh status
+./manage-devstack status
 
 # View logs if something's wrong
-./manage-devstack.sh logs postgres
+./manage-devstack logs postgres
 
 # Evening: Stop everything (or leave running)
-./manage-devstack.sh stop
+./manage-devstack stop
 ```
 
 **Troubleshooting:**
 ```bash
 # Check health of all services
-./manage-devstack.sh health
+./manage-devstack health
 
 # View logs for specific service
-./manage-devstack.sh logs vault
+./manage-devstack logs vault
 
 # Open shell to investigate
-./manage-devstack.sh shell postgres
+./manage-devstack shell postgres
 
 # Restart specific service
 docker compose restart postgres
 
 # Full restart
-./manage-devstack.sh restart
+./manage-devstack restart
 ```
 
 **Backup and Maintenance:**
 ```bash
 # Weekly backup
-./manage-devstack.sh backup
+./manage-devstack backup
 
 # Check resource usage
-./manage-devstack.sh status
+./manage-devstack status
 # Look at CPU/Memory columns
 
 # Clean up old images
 docker system prune -a
 
 # Reset everything (WARNING: destroys data)
-./manage-devstack.sh reset
-./manage-devstack.sh start
+./manage-devstack reset
+./manage-devstack start
 ```
 
 ### Advanced Usage
@@ -199,11 +202,11 @@ docker system prune -a
 export COLIMA_CPU=6
 export COLIMA_MEMORY=12
 export COLIMA_DISK=100
-./manage-devstack.sh start
+./manage-devstack start
 
 # Use different profile
 export COLIMA_PROFILE=myproject
-./manage-devstack.sh start
+./manage-devstack start
 ```
 
 **Script Internals:**

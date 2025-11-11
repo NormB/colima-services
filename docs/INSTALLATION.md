@@ -172,6 +172,31 @@ docker-compose --version
 - If `colima version` shows "command not found", restart your terminal
 - If still not working, run: `brew doctor` to check for issues
 
+**2.4 Optional: Modern Rust-based CLI Tools**
+
+The repository scripts are compatible with modern Rust-based alternatives to traditional Unix tools. These tools are **optional** and provide enhanced performance and features:
+
+```bash
+# Optional: Install Rust-based CLI alternatives
+brew install ripgrep fd-find bat eza
+
+# ripgrep (rg) - Faster grep alternative
+# fd - Faster find alternative
+# bat - cat with syntax highlighting
+# eza - Modern ls replacement
+```
+
+**Important Note:**
+- All DevStack Core scripts use standard Unix tools (`/usr/bin/grep`, `awk`, `sed`) explicitly
+- Scripts are designed to work regardless of aliases (e.g., if `grep` is aliased to `rg`)
+- These Rust tools are **not required** - scripts will work with standard macOS/Linux tools
+- If installed, they provide better performance for interactive terminal use
+
+**Compatibility:**
+- The link checker (`scripts/check-markdown-links.sh`) explicitly uses `/usr/bin/grep`
+- Other scripts that require GNU tool behavior use full paths to avoid alias conflicts
+- Your shell can safely alias `grep→rg`, `find→fd`, `ls→eza`, `cat→bat` without affecting scripts
+
 ---
 
 ### Step 3: Clone the Repository
@@ -212,7 +237,7 @@ ls -la
 # Expected output: You should see files like:
 # .env.example
 # docker-compose.yml
-# manage-devstack.sh
+# manage-devstack
 # README.md
 # configs/
 # scripts/
@@ -245,13 +270,13 @@ ls -la .env
 
 ```bash
 # Add execute permissions
-chmod +x manage-devstack.sh
+chmod +x manage-devstack
 
 # Verify permissions
-ls -l manage-devstack.sh
+ls -l manage-devstack
 
 # Expected output (note the 'x'):
-# -rwxr-xr-x  1 yourusername  staff  xxxxx Nov 23 10:00 manage-devstack.sh
+# -rwxr-xr-x  1 yourusername  staff  xxxxx Nov 23 10:00 manage-devstack
 ```
 
 **4.3 Review Configuration (Optional but Recommended):**
@@ -306,38 +331,26 @@ cat .env | head -30
 
 ```bash
 # Install Python management script dependencies
-pip3 install --user -r requirements-dev.txt
+uv venv
+uv pip install -r scripts/requirements.txt
 
 # Expected output:
-# Successfully installed click-8.1.7 rich-13.7.0 PyYAML-6.0.1 python-dotenv-1.0.0 docker-7.0.0
+# Successfully installed click-8.1.7 rich-13.7.0 PyYAML-6.0.1 python-dotenv-1.0.0
 ```
 
-**Alternative: Use Virtual Environment:**
-
-```bash
-# Create virtual environment (optional but recommended)
-python3 -m venv venv
-
-# Activate it
-source venv/bin/activate
-
-# Install dependencies
-pip3 install -r requirements-dev.txt
-
-# When done: deactivate
-```
+**Note:** The wrapper script (`manage-devstack`) automatically uses the virtual environment. No need to activate it manually!
 
 **4.5.2 Make Python Script Executable:**
 
 ```bash
 # Add execute permissions
-chmod +x manage-devstack.py
+chmod +x manage-devstack
 
 # Verify permissions
-ls -l manage-devstack.py
+ls -l manage-devstack
 
 # Expected output (note the 'x'):
-# -rwxr-xr-x  1 yourusername  staff  xxxxx Nov 23 10:00 manage-devstack.py
+# -rwxr-xr-x  1 yourusername  staff  xxxxx Nov 23 10:00 manage-devstack
 ```
 
 **Skip This Section If:** You want to use the traditional bash script and start all services. Continue to Step 5.
@@ -356,16 +369,16 @@ You can now start services using either:
 
 ```bash
 # Start with standard profile (recommended for most developers)
-./manage-devstack.py start --profile standard
+./manage-devstack start --profile standard
 
 # OR start with minimal profile (lightweight)
-# ./manage-devstack.py start --profile minimal
+# ./manage-devstack start --profile minimal
 
 # OR start with full profile (includes observability)
-# ./manage-devstack.py start --profile full
+# ./manage-devstack start --profile full
 
 # OR combine profiles (standard + reference apps)
-# ./manage-devstack.py start --profile standard --profile reference
+# ./manage-devstack start --profile standard --profile reference
 ```
 
 **Expected Output (takes 2-3 minutes on first run):**
@@ -408,17 +421,17 @@ Services Started Successfully!
 
 Next Steps:
   1. Wait 2-3 minutes for services to become healthy
-  2. Check health: ./manage-devstack.py health
-  3. Initialize Vault: ./manage-devstack.sh vault-init
-  4. Bootstrap Vault: ./manage-devstack.sh vault-bootstrap
-  5. Initialize Redis cluster: ./manage-devstack.py redis-cluster-init
+  2. Check health: ./manage-devstack health
+  3. Initialize Vault: ./manage-devstack vault-init
+  4. Bootstrap Vault: ./manage-devstack vault-bootstrap
+  5. Initialize Redis cluster: ./manage-devstack redis-cluster-init
 ```
 
 **5.2 Check Service Health:**
 
 ```bash
 # Check health status of all running services
-./manage-devstack.py health
+./manage-devstack health
 
 # Expected output:
 # ┏━━━━━━━━━━━━━━━━━━━━━━┳━━━━━━━━━┳━━━━━━━━━━━━━━━━┓
@@ -443,7 +456,7 @@ Next Steps:
 
 ```bash
 # Start Colima with the management script
-./manage-devstack.sh start
+./manage-devstack start
 ```
 
 **Expected Output (this takes 2-3 minutes on first run):**
@@ -493,7 +506,7 @@ dev-vault               Up 28 seconds   starting (0/1)
 ...
 
 [!] Note: Vault needs to be initialized on first run
-    Run: ./manage-devstack.sh vault-init
+    Run: ./manage-devstack vault-init
 ```
 
 **What's Happening:**
@@ -553,7 +566,7 @@ dev-forgejo             Up 2 minutes    healthy
 
 ```bash
 # Run the initialization script
-./manage-devstack.sh vault-init
+./manage-devstack vault-init
 ```
 
 **Expected Output:**
@@ -631,7 +644,7 @@ tail -5 .env
 
 ```bash
 # Check Vault status
-./manage-devstack.sh vault-status
+./manage-devstack vault-status
 
 # Expected output:
 # Key             Value
@@ -648,7 +661,7 @@ tail -5 .env
 **What to Look For:**
 - `Initialized: true` ✅
 - `Sealed: false` ✅
-- If `Sealed: true`, run: `./manage-devstack.sh vault-unseal`
+- If `Sealed: true`, run: `./manage-devstack vault-unseal`
 
 ---
 
@@ -660,7 +673,7 @@ tail -5 .env
 
 ```bash
 # Run the bootstrap script
-./manage-devstack.sh vault-bootstrap
+./manage-devstack vault-bootstrap
 ```
 
 **Expected Output (takes 1-2 minutes):**
@@ -717,9 +730,9 @@ tail -5 .env
 [*] All service credentials have been generated and stored in Vault
 
 [!] To view any service password:
-    ./manage-devstack.sh vault-show-password <service>
+    ./manage-devstack vault-show-password <service>
 
-    Example: ./manage-devstack.sh vault-show-password postgres
+    Example: ./manage-devstack vault-show-password postgres
 ```
 
 **What Just Happened:**
@@ -732,7 +745,7 @@ tail -5 .env
 
 ```bash
 # Restart all services so they fetch passwords from Vault
-./manage-devstack.sh restart
+./manage-devstack restart
 ```
 
 **Expected Output:**
@@ -760,7 +773,7 @@ docker logs dev-postgres 2>&1 | grep -i "vault"
 # [✓] Database: dev_db
 
 # View any service password
-./manage-devstack.sh vault-show-password postgres
+./manage-devstack vault-show-password postgres
 
 # Expected output:
 # PostgreSQL Credentials:
@@ -783,10 +796,10 @@ docker logs dev-postgres 2>&1 | grep -i "vault"
 
 ```bash
 # Using Python script (recommended)
-./manage-devstack.py redis-cluster-init
+./manage-devstack redis-cluster-init
 
 # OR using bash script
-./manage-devstack.sh redis-cluster-init
+./manage-devstack redis-cluster-init
 ```
 
 **Expected Output:**
@@ -829,7 +842,7 @@ Next Steps:
 
 ```bash
 # Connect to cluster (note the -c flag for cluster mode)
-docker exec -it dev-redis-1 redis-cli -c -a "$(./manage-devstack.sh vault-show-password redis-1 | grep Password | awk '{print $2}')"
+docker exec -it dev-redis-1 redis-cli -c -a "$(./manage-devstack vault-show-password redis-1 | grep Password | awk '{print $2}')"
 
 # Inside redis-cli:
 > CLUSTER INFO
@@ -857,10 +870,10 @@ docker exec -it dev-redis-1 redis-cli -c -a "$(./manage-devstack.sh vault-show-p
 
 ```bash
 # Set a key (will be routed to appropriate node)
-docker exec -it dev-redis-1 redis-cli -c -a "$(./manage-devstack.sh vault-show-password redis-1 | grep Password | awk '{print $2}')" SET mykey "hello"
+docker exec -it dev-redis-1 redis-cli -c -a "$(./manage-devstack vault-show-password redis-1 | grep Password | awk '{print $2}')" SET mykey "hello"
 
 # Get the key (cluster will redirect to correct node)
-docker exec -it dev-redis-1 redis-cli -c -a "$(./manage-devstack.sh vault-show-password redis-1 | grep Password | awk '{print $2}')" GET mykey
+docker exec -it dev-redis-1 redis-cli -c -a "$(./manage-devstack vault-show-password redis-1 | grep Password | awk '{print $2}')" GET mykey
 
 # Expected output: "hello"
 ```
@@ -882,7 +895,7 @@ docker logs dev-redis-3 2>&1 | tail -20
 docker exec dev-redis-1 redis-cli -a "$REDIS_PASSWORD" CLUSTER RESET HARD
 docker exec dev-redis-2 redis-cli -a "$REDIS_PASSWORD" CLUSTER RESET HARD
 docker exec dev-redis-3 redis-cli -a "$REDIS_PASSWORD" CLUSTER RESET HARD
-./manage-devstack.py redis-cluster-init
+./manage-devstack redis-cluster-init
 ```
 
 ---
@@ -893,7 +906,7 @@ docker exec dev-redis-3 redis-cli -a "$REDIS_PASSWORD" CLUSTER RESET HARD
 
 ```bash
 # Run comprehensive status check
-./manage-devstack.sh status
+./manage-devstack status
 ```
 
 **Expected Output:**
@@ -949,7 +962,7 @@ docker exec dev-mysql mysqladmin ping -h localhost
 # Expected output: mysqld is alive
 
 # Test Redis
-docker exec dev-redis-1 redis-cli -a $(./manage-devstack.sh vault-show-password redis-1 | grep "Password:" | awk '{print $2}') ping
+docker exec dev-redis-1 redis-cli -a $(./manage-devstack vault-show-password redis-1 | grep "Password:" | awk '{print $2}') ping
 
 # Expected output: PONG
 
@@ -963,7 +976,7 @@ docker exec dev-mongodb mongosh --quiet --eval "db.adminCommand('ping')"
 
 ```bash
 # Run built-in health checks
-./manage-devstack.sh health
+./manage-devstack health
 ```
 
 **Expected Output:**
@@ -999,7 +1012,7 @@ Open these URLs in your browser:
 |---------|-----|---------------|
 | **Forgejo (Git Server)** | http://localhost:3000 | (create account on first visit) |
 | **Vault UI** | http://localhost:8200/ui | Token from `~/.config/vault/root-token` |
-| **RabbitMQ Management** | http://localhost:15672 | Get from: `./manage-devstack.sh vault-show-password rabbitmq` |
+| **RabbitMQ Management** | http://localhost:15672 | Get from: `./manage-devstack vault-show-password rabbitmq` |
 | **Grafana Dashboards** | http://localhost:3001 | admin / admin |
 | **Prometheus Metrics** | http://localhost:9090 | (no login required) |
 | **FastAPI Code-First** | http://localhost:8000/docs | (no login required) |
@@ -1068,18 +1081,18 @@ open http://localhost:3001
 
 ```bash
 # PostgreSQL
-PGPASSWORD=$(./manage-devstack.sh vault-show-password postgres | grep "Password:" | awk '{print $2}') \
+PGPASSWORD=$(./manage-devstack vault-show-password postgres | grep "Password:" | awk '{print $2}') \
   psql -h localhost -p 5432 -U dev_admin -d dev_db
 
 # MySQL
 mysql -h 127.0.0.1 -P 3306 -u dev_admin -p
-# (paste password from: ./manage-devstack.sh vault-show-password mysql)
+# (paste password from: ./manage-devstack vault-show-password mysql)
 
 # Redis
-redis-cli -h localhost -p 6379 -a $(./manage-devstack.sh vault-show-password redis-1 | grep "Password:" | awk '{print $2}')
+redis-cli -h localhost -p 6379 -a $(./manage-devstack vault-show-password redis-1 | grep "Password:" | awk '{print $2}')
 
 # MongoDB
-mongosh "mongodb://dev_admin:$(./manage-devstack.sh vault-show-password mongodb | grep "Password:" | awk '{print $2}')@localhost:27017/dev_db"
+mongosh "mongodb://dev_admin:$(./manage-devstack vault-show-password mongodb | grep "Password:" | awk '{print $2}')@localhost:27017/dev_db"
 ```
 
 **9.6 Test with FastAPI Reference Application:**
@@ -1111,7 +1124,7 @@ curl http://localhost:8000/api/v1/databases/test
 colima status
 
 # If stopped, start it:
-./manage-devstack.sh start
+./manage-devstack start
 
 # Solution 2: Set Docker context
 docker context use colima
@@ -1123,10 +1136,10 @@ docker context use colima
 
 ```bash
 # Check status
-./manage-devstack.sh vault-status
+./manage-devstack vault-status
 
 # If sealed:
-./manage-devstack.sh vault-unseal
+./manage-devstack vault-unseal
 
 # Auto-unseal should happen automatically on restart
 # If it doesn't, check logs:
@@ -1164,10 +1177,10 @@ docker logs dev-postgres --tail 50
 docker compose restart <service-name>
 
 # 2. Check if Vault is unsealed:
-./manage-devstack.sh vault-status
+./manage-devstack vault-status
 
 # 3. Verify credentials were generated:
-./manage-devstack.sh vault-show-password <service>
+./manage-devstack vault-show-password <service>
 ```
 
 ---
@@ -1182,7 +1195,7 @@ docker ps | grep forgejo
 docker logs dev-forgejo --tail 50
 
 # Try accessing via Colima IP instead:
-COLIMA_IP=$(./manage-devstack.sh ip | grep "Colima IP:" | awk '{print $3}')
+COLIMA_IP=$(./manage-devstack ip | grep "Colima IP:" | awk '{print $3}')
 open http://$COLIMA_IP:3000
 ```
 
@@ -1192,13 +1205,13 @@ open http://$COLIMA_IP:3000
 
 ```bash
 # Check cluster status
-docker exec dev-redis-1 redis-cli -a $(./manage-devstack.sh vault-show-password redis-1 | grep "Password:" | awk '{print $2}') cluster info
+docker exec dev-redis-1 redis-cli -a $(./manage-devstack vault-show-password redis-1 | grep "Password:" | awk '{print $2}') cluster info
 
 # Re-initialize cluster:
 ./configs/redis/scripts/redis-cluster-init.sh
 
 # Verify:
-docker exec dev-redis-1 redis-cli -a $(./manage-devstack.sh vault-show-password redis-1 | grep "Password:" | awk '{print $2}') cluster nodes
+docker exec dev-redis-1 redis-cli -a $(./manage-devstack vault-show-password redis-1 | grep "Password:" | awk '{print $2}') cluster nodes
 ```
 
 ---
@@ -1232,7 +1245,7 @@ colima stop
 colima start --cpu 6 --memory 12  # 6 CPUs, 12GB RAM
 
 # Restart services:
-./manage-devstack.sh restart
+./manage-devstack restart
 ```
 
 ---
@@ -1243,7 +1256,7 @@ colima start --cpu 6 --memory 12  # 6 CPUs, 12GB RAM
 # WARNING: This deletes ALL data and containers!
 
 # Stop everything
-./manage-devstack.sh stop
+./manage-devstack stop
 
 # Delete Colima VM
 colima delete
@@ -1252,9 +1265,9 @@ colima delete
 docker volume rm $(docker volume ls -q)
 
 # Start fresh:
-./manage-devstack.sh start
-./manage-devstack.sh vault-init
-./manage-devstack.sh vault-bootstrap
+./manage-devstack start
+./manage-devstack vault-init
+./manage-devstack vault-bootstrap
 ```
 
 ---
@@ -1355,14 +1368,14 @@ nano .env  # or vim, code, etc.
 ```
 
 **Important:** Passwords are auto-generated by Vault during bootstrap:
-- Run `./manage-devstack.sh vault-bootstrap` to generate all service credentials
+- Run `./manage-devstack vault-bootstrap` to generate all service credentials
 - Passwords are 25-character random strings (base64, URL-safe)
 - Stored securely in Vault, fetched at container startup
 - No plaintext passwords in configuration files
 
 **4. Make Management Script Executable**
 ```bash
-chmod +x manage-devstack.sh
+chmod +x manage-devstack
 ```
 
 ### Configuration
@@ -1376,7 +1389,7 @@ VAULT_TOKEN=<from ~/.config/vault/root-token after initialization>
 
 # Service Credentials - ALL MANAGED BY VAULT
 # Credentials are automatically loaded from Vault at container startup
-# To view credentials: ./manage-devstack.sh vault-show-password <service>
+# To view credentials: ./manage-devstack vault-show-password <service>
 #
 # Services with Vault integration:
 #   - PostgreSQL: secret/postgres (user, password, database)
@@ -1412,11 +1425,11 @@ All service credentials are managed by HashiCorp Vault. After running `vault-boo
 
 ```bash
 # View any service password
-./manage-devstack.sh vault-show-password postgres
-./manage-devstack.sh vault-show-password mysql
-./manage-devstack.sh vault-show-password redis-1
-./manage-devstack.sh vault-show-password rabbitmq
-./manage-devstack.sh vault-show-password mongodb
+./manage-devstack vault-show-password postgres
+./manage-devstack vault-show-password mysql
+./manage-devstack vault-show-password redis-1
+./manage-devstack vault-show-password rabbitmq
+./manage-devstack vault-show-password mongodb
 
 # Or using Vault CLI
 export VAULT_ADDR=http://localhost:8200
@@ -1437,7 +1450,7 @@ export COLIMA_DISK=60            # Disk size in GB
 
 **Option 1: Using Management Script (Recommended)**
 ```bash
-./manage-devstack.sh start
+./manage-devstack start
 ```
 
 This will:
@@ -1464,7 +1477,7 @@ docker compose ps
 
 **Verify Everything is Running:**
 ```bash
-./manage-devstack.sh status
-./manage-devstack.sh health
+./manage-devstack status
+./manage-devstack health
 ```
 

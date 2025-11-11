@@ -2,7 +2,7 @@
 
 ## Overview
 
-`manage-devstack.py` is a modern Python-based management interface for DevStack Core with comprehensive service profile support. It provides a beautiful CLI experience with colored output, tables, and progress indicators.
+`manage-devstack` is a modern Python-based management interface for DevStack Core with comprehensive service profile support. It provides a beautiful CLI experience with colored output, tables, and progress indicators.
 
 **Features:**
 - Service profile management (minimal, standard, full, reference)
@@ -12,6 +12,44 @@
 - Service logs and shell access
 - Redis cluster initialization
 - Profile listing and validation
+- Comprehensive built-in help for all commands
+
+## Getting Help
+
+The script includes comprehensive help documentation accessible via standard help commands:
+
+```bash
+# Main help - shows all commands
+./manage-devstack --help
+./manage-devstack -h
+
+# Help for specific command - shows all options and examples
+./manage-devstack start --help
+./manage-devstack logs --help
+./manage-devstack stop --help
+./manage-devstack vault-show-password --help
+
+# Version information
+./manage-devstack --version
+```
+
+**Every command includes:**
+- **ARGUMENTS:** Required and optional arguments
+- **OPTIONS:** All available flags and parameters with defaults
+- **EXAMPLES:** Real-world usage examples
+- **NOTES:** Important warnings, tips, and gotchas
+
+**Examples of getting help:**
+```bash
+# See all available --profile options for start command
+./manage-devstack start --help
+
+# Learn about log viewing options (--follow, --tail)
+./manage-devstack logs --help
+
+# Understand which services can be queried for passwords
+./manage-devstack vault-show-password --help
+```
 
 ## Installation
 
@@ -25,27 +63,26 @@
 #### Option 1: Using pip (Recommended for development)
 
 ```bash
-# Install in user space (no sudo required)
-pip3 install --user click rich PyYAML python-dotenv
+# Install using uv (recommended)
+uv venv
+uv pip install -r scripts/requirements.txt
 
-# Or install from requirements file
-pip3 install --user -r requirements-dev.txt
+# The wrapper script automatically uses the venv
+# No manual activation needed!
 ```
 
-#### Option 2: Using a Virtual Environment (Recommended for isolation)
+#### Option 2: Using a Virtual Environment Manually
 
 ```bash
-# Create virtual environment
-python3 -m venv venv
-
-# Activate virtual environment
-source venv/bin/activate
-
-# Install dependencies
-pip3 install -r requirements-dev.txt
+# If you prefer to manage the venv yourself:
+python3 -m venv .venv
+source .venv/bin/activate
+pip3 install -r scripts/requirements.txt
 
 # Deactivate when done
 deactivate
+
+# Note: The wrapper script handles activation automatically
 ```
 
 #### Option 3: Using Homebrew Python (macOS)
@@ -65,8 +102,8 @@ brew install python@3
 python3 -c "import click, rich, yaml; print('All dependencies installed!')"
 
 # Test the script
-./manage-devstack.py --version
-./manage-devstack.py --help
+./manage-devstack --version
+./manage-devstack --help
 ```
 
 ## Quick Start
@@ -75,16 +112,16 @@ python3 -c "import click, rich, yaml; print('All dependencies installed!')"
 
 ```bash
 # Start with standard profile (recommended)
-./manage-devstack.py start --profile standard
+./manage-devstack start --profile standard
 
 # Check status
-./manage-devstack.py status
+./manage-devstack status
 
 # Check health
-./manage-devstack.py health
+./manage-devstack health
 
 # Stop services
-./manage-devstack.py stop
+./manage-devstack stop
 ```
 
 ### Common Workflows
@@ -92,28 +129,28 @@ python3 -c "import click, rich, yaml; print('All dependencies installed!')"
 **Morning Routine (Start Development Environment):**
 ```bash
 # Start full development stack
-./manage-devstack.py start --profile standard
+./manage-devstack start --profile standard
 
 # Initialize Redis cluster (first time only)
-./manage-devstack.py redis-cluster-init
+./manage-devstack redis-cluster-init
 
 # Check all services are healthy
-./manage-devstack.py health
+./manage-devstack health
 ```
 
 **End of Day (Stop Everything):**
 ```bash
 # Stop all services and Colima VM
-./manage-devstack.py stop
+./manage-devstack stop
 ```
 
 **Quick Check (Status Without Starting):**
 ```bash
 # Check what's running
-./manage-devstack.py status
+./manage-devstack status
 
 # Get Colima IP address
-./manage-devstack.py ip
+./manage-devstack ip
 ```
 
 ## Commands
@@ -124,19 +161,19 @@ Start Colima VM and Docker services with specified profile(s).
 
 ```bash
 # Start with minimal profile
-./manage-devstack.py start --profile minimal
+./manage-devstack start --profile minimal
 
 # Start with standard profile (default)
-./manage-devstack.py start --profile standard
+./manage-devstack start --profile standard
 
 # Start with full profile (all services + observability)
-./manage-devstack.py start --profile full
+./manage-devstack start --profile full
 
 # Combine multiple profiles
-./manage-devstack.py start --profile standard --profile reference
+./manage-devstack start --profile standard --profile reference
 
 # Start in foreground (see logs in real-time)
-./manage-devstack.py start --profile minimal --no-detach
+./manage-devstack start --profile minimal --no-detach
 ```
 
 **Options:**
@@ -146,13 +183,13 @@ Start Colima VM and Docker services with specified profile(s).
 **Examples:**
 ```bash
 # Minimal profile (5 services, 2GB RAM)
-./manage-devstack.py start --profile minimal
+./manage-devstack start --profile minimal
 
 # Standard profile with reference apps (15 services)
-./manage-devstack.py start --profile standard --profile reference
+./manage-devstack start --profile standard --profile reference
 
 # Full profile (18 services, 6GB RAM)
-./manage-devstack.py start --profile full
+./manage-devstack start --profile full
 ```
 
 ### stop
@@ -161,11 +198,11 @@ Stop Docker services and optionally Colima VM.
 
 ```bash
 # Stop everything (services + Colima VM)
-./manage-devstack.py stop
+./manage-devstack stop
 
 # Stop only specific profile services (keeps Colima running)
-./manage-devstack.py stop --profile standard
-./manage-devstack.py stop --profile reference
+./manage-devstack stop --profile standard
+./manage-devstack stop --profile reference
 ```
 
 **Options:**
@@ -177,7 +214,7 @@ Display status of Colima VM and all running services with resource usage.
 
 ```bash
 # Show full status
-./manage-devstack.py status
+./manage-devstack status
 ```
 
 **Output includes:**
@@ -191,7 +228,7 @@ Check health status of all running services.
 
 ```bash
 # Check health of all services
-./manage-devstack.py health
+./manage-devstack health
 ```
 
 **Output shows:**
@@ -210,17 +247,17 @@ View logs for all services or a specific service.
 
 ```bash
 # View all service logs (last 100 lines)
-./manage-devstack.py logs
+./manage-devstack logs
 
 # View specific service logs
-./manage-devstack.py logs postgres
-./manage-devstack.py logs vault
+./manage-devstack logs postgres
+./manage-devstack logs vault
 
 # Follow logs (like tail -f)
-./manage-devstack.py logs -f redis-1
+./manage-devstack logs -f redis-1
 
 # Show more lines
-./manage-devstack.py logs --tail 500 postgres
+./manage-devstack logs --tail 500 postgres
 
 # Follow multiple services (using docker compose directly)
 docker compose logs -f postgres vault
@@ -236,10 +273,10 @@ Open an interactive shell in a running container.
 
 ```bash
 # Open shell in PostgreSQL container
-./manage-devstack.py shell postgres
+./manage-devstack shell postgres
 
 # Open specific shell (bash instead of sh)
-./manage-devstack.py shell vault --shell bash
+./manage-devstack shell vault --shell bash
 
 # Common shell commands after entering:
 # PostgreSQL: psql -U $POSTGRES_USER -d $POSTGRES_DB
@@ -256,7 +293,7 @@ List all available service profiles with details.
 
 ```bash
 # Show all profiles
-./manage-devstack.py profiles
+./manage-devstack profiles
 ```
 
 **Output includes:**
@@ -271,7 +308,7 @@ Display Colima VM IP address.
 
 ```bash
 # Get VM IP address
-./manage-devstack.py ip
+./manage-devstack ip
 ```
 
 **Use cases:**
@@ -285,7 +322,7 @@ Initialize Redis cluster (required for standard/full profiles).
 
 ```bash
 # Initialize 3-node Redis cluster
-./manage-devstack.py redis-cluster-init
+./manage-devstack redis-cluster-init
 ```
 
 **When to use:**
@@ -314,10 +351,10 @@ redis-cli -h localhost -p 6379 cluster info
 
 | Profile | Services | RAM | Start Command |
 |---------|----------|-----|---------------|
-| **minimal** | 5 | 2GB | `./manage-devstack.py start --profile minimal` |
-| **standard** | 10 | 4GB | `./manage-devstack.py start --profile standard` |
-| **full** | 18 | 6GB | `./manage-devstack.py start --profile full` |
-| **reference** | +5 | +1GB | `./manage-devstack.py start --profile standard --profile reference` |
+| **minimal** | 5 | 2GB | `./manage-devstack start --profile minimal` |
+| **standard** | 10 | 4GB | `./manage-devstack start --profile standard` |
+| **full** | 18 | 6GB | `./manage-devstack start --profile full` |
+| **reference** | +5 | +1GB | `./manage-devstack start --profile standard --profile reference` |
 
 ### Minimal Profile (5 services)
 
@@ -404,27 +441,27 @@ The script automatically loads environment variables from:
 ### Migration Strategy
 
 **Current State:**
-- Bash script (`manage-devstack.sh`) - 1,622 lines
-- Python script (`manage-devstack.py`) - 850 lines
+- Bash script (`manage-devstack`) - 1,622 lines
+- Python script (`manage-devstack`) - 850 lines
 
 **Recommended Approach:**
 1. **Phase 1:** Use Python script for profile management
    ```bash
-   ./manage-devstack.py start --profile standard
+   ./manage-devstack start --profile standard
    ```
 
 2. **Phase 2:** Use Python script for common operations
    ```bash
-   ./manage-devstack.py status
-   ./manage-devstack.py health
-   ./manage-devstack.py logs <service>
+   ./manage-devstack status
+   ./manage-devstack health
+   ./manage-devstack logs <service>
    ```
 
 3. **Phase 3:** Use bash script for advanced operations (until implemented in Python)
    ```bash
-   ./manage-devstack.sh vault-bootstrap
-   ./manage-devstack.sh backup
-   ./manage-devstack.sh forgejo-init
+   ./manage-devstack vault-bootstrap
+   ./manage-devstack backup
+   ./manage-devstack forgejo-init
    ```
 
 4. **Future:** Complete Python implementation with all bash script features
@@ -441,18 +478,18 @@ The script automatically loads environment variables from:
 pip3 install --user click rich PyYAML python-dotenv
 
 # Or use virtual environment
-python3 -m venv venv
-source venv/bin/activate
-pip3 install -r requirements-dev.txt
+uv venv
+uv pip install -r scripts/requirements.txt
+# Wrapper script automatically uses the venv
 ```
 
 ### Script Not Executable
 
-**Problem:** `Permission denied: ./manage-devstack.py`
+**Problem:** `Permission denied: ./manage-devstack`
 
 **Solution:**
 ```bash
-chmod +x manage-devstack.py
+chmod +x manage-devstack
 ```
 
 ### Colima Not Found
@@ -496,8 +533,8 @@ redis-cli -h localhost -p 6379 cluster nodes
 # Reset if needed (WARNING: destroys data)
 docker compose down
 docker volume rm devstack-core_redis_1_data devstack-core_redis_2_data devstack-core_redis_3_data
-./manage-devstack.py start --profile standard
-./manage-devstack.py redis-cluster-init
+./manage-devstack start --profile standard
+./manage-devstack redis-cluster-init
 ```
 
 ## Advanced Usage
@@ -531,28 +568,28 @@ Use the Python script in automation:
 # CI/CD example
 
 # Start minimal profile for testing
-./manage-devstack.py start --profile minimal
+./manage-devstack start --profile minimal
 
 # Wait for services to be healthy
 sleep 30
-./manage-devstack.py health
+./manage-devstack health
 
 # Run tests
 pytest tests/
 
 # Stop services
-./manage-devstack.py stop
+./manage-devstack stop
 ```
 
 ### Monitoring
 
 ```bash
 # Watch status in real-time
-watch -n 5 './manage-devstack.py status'
+watch -n 5 './manage-devstack status'
 
 # Continuous health monitoring
 while true; do
-  ./manage-devstack.py health
+  ./manage-devstack health
   sleep 60
 done
 ```
@@ -591,8 +628,8 @@ def mycommand(force: bool):
     Description of my command.
 
     Examples:
-      ./manage-devstack.py mycommand
-      ./manage-devstack.py mycommand --force
+      ./manage-devstack mycommand
+      ./manage-devstack mycommand --force
     """
     console.print("[cyan]Running my command...[/cyan]")
     # Implementation here
@@ -602,8 +639,8 @@ def mycommand(force: bool):
 
 For help with the Python management script:
 1. Check this documentation
-2. Run `./manage-devstack.py --help`
-3. Check command-specific help: `./manage-devstack.py start --help`
+2. Run `./manage-devstack --help`
+3. Check command-specific help: `./manage-devstack start --help`
 4. Review docs/SERVICE_PROFILES.md
 5. Open an issue on GitHub
 

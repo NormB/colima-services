@@ -31,16 +31,16 @@ The Python management script automatically loads the appropriate profile environ
 
 ```bash
 # Minimal profile
-./manage-devstack.py start --profile minimal
+./manage-devstack start --profile minimal
 
 # Standard profile
-./manage-devstack.py start --profile standard
+./manage-devstack start --profile standard
 
 # Full profile
-./manage-devstack.py start --profile full
+./manage-devstack start --profile full
 
 # Combined profiles
-./manage-devstack.py start --profile standard --profile reference
+./manage-devstack start --profile standard --profile reference
 ```
 
 ## Environment Variable Priority
@@ -202,7 +202,7 @@ docker exec dev-redis-1 redis-cli --cluster create \
 
 Or use the management script:
 ```bash
-./manage-devstack.py redis-cluster-init
+./manage-devstack redis-cluster-init
 ```
 
 ### Profile Conflicts

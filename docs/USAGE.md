@@ -26,34 +26,35 @@ Complete guide for using the DevStack Core development environment.
 
 ```bash
 # 1. Install Python dependencies (first time only)
-pip3 install --user -r requirements-dev.txt
+uv venv
+uv pip install -r scripts/requirements.txt
 
 # 2. Start with standard profile (recommended for most developers)
-./manage-devstack.py start --profile standard
+./manage-devstack start --profile standard
 
 # 3. Initialize Vault (first time only)
-./manage-devstack.sh vault-init
-./manage-devstack.sh vault-bootstrap
+./manage-devstack vault-init
+./manage-devstack vault-bootstrap
 
 # 4. Initialize Redis cluster (for standard/full profiles, first time only)
-./manage-devstack.py redis-cluster-init
+./manage-devstack redis-cluster-init
 
 # 5. Check health
-./manage-devstack.py health
+./manage-devstack health
 ```
 
 ### Option B: Bash Script (Traditional, All Services)
 
 ```bash
 # 1. Start everything
-./manage-devstack.sh start
+./manage-devstack start
 
 # 2. Initialize Vault (first time only)
-./manage-devstack.sh vault-init
-./manage-devstack.sh vault-bootstrap
+./manage-devstack vault-init
+./manage-devstack vault-bootstrap
 
 # 3. Verify everything is running
-./manage-devstack.sh health
+./manage-devstack health
 
 # 4. Run tests
 ./tests/run-all-tests.sh
@@ -82,26 +83,26 @@ DevStack Core supports flexible service profiles to match your development needs
 
 ```bash
 # List available profiles
-./manage-devstack.py profiles
+./manage-devstack profiles
 
 # Start with minimal profile (lightweight)
-./manage-devstack.py start --profile minimal
+./manage-devstack start --profile minimal
 
 # Start with standard profile (recommended)
-./manage-devstack.py start --profile standard
+./manage-devstack start --profile standard
 
 # Start with full profile (observability included)
-./manage-devstack.py start --profile full
+./manage-devstack start --profile full
 
 # Combine profiles (standard + reference apps)
-./manage-devstack.py start --profile standard --profile reference
+./manage-devstack start --profile standard --profile reference
 
 # Check what's running
-./manage-devstack.py status
-./manage-devstack.py health
+./manage-devstack status
+./manage-devstack health
 
 # Stop specific profile services
-./manage-devstack.py stop --profile reference
+./manage-devstack stop --profile reference
 ```
 
 ### Profile Use Cases
@@ -134,18 +135,18 @@ DevStack Core supports flexible service profiles to match your development needs
 
 ```bash
 # View service logs
-./manage-devstack.py logs <service>
-./manage-devstack.py logs --follow redis-1
+./manage-devstack logs <service>
+./manage-devstack logs --follow redis-1
 
 # Open shell in container
-./manage-devstack.py shell postgres
-./manage-devstack.py shell --shell bash vault
+./manage-devstack shell postgres
+./manage-devstack shell --shell bash vault
 
 # Get Colima VM IP
-./manage-devstack.py ip
+./manage-devstack ip
 
 # Initialize Redis cluster (standard/full only)
-./manage-devstack.py redis-cluster-init
+./manage-devstack redis-cluster-init
 ```
 
 **For complete profile documentation, see [SERVICE_PROFILES.md](./SERVICE_PROFILES.md).**
@@ -203,7 +204,7 @@ colima start --cpu 4 --memory 8 --disk 100
 
 ```bash
 # Start all services
-./manage-devstack.sh start
+./manage-devstack start
 
 # This will:
 # - Start Colima VM (if not running)
@@ -224,10 +225,10 @@ colima start --cpu 4 --memory 8 --disk 100
 
 ```bash
 # Initialize Vault and save keys to ~/.config/vault/
-./manage-devstack.sh vault-init
+./manage-devstack vault-init
 
 # Bootstrap PKI and store service credentials
-./manage-devstack.sh vault-bootstrap
+./manage-devstack vault-bootstrap
 ```
 
 **Important:** Backup `~/.config/vault/` directory - contains unseal keys and root token!
@@ -236,10 +237,10 @@ colima start --cpu 4 --memory 8 --disk 100
 
 ```bash
 # Check all services are healthy
-./manage-devstack.sh health
+./manage-devstack health
 
 # Check specific service status
-./manage-devstack.sh status
+./manage-devstack status
 
 # Run tests to verify everything works
 ./tests/run-all-tests.sh
@@ -253,25 +254,25 @@ colima start --cpu 4 --memory 8 --disk 100
 
 ```bash
 # Check if VM is running
-./manage-devstack.sh status
+./manage-devstack status
 
 # If stopped, start everything
-./manage-devstack.sh start
+./manage-devstack start
 
 # Check health
-./manage-devstack.sh health
+./manage-devstack health
 ```
 
 ### Viewing Logs
 
 ```bash
 # View all service logs
-./manage-devstack.sh logs
+./manage-devstack logs
 
 # View specific service logs
-./manage-devstack.sh logs postgres
-./manage-devstack.sh logs vault
-./manage-devstack.sh logs reference-api
+./manage-devstack logs postgres
+./manage-devstack logs vault
+./manage-devstack logs reference-api
 
 # Follow logs in real-time
 docker compose logs -f postgres
@@ -281,7 +282,7 @@ docker compose logs -f postgres
 
 ```bash
 # Restart all services (keeps VM running)
-./manage-devstack.sh restart
+./manage-devstack restart
 
 # Restart specific service
 docker compose restart postgres
@@ -295,20 +296,20 @@ docker compose restart vault
 docker compose down
 
 # Stop everything including VM
-./manage-devstack.sh stop
+./manage-devstack stop
 ```
 
 ### Checking Status
 
 ```bash
 # Detailed status with resource usage
-./manage-devstack.sh status
+./manage-devstack status
 
 # Quick health check
-./manage-devstack.sh health
+./manage-devstack health
 
 # Vault status
-./manage-devstack.sh vault-status
+./manage-devstack vault-status
 
 # Individual service status
 docker compose ps
@@ -415,24 +416,24 @@ uv run pytest -v
 
 ```bash
 # Connect with Vault password
-PGPASSWORD=$(./manage-devstack.sh vault-show-password postgres) \
+PGPASSWORD=$(./manage-devstack vault-show-password postgres) \
   psql -h localhost -p 5432 -U dev_admin -d dev_database
 
 # Or get password first
-./manage-devstack.sh vault-show-password postgres
+./manage-devstack vault-show-password postgres
 
 # Query from command line
 docker exec dev-postgres psql -U dev_admin -d dev_database -c "SELECT version();"
 
 # Backup database
-./manage-devstack.sh backup
+./manage-devstack backup
 ```
 
 ### MySQL
 
 ```bash
 # Get password
-./manage-devstack.sh vault-show-password mysql
+./manage-devstack vault-show-password mysql
 
 # Connect
 mysql -h 127.0.0.1 -P 3306 -u dev_admin -p dev_database
@@ -445,7 +446,7 @@ docker exec -it dev-mysql mysql -u dev_admin -p dev_database
 
 ```bash
 # Get password
-./manage-devstack.sh vault-show-password mongodb
+./manage-devstack vault-show-password mongodb
 
 # Connect
 mongosh "mongodb://dev_admin:<password>@localhost:27017/dev_database"
@@ -481,7 +482,7 @@ open http://localhost:15672
 # Default: guest / guest (or get from Vault)
 
 # Get credentials
-./manage-devstack.sh vault-show-password rabbitmq
+./manage-devstack vault-show-password rabbitmq
 
 # Publish message via CLI
 docker exec dev-rabbitmq rabbitmqadmin publish exchange=amq.default \
@@ -520,9 +521,9 @@ open http://localhost:9090/targets
 
 ```bash
 # Using management script (easiest)
-./manage-devstack.sh vault-show-password postgres
-./manage-devstack.sh vault-show-password mysql
-./manage-devstack.sh vault-show-password redis-1
+./manage-devstack vault-show-password postgres
+./manage-devstack vault-show-password mysql
+./manage-devstack vault-show-password redis-1
 
 # Using Vault CLI
 export VAULT_ADDR=http://localhost:8200
@@ -563,7 +564,7 @@ docker compose restart postgres mysql redis-1 redis-2 redis-3 rabbitmq mongodb
 
 ```bash
 # Using management script
-./manage-devstack.sh vault-status
+./manage-devstack vault-status
 
 # Using Vault CLI
 vault status
@@ -578,7 +579,7 @@ Vault automatically unseals on container start using `~/.config/vault/keys.json`
 
 **If Vault is sealed manually:**
 ```bash
-./manage-devstack.sh vault-unseal
+./manage-devstack vault-unseal
 ```
 
 ---
@@ -753,7 +754,7 @@ docker exec dev-postgres psql -U dev_admin -d dev_database -f /tmp/migration.sql
 
 ```bash
 # Backup all databases
-./manage-devstack.sh backup
+./manage-devstack backup
 
 # Backups are stored in backups/ directory with timestamp
 
@@ -769,13 +770,13 @@ cp -r ~/.config/vault ~/vault-backup-$(date +%Y%m%d)
 
 ```bash
 # WARNING: This destroys all data!
-./manage-devstack.sh reset
+./manage-devstack reset
 
 # Confirm with 'yes'
 # Then re-initialize
-./manage-devstack.sh start
-./manage-devstack.sh vault-init
-./manage-devstack.sh vault-bootstrap
+./manage-devstack start
+./manage-devstack vault-init
+./manage-devstack vault-bootstrap
 ```
 
 ---
@@ -789,13 +790,13 @@ cp -r ~/.config/vault ~/vault-backup-$(date +%Y%m%d)
 curl http://localhost:8200/v1/sys/health
 
 # Check Vault status
-./manage-devstack.sh vault-status
+./manage-devstack vault-status
 
 # If sealed, unseal it
-./manage-devstack.sh vault-unseal
+./manage-devstack vault-unseal
 
 # Restart services
-./manage-devstack.sh restart
+./manage-devstack restart
 ```
 
 ### "Connection Refused" Errors
@@ -808,7 +809,7 @@ docker compose ps
 docker compose logs <service>
 
 # Check health
-./manage-devstack.sh health
+./manage-devstack health
 
 # Test network connectivity
 docker exec <service> ping vault
@@ -819,10 +820,10 @@ docker exec <service> nc -zv vault 8200
 
 ```bash
 # Check status
-./manage-devstack.sh vault-status
+./manage-devstack vault-status
 
 # Unseal
-./manage-devstack.sh vault-unseal
+./manage-devstack vault-unseal
 
 # If auto-unseal fails, check keys exist
 ls ~/.config/vault/keys.json
@@ -836,13 +837,13 @@ docker compose restart vault
 
 ```bash
 # 1. Check all services are healthy
-./manage-devstack.sh health
+./manage-devstack health
 
 # 2. Restart infrastructure
-./manage-devstack.sh restart
+./manage-devstack restart
 
 # 3. Check specific service
-./manage-devstack.sh logs <service>
+./manage-devstack logs <service>
 
 # 4. Re-run specific test
 ./tests/test-<service>.sh
@@ -864,8 +865,8 @@ docker volume rm devstack-core_vault-data
 docker compose up -d vault
 
 # Re-initialize
-./manage-devstack.sh vault-init
-./manage-devstack.sh vault-bootstrap
+./manage-devstack vault-init
+./manage-devstack vault-bootstrap
 ```
 
 **Prevention:** Always backup `~/.config/vault/`
@@ -882,7 +883,7 @@ lsof -i :8000  # Reference API
 nano .env
 
 # Restart services
-./manage-devstack.sh restart
+./manage-devstack restart
 ```
 
 ### Disk Space Issues
@@ -947,7 +948,7 @@ nano .env
 # - Modify IP addresses
 
 # Restart to apply
-./manage-devstack.sh restart
+./manage-devstack restart
 ```
 
 ### Using TLS/SSL
@@ -1001,7 +1002,7 @@ REDIS_MAXMEMORY_POLICY=allkeys-lru
 MYSQL_INNODB_BUFFER_POOL_SIZE=512M
 
 # Restart services
-./manage-devstack.sh restart
+./manage-devstack restart
 ```
 
 ### CI/CD Integration
@@ -1028,8 +1029,8 @@ jobs:
 
       - name: Initialize Vault
         run: |
-          ./manage-devstack.sh vault-init
-          ./manage-devstack.sh vault-bootstrap
+          ./manage-devstack vault-init
+          ./manage-devstack vault-bootstrap
 
       - name: Run tests
         run: ./tests/run-all-tests.sh
@@ -1044,9 +1045,9 @@ jobs:
 1. **Always use Vault for credentials** - Never hardcode passwords
 2. **Test locally before pushing** - Run `./tests/run-all-tests.sh`
 3. **Backup Vault keys** - Store `~/.config/vault/` safely
-4. **Monitor resource usage** - `./manage-devstack.sh status`
+4. **Monitor resource usage** - `./manage-devstack status`
 5. **Keep containers updated** - `docker compose pull && docker compose up -d`
-6. **Review logs regularly** - `./manage-devstack.sh logs`
+6. **Review logs regularly** - `./manage-devstack logs`
 
 ---
 
@@ -1056,32 +1057,32 @@ jobs:
 
 ```bash
 # Start everything
-./manage-devstack.sh start
+./manage-devstack start
 
 # Check health
-./manage-devstack.sh health
+./manage-devstack health
 
 # View logs
-./manage-devstack.sh logs [service]
+./manage-devstack logs [service]
 
 # Get password
-./manage-devstack.sh vault-show-password <service>
+./manage-devstack vault-show-password <service>
 
 # Run tests
 ./tests/run-all-tests.sh
 
 # Restart
-./manage-devstack.sh restart
+./manage-devstack restart
 
 # Stop
-./manage-devstack.sh stop
+./manage-devstack stop
 ```
 
 ### Important File Locations
 
 ```
 ~/devstack-core/
-├── manage-devstack.sh              # Main management script
+├── manage-devstack              # Main management script
 ├── docker-compose.yml            # Service definitions
 ├── .env                          # Configuration
 ├── tests/run-all-tests.sh        # Master test runner
@@ -1100,11 +1101,11 @@ jobs:
 
 ```bash
 # Management script help
-./manage-devstack.sh --help
+./manage-devstack --help
 
 # Service-specific help
 docker compose logs <service>
-./manage-devstack.sh shell <service>
+./manage-devstack shell <service>
 
 # View documentation
 cat README.md
