@@ -15,7 +15,7 @@ A comprehensive, self-contained development environment providing Git hosting (F
 
 - **🚀 [Complete Infrastructure](#️-architecture)** - Everything you need: Git, databases, caching, messaging, secrets, observability
 - **🎯 [Service Profiles](./docs/SERVICE_PROFILES.md)** - Choose your stack: minimal (2GB), standard (4GB), or full (6GB) with observability
-- **🍎 [Apple Silicon Optimized](#prerequisites)** - Native ARM64 support via Colima's Virtualization.framework
+- **🍎 [Apple Silicon Optimized](#-prerequisites)** - Native ARM64 support via Colima's Virtualization.framework
 - **🔒 [Vault-First Security](./docs/VAULT.md)** - All credentials managed by HashiCorp Vault with dynamic generation
 - **📦 Zero Cloud Dependencies** - Runs entirely on your Mac, perfect for offline development
 - **🛠️ [Easy Management](./docs/PYTHON_MANAGEMENT_SCRIPT.md)** - Single CLI script with 21 commands for all operations

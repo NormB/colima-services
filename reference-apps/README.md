@@ -2,7 +2,7 @@
 
 ## Table of Contents
 
-- [⚠️ Important: Not Production Code](#important-not-production-code)
+- [⚠️ Important: Not Production Code](#⚠️-important-not-production-code)
 - [What Are Reference Apps?](#what-are-reference-apps)
 - [Current Reference Apps](#current-reference-apps)
   - [1. FastAPI Code-First (Python)](#1-fastapi-code-first-python)
