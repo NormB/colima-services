@@ -272,7 +272,7 @@ docker exec dev-redis-1 redis-cli --cluster check 172.20.0.13:6379 -a $REDIS_PAS
 
 **FastAPI Cluster Inspection APIs:**
 
-The reference application provides REST APIs for cluster inspection (see [Reference Application](#reference-application-fastapi)):
+The reference application provides REST APIs for cluster inspection (see [Reference Applications](#reference-applications)):
 
 ```bash
 # Get cluster nodes and slot assignments

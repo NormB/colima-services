@@ -2,10 +2,11 @@
 
 ## Table of Contents
 
-- [🚧 **PROTOTYPE - WORK IN PROGRESS** 🚧](#prototype-work-in-progress)
-  - [Missing Features (compared to other implementations)](#missing-features-compared-to-other-implementations)
+- [🚧 **PARTIAL IMPLEMENTATION** 🚧](#--partial-implementation-)
+  - [What's Implemented ✅](#whats-implemented-)
+  - [Missing Features (compared to full implementations)](#missing-features-compared-to-full-implementations)
   - [Current Implementation](#current-implementation)
-- [Features (Limited)](#features-limited)
+- [Core Features](#core-features)
 - [Quick Start](#quick-start)
 - [API Endpoints](#api-endpoints)
 - [Port](#port)
