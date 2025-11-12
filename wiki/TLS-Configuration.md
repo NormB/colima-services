@@ -21,7 +21,7 @@
   - [Import CA Certificate](#import-ca-certificate)
   - [Trust Settings](#trust-settings)
   - [Verify Trust](#verify-trust)
-- [Dual-Mode (TLS + Non-TLS)](#dual-mode-tls--non-tls)
+- [Dual-Mode (TLS + Non-TLS)](#dual-mode-tls-non-tls)
   - [Why Dual-Mode](#why-dual-mode)
   - [Configuration Examples](#configuration-examples)
   - [Migration Strategy](#migration-strategy)

@@ -7,18 +7,18 @@ This project is made possible by the excellent open-source software and tools cr
 ## Table of Contents
 
 - [Core Infrastructure](#core-infrastructure)
-- [Container & Orchestration](#container--orchestration)
+- [Container & Orchestration](#container-orchestration)
 - [Databases](#databases)
-- [Caching & Message Queue](#caching--message-queue)
-- [Secrets Management & Security](#secrets-management--security)
-- [Observability & Monitoring](#observability--monitoring)
+- [Caching & Message Queue](#caching-message-queue)
+- [Secrets Management & Security](#secrets-management-security)
+- [Observability & Monitoring](#observability-monitoring)
 - [Reference Application Frameworks](#reference-application-frameworks)
 - [Python Libraries](#python-libraries)
 - [Go Libraries](#go-libraries)
 - [Node.js Libraries](#nodejs-libraries)
 - [Rust Libraries](#rust-libraries)
-- [Development & Testing Tools](#development--testing-tools)
-- [Documentation & Specification](#documentation--specification)
+- [Development & Testing Tools](#development-testing-tools)
+- [Documentation & Specification](#documentation-specification)
 
 ---
 

@@ -4,9 +4,9 @@
 
 - [Overview](#overview)
 - [Visual Studio Code](#visual-studio-code)
-- [IntelliJ IDEA / PyCharm](#intellij-idea--pycharm)
+- [IntelliJ IDEA / PyCharm](#intellij-idea-pycharm)
 - [GoLand](#goland)
-- [Neovim / Vim](#neovim--vim)
+- [Neovim / Vim](#neovim-vim)
 - [Common Tools](#common-tools)
 - [Troubleshooting](#troubleshooting)
 
