@@ -17,7 +17,7 @@ A comprehensive, self-contained development environment providing Git hosting (F
 - **🎯 [Service Profiles](./docs/SERVICE_PROFILES.md)** - Choose your stack: minimal (2GB), standard (4GB), or full (6GB) with observability
 - **🍎 [Apple Silicon Optimized](#-prerequisites)** - Native ARM64 support via Colima's Virtualization.framework
 - **🔒 [Vault-First Security](./docs/VAULT.md)** - All credentials managed by HashiCorp Vault with dynamic generation
-- **📦 Zero Cloud Dependencies** - Runs entirely on your Mac, perfect for offline development
+- **📦 [Zero Cloud Dependencies](#-zero-cloud-dependencies)** - Runs entirely on your Mac, perfect for offline development
 - **🛠️ [Easy Management](./docs/PYTHON_MANAGEMENT_SCRIPT.md)** - Single CLI script with 21 commands for all operations
 - **📚 [Reference Apps](./reference-apps/README.md)** - Production-quality examples in Python, Go, Node.js, TypeScript, and Rust
 - **🔍 [Full Observability](./docs/OBSERVABILITY.md)** - Built-in Prometheus, Grafana, and Loki for monitoring and logging
@@ -238,6 +238,92 @@ docker compose restart postgres
 # Open shell for debugging
 ./manage-devstack shell postgres
 ```
+
+## 📦 Zero Cloud Dependencies
+
+DevStack Core runs **entirely on your local Mac** with no cloud provider services required. This architectural decision provides significant benefits for development workflows.
+
+### What "Zero Cloud" Means
+
+**✅ No Cloud Services Required:**
+- No AWS, Azure, GCP, or any cloud provider accounts
+- No cloud databases (RDS, Cloud SQL, CosmosDB, etc.)
+- No cloud caching services (ElastiCache, Cloud Memorystore, etc.)
+- No cloud message queues (SQS, Service Bus, Cloud Pub/Sub, etc.)
+- No cloud secrets managers (AWS Secrets Manager, Azure Key Vault, GCP Secret Manager, etc.)
+
+**✅ Complete Local Execution:**
+- All services run in Docker containers on your Mac
+- Data stored locally in Docker volumes
+- No network calls to external cloud APIs
+- Full control over your development environment
+
+### Benefits of Local Development
+
+**🔒 Data Sovereignty:**
+- All data stays on your machine
+- Perfect for sensitive projects or regulated industries
+- No data egress to third-party services
+- Complete privacy for proprietary code and data
+
+**💰 Zero Cloud Costs:**
+- No monthly cloud service bills
+- No surprise charges from dev/test workloads
+- Predictable local hardware costs only
+
+**✈️ Offline Development:**
+- Full functionality without internet connection (after initial setup)
+- Work from anywhere: planes, trains, remote locations
+- No dependency on cloud service availability
+
+**⚡ Low Latency:**
+- All services communicate locally (172.20.0.0/16 network)
+- No network round-trips to cloud regions
+- Faster development iteration cycles
+
+**🎮 Full Environment Control:**
+- Version lock all services (PostgreSQL 18, Redis 7, etc.)
+- Experiment freely without affecting shared infrastructure
+- Easy reset and reproduction (`./manage-devstack reset`)
+
+### Local Dependencies
+
+DevStack Core does require local tools for container orchestration and package management:
+
+**Required Software:**
+- **macOS with Apple Silicon** (M1/M2/M3/M4) - ARM64 architecture
+- **Homebrew** - Package manager for installing tools
+- **Colima** - Lightweight container runtime using macOS Virtualization.framework
+- **Docker CLI** - Container management interface
+- **Docker Compose** - Multi-container orchestration
+- **uv** - Fast Python package installer
+
+**Installation (one-time):**
+```bash
+brew install colima docker docker-compose uv
+```
+
+**Why These Tools?**
+- **Colima**: Native ARM64 support, efficient resource usage, better than Docker Desktop for development
+- **Docker/Docker Compose**: Industry-standard container tools, portable configurations
+- **uv**: Fast Python dependency management (100x faster than pip)
+
+### Cloud vs. Local Tradeoffs
+
+**When Local Development Excels:**
+- ✅ Individual developer workflows
+- ✅ Offline or airgapped environments
+- ✅ Sensitive data that cannot leave your machine
+- ✅ Cost-sensitive projects
+- ✅ Rapid prototyping and experimentation
+
+**When Cloud Makes Sense:**
+- ☁️ Team collaboration requiring shared infrastructure
+- ☁️ Production deployments with global reach
+- ☁️ Auto-scaling requirements
+- ☁️ Managed service benefits (backups, updates, monitoring)
+
+DevStack Core is optimized for **local development** while maintaining patterns that translate well to cloud deployments when needed.
 
 ## 📚 Documentation
 
