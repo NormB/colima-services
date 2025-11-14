@@ -1493,16 +1493,22 @@ curl http://localhost:8002/redis/cluster/nodes | jq .
 
 ## Total Test Coverage
 
-**Infrastructure + Application + Parity: 330+ tests**
+**Infrastructure + Application + Parity: 433+ tests**
 
-- **56 infrastructure integration tests** (shell scripts)
+- **119 infrastructure integration tests** (shell scripts)
+  - 56 existing tests (Vault, databases, Redis, RabbitMQ, FastAPI)
+  - 63 new security tests (AppRole authentication, TLS validation, network segmentation, Forgejo TLS)
 - **178 application unit tests** (pytest - executed)
 - **76 application integration tests** (pytest - skipped in CI)
 - **26 shared parity test runs** (pytest - validates API equivalence)
+- **38 additional integration tests** (Rust, Go, performance, negative testing)
 
 **Combined Coverage:**
 - All Docker containers and services
 - Vault PKI and secrets management
+- **AppRole authentication** (Forgejo, databases, observability services)
+- **TLS/SSL enablement** (PostgreSQL, MySQL, MongoDB, Redis, RabbitMQ)
+- **Network segmentation** (4-tier architecture validation)
 - Database connectivity and credentials
 - Redis cluster operations
 - RabbitMQ messaging
