@@ -392,7 +392,11 @@ def start(profile: Tuple[str], detach: bool):
             progress.update(task, description="Colima VM already running")
             console.print("[green]✓ Colima VM already running[/green]")
 
-    # Step 2: Start Docker services with profile(s)
+    # Step 2: Clean up any orphaned containers/networks from previous runs
+    console.print(f"\n[dim]Cleaning up orphaned resources...[/dim]")
+    run_command(["docker", "compose", "down"], check=False)
+
+    # Step 3: Start Docker services with profile(s)
     console.print(f"\n[cyan]Starting Docker services...[/cyan]")
 
     cmd = ["docker", "compose"]
@@ -406,7 +410,7 @@ def start(profile: Tuple[str], detach: bool):
     console.print(f"[dim]Command: {' '.join(cmd)}[/dim]\n")
     run_command(cmd, env=merged_env)
 
-    # Step 3: Display running services
+    # Step 4: Display running services
     console.print("\n[green]✓ Services started successfully[/green]\n")
 
     # Show service status
