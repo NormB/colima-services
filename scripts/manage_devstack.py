@@ -1687,13 +1687,32 @@ def redis_cluster_init():
         )
         redis_password = stdout.strip() if returncode == 0 else ""
 
+    # Check if cluster is already initialized
+    check_cmd = ["docker", "exec", "dev-redis-1", "redis-cli", "cluster", "info"]
+    if redis_password:
+        check_cmd.extend(["-a", redis_password])
+
+    returncode, stdout, _ = run_command(check_cmd, capture=True, check=False)
+    if returncode == 0 and "cluster_state:ok" in stdout:
+        console.print("[green]✓ Redis cluster is already initialized and healthy[/green]\n")
+        console.print("[cyan]Cluster status:[/cyan]")
+
+        # Show cluster nodes
+        nodes_cmd = ["docker", "exec", "dev-redis-1", "redis-cli", "cluster", "nodes"]
+        if redis_password:
+            nodes_cmd.extend(["-a", redis_password])
+
+        _, nodes_output, _ = run_command(nodes_cmd, capture=True, check=False)
+        console.print(nodes_output)
+        return
+
     # Initialize cluster
     console.print("[yellow]Initializing Redis cluster...[/yellow]\n")
 
     cmd = [
         "docker", "exec", "dev-redis-1",
         "redis-cli", "--cluster", "create",
-        "172.20.0.13:6379", "172.20.0.16:6379", "172.20.0.17:6379",
+        "172.20.2.13:6379", "172.20.2.16:6379", "172.20.2.17:6379",
         "--cluster-yes"
     ]
 

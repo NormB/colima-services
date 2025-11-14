@@ -158,32 +158,52 @@ max_attempts=30
 attempt=0
 
 # Wait for node 1 (172.20.2.13:6379)
-for port in 6379 6380 6381; do
-    attempt=0
-    while [ $attempt -lt $max_attempts ]; do
-        if docker exec dev-redis-1 redis-cli -h 172.20.2.13 -p 6379 -a "$REDIS_PASSWORD" ping 2>/dev/null | grep -q PONG; then
-            success "Redis node 1 (port 6379) is ready"
-            break
-        fi
-        attempt=$((attempt + 1))
-        sleep 1
-    done
+attempt=0
+while [ $attempt -lt $max_attempts ]; do
+    if docker exec dev-redis-1 redis-cli -h 172.20.2.13 -p 6379 -a "$REDIS_PASSWORD" ping 2>/dev/null | grep -q PONG; then
+        success "Redis node 1 is ready"
+        break
+    fi
+    attempt=$((attempt + 1))
+    sleep 1
 done
 
-# Wait for nodes 2 and 3
-for node in 2 3; do
-    attempt=0
-    port=$((6378 + node))  # Node 2: port 6380, Node 3: port 6381
-    ip="172.20.2.$((15 + node))"  # Node 2: 172.20.2.16, Node 3: 172.20.2.17
-    while [ $attempt -lt $max_attempts ]; do
-        if docker exec dev-redis-$node redis-cli -h $ip -p 6379 -a "$REDIS_PASSWORD" ping 2>/dev/null | grep -q PONG; then
-            success "Redis node $node (port $port) is ready"
-            break
-        fi
-        attempt=$((attempt + 1))
-        sleep 1
-    done
+# Check if we exceeded max attempts
+if [ $attempt -eq $max_attempts ]; then
+    error "Redis node 1 did not become ready in time"
+fi
+
+# Wait for node 2 (172.20.2.16:6379)
+attempt=0
+while [ $attempt -lt $max_attempts ]; do
+    if docker exec dev-redis-2 redis-cli -h 172.20.2.16 -p 6379 -a "$REDIS_PASSWORD" ping 2>/dev/null | grep -q PONG; then
+        success "Redis node 2 is ready"
+        break
+    fi
+    attempt=$((attempt + 1))
+    sleep 1
 done
+
+# Check if we exceeded max attempts
+if [ $attempt -eq $max_attempts ]; then
+    error "Redis node 2 did not become ready in time"
+fi
+
+# Wait for node 3 (172.20.2.17:6379)
+attempt=0
+while [ $attempt -lt $max_attempts ]; do
+    if docker exec dev-redis-3 redis-cli -h 172.20.2.17 -p 6379 -a "$REDIS_PASSWORD" ping 2>/dev/null | grep -q PONG; then
+        success "Redis node 3 is ready"
+        break
+    fi
+    attempt=$((attempt + 1))
+    sleep 1
+done
+
+# Check if we exceeded max attempts
+if [ $attempt -eq $max_attempts ]; then
+    error "Redis node 3 did not become ready in time"
+fi
 
 ################################################################################
 # Check if cluster is already initialized
