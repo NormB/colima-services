@@ -311,124 +311,46 @@ This project includes **5 reference API implementations** demonstrating identica
 
 ## Network Architecture
 
-### Network Topology - 4-Tier Segmentation
+### Network Topology
 
-DevStack Core uses a **4-tier network segmentation architecture** for enhanced security and isolation. Each network segment serves a specific purpose and limits the blast radius of potential security issues.
+**Bridge Network:** `dev-services`
+- **Subnet:** 172.20.0.0/16
+- **Gateway:** 172.20.0.1
+- **DNS:** Docker embedded DNS
 
-```mermaid
-graph TB
-    subgraph vault["vault-network (172.20.1.0/24)"]
-        V[Vault<br/>172.20.1.10]
-    end
+### Static IP Assignments
 
-    subgraph data["data-network (172.20.2.0/24)"]
-        PG[PostgreSQL<br/>172.20.2.10]
-        PGB[PgBouncer<br/>172.20.2.11]
-        MY[MySQL<br/>172.20.2.12]
-        R1[Redis-1<br/>172.20.2.13]
-        RMQ[RabbitMQ<br/>172.20.2.14]
-        MG[MongoDB<br/>172.20.2.15]
-        R2[Redis-2<br/>172.20.2.16]
-        R3[Redis-3<br/>172.20.2.17]
-    end
-
-    subgraph app["app-network (172.20.3.0/24)"]
-        FG[Forgejo<br/>172.20.3.20]
-        API1[Reference API<br/>172.20.3.100]
-        API2[API-First<br/>172.20.3.104]
-        API3[Golang API<br/>172.20.3.105]
-        API4[Node.js API<br/>172.20.3.106]
-        API5[Rust API<br/>172.20.3.107]
-    end
-
-    subgraph obs["observability-network (172.20.4.0/24)"]
-        PROM[Prometheus<br/>172.20.4.50]
-        GRAF[Grafana<br/>172.20.4.51]
-        LOKI[Loki<br/>172.20.4.52]
-        VEC[Vector<br/>172.20.4.60]
-        CAD[cAdvisor<br/>172.20.4.70]
-        RE1[Redis Exp-1<br/>172.20.4.80]
-        RE2[Redis Exp-2<br/>172.20.4.81]
-        RE3[Redis Exp-3<br/>172.20.4.82]
-    end
-
-    V -.AppRole Auth.-> PG
-    V -.AppRole Auth.-> MY
-    V -.AppRole Auth.-> MG
-    V -.AppRole Auth.-> R1
-    V -.AppRole Auth.-> RMQ
-    V -.AppRole Auth.-> FG
-    V -.AppRole Auth.-> VEC
-
-    PG --> API1
-    MY --> API1
-    MG --> API1
-    R1 --> API1
-    RMQ --> API1
-
-    PG --> PROM
-    MY --> PROM
-    R1 --> RE1
 ```
+Core Infrastructure:
+  172.20.0.5  - vault
+  172.20.0.10 - postgres
+  172.20.0.11 - pgbouncer
+  172.20.0.12 - mysql
+  172.20.0.13 - redis-1
+  172.20.0.14 - rabbitmq
+  172.20.0.15 - mongodb
+  172.20.0.16 - redis-2
+  172.20.0.17 - redis-3
+  172.20.0.20 - forgejo
 
-### Network Segment Details
+Application Services:
+  172.20.0.100 - reference-api (FastAPI code-first)
+  172.20.0.101 - api-first (FastAPI API-first)
+  172.20.0.102 - golang-api (Go reference)
+  172.20.0.103 - nodejs-api (Node.js/Express reference)
+  172.20.0.104 - rust-api (Rust/Actix-web reference)
 
-**vault-network (172.20.1.0/24)** - Vault authentication and secrets management
-- Vault: 172.20.1.10
-- All services connect here for AppRole authentication and credential retrieval
-- Isolated from direct application access
-
-**data-network (172.20.2.0/24)** - Database and cache services
-- PostgreSQL: 172.20.2.10
-- PgBouncer: 172.20.2.11
-- MySQL: 172.20.2.12
-- Redis-1: 172.20.2.13
-- RabbitMQ: 172.20.2.14
-- MongoDB: 172.20.2.15
-- Redis-2: 172.20.2.16
-- Redis-3: 172.20.2.17
-
-**app-network (172.20.3.0/24)** - Application and Git services
-- Forgejo: 172.20.3.20
-- Reference API (FastAPI Code-First): 172.20.3.100
-- API-First (FastAPI API-First): 172.20.3.104
-- Golang API: 172.20.3.105
-- Node.js API: 172.20.3.106
-- Rust API: 172.20.3.107
-
-**observability-network (172.20.4.0/24)** - Monitoring and logging
-- Prometheus: 172.20.4.50
-- Grafana: 172.20.4.51
-- Loki: 172.20.4.52
-- Vector: 172.20.4.60
-- cAdvisor: 172.20.4.70
-- Redis Exporter 1: 172.20.4.80
-- Redis Exporter 2: 172.20.4.81
-- Redis Exporter 3: 172.20.4.82
-
-### Multi-Network Connectivity
-
-Services connect to multiple networks as needed:
-
-**Database Services:**
-- Connect to vault-network for AppRole authentication
-- Connect to data-network for service communication
-
-**Application Services:**
-- Connect to vault-network for AppRole authentication
-- Connect to data-network for database access
-- Connect to app-network for service communication
-
-**Observability Services:**
-- Connect to vault-network for AppRole authentication
-- Connect to data-network for metrics collection
-- Connect to observability-network for internal communication
-
-**Security Benefits:**
-- Limits blast radius of compromised services
-- Network segmentation enforces principle of least privilege
-- Vault isolated from direct application access
-- Clear separation of concerns (data, application, monitoring)
+Observability:
+  172.20.0.200 - prometheus
+  172.20.0.201 - grafana
+  172.20.0.202 - loki
+  172.20.0.203 - promtail
+  172.20.0.204 - vector
+  172.20.0.205 - cadvisor
+  172.20.0.206 - redis-exporter-1
+  172.20.0.207 - redis-exporter-2
+  172.20.0.208 - redis-exporter-3
+```
 
 ### Port Exposure Strategy
 
@@ -446,13 +368,12 @@ Services connect to multiple networks as needed:
 
 ### DNS Resolution
 
-Services resolve each other by service name across networks:
-- `postgres` resolves to 172.20.2.10 (data-network)
-- `vault` resolves to 172.20.1.10 (vault-network)
-- `forgejo` resolves to 172.20.3.20 (app-network)
+Services resolve each other by service name:
+- `postgres` resolves to 172.20.0.10
+- `vault` resolves to 172.20.0.5
 - Etc.
 
-Docker's embedded DNS handles resolution across all networks. Services can communicate with any other service they share a network with.
+Docker's embedded DNS handles resolution within the `dev-services` network.
 
 ---
 
