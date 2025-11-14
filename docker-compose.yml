@@ -293,12 +293,12 @@ services:
     # In minimal: runs standalone mode (no cluster). In standard/full: cluster node 1 (slots 0-5460)
     profiles: ["minimal", "standard", "full"]
 
-    entrypoint: ["/init/init.sh"]
+    entrypoint: ["/init/init-approle.sh"]
 
     environment:
-      # Vault configuration
+      # Vault configuration (AppRole authentication)
       VAULT_ADDR: ${VAULT_ADDR:-http://vault:8200}
-      VAULT_TOKEN: ${VAULT_TOKEN}
+      VAULT_APPROLE_DIR: /vault-approles/redis
       REDIS_ENABLE_TLS: ${REDIS_ENABLE_TLS:-false}
       REDIS_NODE: redis-1
       REDIS_IP: ${REDIS_1_IP:-172.20.0.13}
@@ -311,7 +311,8 @@ services:
     volumes:
       - redis_1_data:/data
       - ./configs/redis/redis-cluster.conf:/usr/local/etc/redis/redis.conf:ro
-      - ./configs/redis/scripts/init.sh:/init/init.sh:ro
+      - ./configs/redis/scripts/init-approle.sh:/init/init-approle.sh:ro
+      - ${HOME}/.config/vault/approles/redis:/vault-approles/redis:ro
       - ${HOME}/.config/vault/certs/redis-1:/etc/redis/certs:ro
 
     networks:
@@ -371,12 +372,12 @@ services:
     # Redis cluster node 2 (slots 5461-10922) - NOT included in minimal profile
     profiles: ["standard", "full"]
 
-    entrypoint: ["/init/init.sh"]
+    entrypoint: ["/init/init-approle.sh"]
 
     environment:
-      # Vault configuration
+      # Vault configuration (AppRole authentication)
       VAULT_ADDR: ${VAULT_ADDR:-http://vault:8200}
-      VAULT_TOKEN: ${VAULT_TOKEN}
+      VAULT_APPROLE_DIR: /vault-approles/redis
       REDIS_ENABLE_TLS: ${REDIS_ENABLE_TLS:-false}
       REDIS_NODE: redis-2
       REDIS_IP: ${REDIS_2_IP:-172.20.0.16}
@@ -389,7 +390,8 @@ services:
     volumes:
       - redis_2_data:/data
       - ./configs/redis/redis-cluster.conf:/usr/local/etc/redis/redis.conf:ro
-      - ./configs/redis/scripts/init.sh:/init/init.sh:ro
+      - ./configs/redis/scripts/init-approle.sh:/init/init-approle.sh:ro
+      - ${HOME}/.config/vault/approles/redis:/vault-approles/redis:ro
       - ${HOME}/.config/vault/certs/redis-2:/etc/redis/certs:ro
 
     networks:
@@ -449,12 +451,12 @@ services:
     # Redis cluster node 3 (slots 10923-16383) - NOT included in minimal profile
     profiles: ["standard", "full"]
 
-    entrypoint: ["/init/init.sh"]
+    entrypoint: ["/init/init-approle.sh"]
 
     environment:
-      # Vault configuration
+      # Vault configuration (AppRole authentication)
       VAULT_ADDR: ${VAULT_ADDR:-http://vault:8200}
-      VAULT_TOKEN: ${VAULT_TOKEN}
+      VAULT_APPROLE_DIR: /vault-approles/redis
       REDIS_ENABLE_TLS: ${REDIS_ENABLE_TLS:-false}
       REDIS_NODE: redis-3
       REDIS_IP: ${REDIS_3_IP:-172.20.0.17}
@@ -467,7 +469,8 @@ services:
     volumes:
       - redis_3_data:/data
       - ./configs/redis/redis-cluster.conf:/usr/local/etc/redis/redis.conf:ro
-      - ./configs/redis/scripts/init.sh:/init/init.sh:ro
+      - ./configs/redis/scripts/init-approle.sh:/init/init-approle.sh:ro
+      - ${HOME}/.config/vault/approles/redis:/vault-approles/redis:ro
       - ${HOME}/.config/vault/certs/redis-3:/etc/redis/certs:ro
 
     networks:
