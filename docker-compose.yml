@@ -670,8 +670,9 @@ services:
     profiles: ["minimal", "standard", "full"]
 
     environment:
+      # Vault configuration (AppRole authentication)
       VAULT_ADDR: ${VAULT_ADDR:-http://vault:8200}
-      VAULT_TOKEN: ${VAULT_TOKEN}
+      VAULT_APPROLE_DIR: /vault-approles/forgejo
       USER_UID: 1000
       USER_GID: 1000
       FORGEJO__database__DB_TYPE: postgres
@@ -686,9 +687,10 @@ services:
     ports:
       - "3000:3000"   # HTTP
       - "2222:22"     # SSH
-    
+
     volumes:
       - forgejo_data:/data
+      - ${HOME}/.config/vault/approles/forgejo:/vault-approles/forgejo:ro
       - /etc/timezone:/etc/timezone:ro
       - /etc/localtime:/etc/localtime:ro
     

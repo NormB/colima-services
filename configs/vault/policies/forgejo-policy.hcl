@@ -1,10 +1,16 @@
 # Forgejo Service Policy
 # This policy grants the Forgejo service minimal required access to Vault
 # - Read Forgejo credentials from secret/data/forgejo
+# - Read PostgreSQL credentials from secret/data/postgres (Forgejo uses PostgreSQL as database)
 # - Issue Forgejo TLS certificates from PKI
 
 # Allow reading Forgejo credentials
 path "secret/data/forgejo" {
+  capabilities = ["read"]
+}
+
+# Allow reading PostgreSQL credentials (Forgejo uses PostgreSQL as database)
+path "secret/data/postgres" {
   capabilities = ["read"]
 }
 
