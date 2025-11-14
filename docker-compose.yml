@@ -211,12 +211,12 @@ services:
     # Legacy database support for multi-database applications
     profiles: ["standard", "full"]
 
-    entrypoint: ["/init/init.sh"]
+    entrypoint: ["/init/init-approle.sh"]
 
     environment:
-      # Vault configuration
+      # Vault configuration (AppRole authentication)
       VAULT_ADDR: ${VAULT_ADDR:-http://vault:8200}
-      VAULT_TOKEN: ${VAULT_TOKEN}
+      VAULT_APPROLE_DIR: /vault-approles/mysql
       MYSQL_ENABLE_TLS: ${MYSQL_ENABLE_TLS:-false}
       MYSQL_IP: ${MYSQL_IP:-172.20.0.12}
 
@@ -224,7 +224,7 @@ services:
       MYSQL_USER: ${MYSQL_USER:-dev_admin}
       MYSQL_DATABASE: ${MYSQL_DATABASE:-dev_database}
 
-      # NOTE: MYSQL_ROOT_PASSWORD and MYSQL_PASSWORD are fetched from Vault
+      # NOTE: MYSQL_ROOT_PASSWORD and MYSQL_PASSWORD are fetched from Vault via AppRole
 
     ports:
       - "${MYSQL_HOST_PORT:-3306}:3306"
@@ -232,7 +232,8 @@ services:
     volumes:
       - mysql_data:/var/lib/mysql
       - ./configs/mysql:/docker-entrypoint-initdb.d:ro
-      - ./configs/mysql/scripts/init.sh:/init/init.sh:ro
+      - ./configs/mysql/scripts/init-approle.sh:/init/init-approle.sh:ro
+      - ${HOME}/.config/vault/approles/mysql:/vault-approles/mysql:ro
       - ${HOME}/.config/vault/certs/mysql:/var/lib/mysql-certs:ro
 
     networks:
