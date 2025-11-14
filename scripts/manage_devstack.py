@@ -394,7 +394,13 @@ def start(profile: Tuple[str], detach: bool):
 
     # Step 2: Clean up any orphaned containers/networks from previous runs
     console.print(f"\n[dim]Cleaning up orphaned resources...[/dim]")
-    run_command(["docker", "compose", "down"], check=False)
+
+    # Stop and remove ALL containers/networks (use all possible profiles to ensure cleanup)
+    cleanup_cmd = ["docker", "compose"]
+    for prof in ["minimal", "standard", "full", "reference"]:
+        cleanup_cmd.extend(["--profile", prof])
+    cleanup_cmd.append("down")
+    run_command(cleanup_cmd, check=False)
 
     # Step 3: Start Docker services with profile(s)
     console.print(f"\n[cyan]Starting Docker services...[/cyan]")
