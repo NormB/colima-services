@@ -602,24 +602,25 @@ services:
     # NoSQL document database for unstructured data
     profiles: ["standard", "full"]
 
-    # Vault Integration: Credentials are fetched from Vault at startup
-    entrypoint: ["/init/init.sh"]
+    # Vault Integration: Credentials are fetched from Vault via AppRole at startup
+    entrypoint: ["/init/init-approle.sh"]
     command: ["mongod"]
 
     environment:
       VAULT_ADDR: ${VAULT_ADDR:-http://vault:8200}
-      VAULT_TOKEN: ${VAULT_TOKEN}
+      VAULT_APPROLE_DIR: /vault-approles/mongodb
       MONGODB_IP: ${MONGODB_IP:-172.20.0.15}
       MONGODB_ENABLE_TLS: ${MONGODB_ENABLE_TLS:-false}
       # NOTE: MONGO_INITDB_ROOT_USERNAME, MONGO_INITDB_ROOT_PASSWORD, and
-      # MONGO_INITDB_DATABASE are fetched from Vault by the init script
+      # MONGO_INITDB_DATABASE are fetched from Vault via AppRole by the init script
 
     ports:
       - "27017:27017"
 
     volumes:
       - mongodb_data:/data/db
-      - ./configs/mongodb/scripts/init.sh:/init/init.sh:ro
+      - ./configs/mongodb/scripts/init-approle.sh:/init/init-approle.sh:ro
+      - ${HOME}/.config/vault/approles/mongodb:/vault-approles/mongodb:ro
       - ${HOME}/.config/vault/certs/mongodb:/etc/mongodb/certs:ro
 
     networks:
