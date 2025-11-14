@@ -205,6 +205,7 @@ services:
       - "${PGBOUNCER_HOST_PORT:-6432}:5432"
 
     networks:
+      vault-network:   # Connect to Vault for AppRole auth
       data-network:    # Connect to PostgreSQL
         ipv4_address: 172.20.2.11
       app-network:     # Accept connections from apps
@@ -1609,7 +1610,7 @@ services:
 
   vector:
     <<: *default-platform
-    image: timberio/vector:0.50.0-debian
+    build: ./configs/vector
     container_name: dev-vector
     restart: unless-stopped
 
@@ -1641,6 +1642,7 @@ services:
       MONGO_PASSWORD: ""
 
     networks:
+      vault-network:         # Connect to Vault for AppRole auth
       data-network:          # Connect to databases for metrics collection
       observability-network: # Send logs to Loki
         ipv4_address: 172.20.4.60
