@@ -539,19 +539,19 @@ services:
     # Message queue for asynchronous communication between services
     profiles: ["standard", "full"]
 
-    entrypoint: ["/init/init.sh"]
+    entrypoint: ["/init/init-approle.sh"]
 
     environment:
-      # Vault configuration
+      # Vault configuration (AppRole authentication)
       VAULT_ADDR: ${VAULT_ADDR:-http://vault:8200}
-      VAULT_TOKEN: ${VAULT_TOKEN}
+      VAULT_APPROLE_DIR: /vault-approles/rabbitmq
       RABBITMQ_ENABLE_TLS: ${RABBITMQ_ENABLE_TLS:-false}
       RABBITMQ_IP: ${RABBITMQ_IP:-172.20.0.14}
 
       # RabbitMQ vhost (user/password from Vault)
       RABBITMQ_VHOST: ${RABBITMQ_VHOST:-dev_vhost}
 
-      # NOTE: RABBITMQ_DEFAULT_USER and RABBITMQ_DEFAULT_PASS are fetched from Vault
+      # NOTE: RABBITMQ_DEFAULT_USER and RABBITMQ_DEFAULT_PASS are fetched from Vault via AppRole
 
     ports:
       - "${RABBITMQ_AMQP_PORT:-5672}:5672"   # AMQP
@@ -560,7 +560,8 @@ services:
 
     volumes:
       - rabbitmq_data:/var/lib/rabbitmq
-      - ./configs/rabbitmq/scripts/init.sh:/init/init.sh:ro
+      - ./configs/rabbitmq/scripts/init-approle.sh:/init/init-approle.sh:ro
+      - ${HOME}/.config/vault/approles/rabbitmq:/vault-approles/rabbitmq:ro
       - ${HOME}/.config/vault/certs/rabbitmq:/etc/rabbitmq/certs:ro
 
     networks:
