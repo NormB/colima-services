@@ -66,12 +66,12 @@ services:
     # Core database for Forgejo (Git server) and local development
     profiles: ["minimal", "standard", "full"]
 
-    entrypoint: ["/init/init.sh"]
+    entrypoint: ["/init/init-approle.sh"]
 
     environment:
-      # Vault configuration
+      # Vault configuration (AppRole authentication)
       VAULT_ADDR: ${VAULT_ADDR:-http://vault:8200}
-      VAULT_TOKEN: ${VAULT_TOKEN}
+      VAULT_APPROLE_DIR: /vault-approles/postgres
       POSTGRES_ENABLE_TLS: ${POSTGRES_ENABLE_TLS:-false}
       POSTGRES_IP: ${POSTGRES_IP:-172.20.0.10}
 
@@ -82,7 +82,7 @@ services:
       # PostgreSQL initdb arguments (required for database initialization)
       POSTGRES_INITDB_ARGS: "--encoding=UTF8 --locale=C"
 
-      # NOTE: POSTGRES_PASSWORD is fetched from Vault by the wrapper script
+      # NOTE: POSTGRES_PASSWORD is fetched from Vault via AppRole authentication
 
     ports:
       - "${POSTGRES_HOST_PORT:-5432}:5432"
@@ -90,8 +90,9 @@ services:
     volumes:
       - postgres_data:/var/lib/postgresql
       - ./configs/postgres:/docker-entrypoint-initdb.d:ro
-      - ./configs/postgres/scripts/init.sh:/init/init.sh:ro
+      - ./configs/postgres/scripts/init-approle.sh:/init/init-approle.sh:ro
       - ${HOME}/.config/vault/certs/postgres:/var/lib/postgresql/certs:ro
+      - ${HOME}/.config/vault/approles/postgres:/vault-approles/postgres:ro
 
     networks:
       dev-services:
