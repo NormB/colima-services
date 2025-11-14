@@ -20,11 +20,48 @@ x-platform: &default-platform
   platform: linux/arm64
 
 networks:
-  dev-services:
+  # Segmented Network Architecture for Security Hardening
+  # Each tier has its own network for logical isolation
+
+  # Infrastructure tier - Vault secrets management (all services connect here)
+  vault-network:
     driver: bridge
     ipam:
       config:
-        - subnet: 172.20.0.0/16
+        - subnet: 172.20.1.0/24
+          gateway: 172.20.1.1
+    driver_opts:
+      com.docker.network.bridge.name: br-vault
+
+  # Data tier - Databases, cache, message queue
+  data-network:
+    driver: bridge
+    ipam:
+      config:
+        - subnet: 172.20.2.0/24
+          gateway: 172.20.2.1
+    driver_opts:
+      com.docker.network.bridge.name: br-data
+
+  # Application tier - Forgejo, reference APIs, proxy services
+  app-network:
+    driver: bridge
+    ipam:
+      config:
+        - subnet: 172.20.3.0/24
+          gateway: 172.20.3.1
+    driver_opts:
+      com.docker.network.bridge.name: br-app
+
+  # Observability tier - Metrics, logs, visualization
+  observability-network:
+    driver: bridge
+    ipam:
+      config:
+        - subnet: 172.20.4.0/24
+          gateway: 172.20.4.1
+    driver_opts:
+      com.docker.network.bridge.name: br-obs
 
 volumes:
   postgres_data:
@@ -95,8 +132,9 @@ services:
       - ${HOME}/.config/vault/approles/postgres:/vault-approles/postgres:ro
 
     networks:
-      dev-services:
-        ipv4_address: ${POSTGRES_IP:-172.20.0.10}
+      vault-network:  # Connect to Vault for AppRole auth
+      data-network:   # Primary network for data tier
+        ipv4_address: 172.20.2.10
 
     depends_on:
       vault:
@@ -167,8 +205,9 @@ services:
       - "${PGBOUNCER_HOST_PORT:-6432}:5432"
 
     networks:
-      dev-services:
-        ipv4_address: ${PGBOUNCER_IP:-172.20.0.11}
+      data-network:    # Connect to PostgreSQL
+        ipv4_address: 172.20.2.11
+      app-network:     # Accept connections from apps
     
     depends_on:
       postgres:
@@ -237,8 +276,9 @@ services:
       - ${HOME}/.config/vault/certs/mysql:/var/lib/mysql-certs:ro
 
     networks:
-      dev-services:
-        ipv4_address: ${MYSQL_IP:-172.20.0.12}
+      vault-network:  # Connect to Vault for AppRole auth
+      data-network:   # Primary network for data tier
+        ipv4_address: 172.20.2.12
 
     depends_on:
       vault:
@@ -316,8 +356,9 @@ services:
       - ${HOME}/.config/vault/certs/redis-1:/etc/redis/certs:ro
 
     networks:
-      dev-services:
-        ipv4_address: ${REDIS_1_IP:-172.20.0.13}
+      vault-network:  # Connect to Vault for AppRole auth
+      data-network:   # Primary network for data tier
+        ipv4_address: 172.20.2.13
 
     depends_on:
       vault:
@@ -395,8 +436,9 @@ services:
       - ${HOME}/.config/vault/certs/redis-2:/etc/redis/certs:ro
 
     networks:
-      dev-services:
-        ipv4_address: ${REDIS_2_IP:-172.20.0.16}
+      vault-network:  # Connect to Vault for AppRole auth
+      data-network:   # Primary network for data tier
+        ipv4_address: 172.20.2.16
 
     depends_on:
       vault:
@@ -474,8 +516,9 @@ services:
       - ${HOME}/.config/vault/certs/redis-3:/etc/redis/certs:ro
 
     networks:
-      dev-services:
-        ipv4_address: ${REDIS_3_IP:-172.20.0.17}
+      vault-network:  # Connect to Vault for AppRole auth
+      data-network:   # Primary network for data tier
+        ipv4_address: 172.20.2.17
 
     depends_on:
       vault:
@@ -565,8 +608,9 @@ services:
       - ${HOME}/.config/vault/certs/rabbitmq:/etc/rabbitmq/certs:ro
 
     networks:
-      dev-services:
-        ipv4_address: ${RABBITMQ_IP:-172.20.0.14}
+      vault-network:  # Connect to Vault for AppRole auth
+      data-network:   # Primary network for data tier
+        ipv4_address: 172.20.2.14
 
     depends_on:
       vault:
@@ -628,8 +672,9 @@ services:
       - ${HOME}/.config/vault/certs/mongodb:/etc/mongodb/certs:ro
 
     networks:
-      dev-services:
-        ipv4_address: ${MONGODB_IP:-172.20.0.15}
+      vault-network:  # Connect to Vault for AppRole auth
+      data-network:   # Primary network for data tier
+        ipv4_address: 172.20.2.15
 
     depends_on:
       vault:
@@ -695,8 +740,10 @@ services:
       - /etc/localtime:/etc/localtime:ro
     
     networks:
-      dev-services:
-        ipv4_address: 172.20.0.20
+      vault-network:  # Connect to Vault for AppRole auth
+      data-network:   # Connect to PostgreSQL database
+      app-network:    # Primary network for app tier
+        ipv4_address: 172.20.3.20
     
     depends_on:
       postgres:
@@ -755,8 +802,8 @@ services:
       - ${HOME}/.config/vault:/vault-keys:ro
 
     networks:
-      dev-services:
-        ipv4_address: 172.20.0.21
+      vault-network:  # Primary network - all services connect here
+        ipv4_address: 172.20.1.5
 
     cap_add:
       - IPC_LOCK
@@ -828,8 +875,10 @@ services:
       - ${HOME}/.config/vault/certs:/app/vault-certs:ro
 
     networks:
-      dev-services:
-        ipv4_address: 172.20.0.100
+      vault-network:  # Connect to Vault for secrets
+      data-network:   # Connect to databases/cache/queue
+      app-network:    # Primary network for app tier
+        ipv4_address: 172.20.3.100
 
     depends_on:
       vault:
@@ -897,8 +946,10 @@ services:
       - ${HOME}/.config/vault/certs:/root/.config/vault/certs:ro
 
     networks:
-      dev-services:
-        ipv4_address: 172.20.0.104
+      vault-network:  # Connect to Vault for secrets
+      data-network:   # Connect to databases/cache/queue
+      app-network:    # Primary network for app tier
+        ipv4_address: 172.20.3.104
 
     depends_on:
       vault:
@@ -970,8 +1021,10 @@ services:
       - ${HOME}/.config/vault/certs:/root/.config/vault/certs:ro
 
     networks:
-      dev-services:
-        ipv4_address: 172.20.0.105
+      vault-network:  # Connect to Vault for secrets
+      data-network:   # Connect to databases/cache/queue
+      app-network:    # Primary network for app tier
+        ipv4_address: 172.20.3.105
 
     depends_on:
       vault:
@@ -1041,8 +1094,10 @@ services:
       - ${HOME}/.config/vault/certs:/root/.config/vault/certs:ro
 
     networks:
-      dev-services:
-        ipv4_address: 172.20.0.106
+      vault-network:  # Connect to Vault for secrets
+      data-network:   # Connect to databases/cache/queue
+      app-network:    # Primary network for app tier
+        ipv4_address: 172.20.3.106
 
     depends_on:
       vault:
@@ -1097,8 +1152,9 @@ services:
       - "${RUST_HTTPS_PORT:-8447}:8447"
 
     networks:
-      dev-services:
-        ipv4_address: 172.20.0.107
+      vault-network:  # Connect to Vault for secrets
+      app-network:    # Primary network for app tier
+        ipv4_address: 172.20.3.107
 
     depends_on:
       vault:
@@ -1156,8 +1212,10 @@ services:
       - prometheus_data:/prometheus
 
     networks:
-      dev-services:
-        ipv4_address: 172.20.0.101
+      data-network:          # Scrape database exporters
+      app-network:           # Scrape application metrics
+      observability-network: # Primary observability network
+        ipv4_address: 172.20.4.10
 
     healthcheck:
       test: ["CMD", "wget", "--spider", "-Y", "off", "http://localhost:9090/-/healthy"]
@@ -1212,8 +1270,8 @@ services:
       - ./configs/grafana/dashboards:/etc/grafana/dashboards:ro
 
     networks:
-      dev-services:
-        ipv4_address: 172.20.0.102
+      observability-network: # Primary observability network
+        ipv4_address: 172.20.4.20
 
     depends_on:
       - prometheus
@@ -1264,8 +1322,8 @@ services:
       - loki_data:/loki
 
     networks:
-      dev-services:
-        ipv4_address: 172.20.0.103
+      observability-network: # Primary observability network
+        ipv4_address: 172.20.4.30
 
     healthcheck:
       test: ["CMD", "wget", "--spider", "-Y", "off", "http://localhost:3100/ready"]
@@ -1326,8 +1384,10 @@ services:
       - ./configs/exporters/redis/init.sh:/init/init.sh:ro
 
     networks:
-      dev-services:
-        ipv4_address: 172.20.0.112
+      vault-network:         # Connect to Vault for Redis password
+      data-network:          # Connect to redis-1
+      observability-network: # Export metrics to Prometheus
+        ipv4_address: 172.20.4.40
 
     depends_on:
       vault:
@@ -1389,8 +1449,10 @@ services:
       - ./configs/exporters/redis/init.sh:/init/init.sh:ro
 
     networks:
-      dev-services:
-        ipv4_address: 172.20.0.113
+      vault-network:         # Connect to Vault for Redis password
+      data-network:          # Connect to redis-2
+      observability-network: # Export metrics to Prometheus
+        ipv4_address: 172.20.4.41
 
     depends_on:
       vault:
@@ -1452,8 +1514,10 @@ services:
       - ./configs/exporters/redis/init.sh:/init/init.sh:ro
 
     networks:
-      dev-services:
-        ipv4_address: 172.20.0.114
+      vault-network:         # Connect to Vault for Redis password
+      data-network:          # Connect to redis-3
+      observability-network: # Export metrics to Prometheus
+        ipv4_address: 172.20.4.42
 
     depends_on:
       vault:
@@ -1513,8 +1577,8 @@ services:
       - /dev/kmsg
 
     networks:
-      dev-services:
-        ipv4_address: 172.20.0.117
+      observability-network: # Export container metrics
+        ipv4_address: 172.20.4.50
 
     healthcheck:
       test: ["CMD", "wget", "--spider", "-Y", "off", "http://localhost:8080/healthz"]
@@ -1577,8 +1641,9 @@ services:
       MONGO_PASSWORD: ""
 
     networks:
-      dev-services:
-        ipv4_address: 172.20.0.118
+      data-network:          # Connect to databases for metrics collection
+      observability-network: # Send logs to Loki
+        ipv4_address: 172.20.4.60
 
     depends_on:
       vault:
