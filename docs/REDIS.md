@@ -18,14 +18,17 @@
 │         Redis Cluster (16384 slots)         │
 ├────────────────────────────────────────────┤
 │                                            │
-│  Node 1 (172.20.0.13:6379)                │
+│  Node 1 (172.20.2.13:6379)                │
 │  Master | Slots 0-5460 (5461 slots)       │
+│  Ports: 6379 (non-TLS), 6390 (TLS)        │
 │                                            │
-│  Node 2 (172.20.0.16:6379)                │
+│  Node 2 (172.20.2.16:6379)                │
 │  Master | Slots 5461-10922 (5462 slots)   │
+│  Ports: 6379 (non-TLS), 6390 (TLS)        │
 │                                            │
-│  Node 3 (172.20.0.17:6379)                │
+│  Node 3 (172.20.2.17:6379)                │
 │  Master | Slots 10923-16383 (5461 slots)  │
+│  Ports: 6379 (non-TLS), 6390 (TLS)        │
 │                                            │
 └────────────────────────────────────────────┘
 ```
@@ -53,7 +56,7 @@
 **Manual Initialization:**
 ```bash
 docker exec dev-redis-1 redis-cli --cluster create \
-  172.20.0.13:6379 172.20.0.16:6379 172.20.0.17:6379 \
+  172.20.2.13:6379 172.20.2.16:6379 172.20.2.17:6379 \
   --cluster-yes -a $REDIS_PASSWORD
 ```
 
@@ -90,16 +93,23 @@ docker exec dev-redis-1 redis-cli -a $REDIS_PASSWORD cluster slots
 
 **Data Operations:**
 ```bash
-# Set key (automatically routed to correct node)
+# Set key (automatically routed to correct node) - Non-TLS
 redis-cli -c -a $REDIS_PASSWORD -p 6379 SET user:1000 "John Doe"
 
-# Get key (automatic redirection with -c flag)
-redis-cli -c -a $REDIS_PASSWORD -p 6380 GET user:1000
+# Get key (automatic redirection with -c flag) - Non-TLS
+redis-cli -c -a $REDIS_PASSWORD -p 6379 GET user:1000
 # → Redirected to Node 1 (slot 5139)
 
+# TLS-encrypted operations (requires certificates)
+redis-cli -c -a $REDIS_PASSWORD -p 6390 \
+  --tls --cert ~/.config/vault/certs/redis-1/redis.crt \
+  --key ~/.config/vault/certs/redis-1/redis.key \
+  --cacert ~/.config/vault/certs/redis-1/ca.crt \
+  GET user:1000
+
 # Without -c flag: returns MOVED error
-redis-cli -a $REDIS_PASSWORD -p 6380 GET user:1000
-# → (error) MOVED 5139 172.20.0.13:6379
+redis-cli -a $REDIS_PASSWORD -p 6379 GET user:1000
+# → (error) MOVED 5139 172.20.2.13:6379
 ```
 
 **Find Key Location:**
@@ -133,7 +143,7 @@ docker exec dev-redis-3 redis-cli -a $REDIS_PASSWORD cluster nodes
 **Slot Migration Issues:**
 ```bash
 # Check for open slots
-docker exec dev-redis-1 redis-cli --cluster check 172.20.0.13:6379 -a $REDIS_PASSWORD
+docker exec dev-redis-1 redis-cli --cluster check 172.20.2.13:6379 -a $REDIS_PASSWORD
 
 # Should show: [OK] All 16384 slots covered
 ```

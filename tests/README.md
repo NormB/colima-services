@@ -45,12 +45,20 @@ Comprehensive test coverage for all infrastructure components and applications.
 ## Quick Start
 
 ```bash
-# Run all tests
+# Run all tests (auto-detects running services)
 ./tests/run-all-tests.sh
 
 # Run specific test suite
 ./tests/test-fastapi.sh
 ./tests/test-redis-cluster.sh
+
+# Run tests with specific profile
+./manage-devstack start --profile full
+./tests/run-all-tests.sh  # Runs all available tests
+
+# Run tests with minimal profile
+./manage-devstack start --profile minimal
+./tests/run-all-tests.sh  # Skips observability and reference API tests
 ```
 
 ## Test Suites
@@ -212,6 +220,91 @@ Runs all 7 test suites and provides comprehensive summary.
 | **FastAPI** | **14** | **APIs, health, cluster endpoints, integrations** |
 
 **Total: ~70+ tests** across all components
+
+## Profile-Aware Testing
+
+The test suite automatically adapts to your active service profile, skipping tests for services that aren't running.
+
+### How It Works
+
+**Automatic Service Detection:**
+- Tests check for running containers before execution
+- Services not in active profile are automatically skipped
+- Exit code 0 (success) even with skipped tests
+- Skipped tests clearly marked in output
+
+**Test Behavior by Profile:**
+
+| Profile | Infrastructure Tests | Database Tests | Observability Tests | Reference API Tests | pytest Tests |
+|---------|---------------------|----------------|---------------------|---------------------|--------------|
+| **minimal** | ✅ Vault | ✅ PostgreSQL | ⊘ Skipped | ⊘ Skipped | ⊘ Skipped |
+| **standard** | ✅ All | ✅ All | ⊘ Skipped | ⊘ Skipped | ⊘ Skipped |
+| **full** | ✅ All | ✅ All | ✅ All | ⊘ Skipped | ⊘ Skipped |
+| **standard + reference** | ✅ All | ✅ All | ⊘ Skipped | ✅ All | ✅ All |
+| **full + reference** | ✅ All | ✅ All | ✅ All | ✅ All | ✅ All |
+
+**Example Output:**
+```bash
+$ ./tests/run-all-tests.sh  # With minimal profile
+
+Test Suites Run: 16
+Passed: 12
+Skipped: 4
+
+Results by suite:
+  ✓ Vault Integration
+  ✓ PostgreSQL Vault Integration
+  ⊘ Observability Stack Tests (skipped)
+  ⊘ FastAPI Reference App (skipped)
+  ⊘ FastAPI Unit Tests (pytest) (skipped)
+  ⊘ API Parity Tests (pytest) (skipped)
+
+✓ ALL TESTS PASSED!
+  (4 suite(s) skipped)
+```
+
+### Skip vs Fail
+
+**Understanding Test States:**
+
+- **PASSED (✓):** All tests in suite completed successfully
+- **FAILED (✗):** One or more tests failed (exit code 1)
+- **SKIPPED (⊘):** Service not running, tests not executed (exit code 0)
+
+**Key Difference:**
+- ❌ **Failure:** Indicates a bug or misconfiguration that needs fixing
+- ⊘ **Skip:** Expected behavior when service isn't in active profile
+
+### Running Full Test Suite
+
+To run **all tests** without skips:
+
+```bash
+# Start with full + reference profiles
+./manage-devstack start --profile full --profile reference
+
+# Run complete test suite (all 16 test suites)
+./tests/run-all-tests.sh
+# Expected: 16/16 passed, 0 skipped
+```
+
+### Troubleshooting Skipped Tests
+
+**If tests are unexpectedly skipped:**
+
+```bash
+# 1. Check running containers
+docker ps --format "table {{.Name}}\t{{.Status}}"
+
+# 2. Verify profile services started
+./manage-devstack status
+
+# 3. Start missing services
+./manage-devstack start --profile full --profile reference
+
+# 4. Re-run tests
+./tests/run-all-tests.sh
+```
 
 ## What Gets Validated
 

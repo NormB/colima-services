@@ -44,6 +44,21 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Added
+- **Redis TLS encryption with dual-port configuration**
+  - Implemented TLS support for all 3 Redis cluster nodes
+  - Port 6379: Non-TLS connections (backward compatible)
+  - Port 6390-6392: TLS-encrypted connections (host ports mapping to container port 6380)
+  - Updated `configs/redis/scripts/init-approle.sh` with conditional TLS startup logic
+  - Certificates pre-generated via `scripts/generate-certificates.sh` before container startup
+  - Documentation updated across `docs/REDIS.md`, `docs/SERVICES.md`, `docs/ENVIRONMENT_VARIABLES.md`
+
+- **Profile-aware test suite with intelligent service detection**
+  - Enhanced `tests/run-all-tests.sh` with automatic service availability checking
+  - Tests conditionally execute based on running containers (no false failures)
+  - Clear distinction between PASSED (✓), FAILED (✗), and SKIPPED (⊘) tests
+  - New comprehensive documentation section in `tests/README.md` explaining profile-aware testing
+  - Support for all profiles: minimal, standard, full, and reference combinations
+
 - Rust linting and testing infrastructure
   - Added `rust-lint` job to `.github/workflows/lint.yml` with `cargo fmt` and `cargo clippy`
   - Created comprehensive `tests/test-rust.sh` script with 7 endpoint tests
@@ -51,6 +66,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - Updated test suite documentation to include Rust testing
 
 ### Changed
+- **Updated network IPs to reflect 4-tier segmentation architecture**
+  - Redis cluster IPs: 172.20.0.13/16/17 → 172.20.2.13/16/17 (data network)
+  - Updated across all documentation: `docs/REDIS.md`, `docs/SERVICES.md`, `docs/ENVIRONMENT_VARIABLES.md`
+  - Updated `scripts/generate-certificates.sh` with correct service IP addresses
+  - Cluster initialization commands now reference new network addresses
 - Enhanced `vault-show-password` command to display complete Forgejo credentials
   - Now shows username, email, and password for Forgejo (previously only showed password)
   - Improved implementation using `docker exec` for more reliable Vault access
@@ -62,6 +82,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - Updated across all documentation files: CLAUDE.md, README.md, reference-apps/README.md, docs/ARCHITECTURE.md, docs/SERVICES.md, docs/PERFORMANCE_BASELINE.md
 
 ### Fixed
+- **Observability test suite syntax error**
+  - Fixed `tests/test-observability.sh:286` grep pattern causing "integer expression expected" error
+  - Changed `grep -c "pattern" || echo "0"` to `grep -c "pattern" || true`
+  - All 10 observability tests now pass cleanly when services are available
+
 - Automatic Forgejo database creation during PostgreSQL initialization and vault-bootstrap
   - Added `configs/postgres/02-create-forgejo-db.sql` to create forgejo database automatically
   - Updated `manage-devstack.sh` vault-bootstrap to ensure forgejo database exists

@@ -25,7 +25,7 @@
 | **PostgreSQL** | 16-alpine | 5432 | Git storage + dev database | pg_isready |
 | **PgBouncer** | latest | 6432 | Connection pooling | psql test |
 | **MySQL** | 8.0 | 3306 | Legacy database support | mysqladmin ping |
-| **Redis Cluster** | 7-alpine | 6379, 6380, 6381 | Distributed cache (3 nodes) | redis-cli ping |
+| **Redis Cluster** | 7-alpine | 6379 (non-TLS), 6390 (TLS), 16379 (cluster bus) | Distributed cache (3 nodes) | redis-cli ping |
 | **RabbitMQ** | 3-management-alpine | 5672, 15672 | Message queue + UI | rabbitmq-diagnostics |
 | **MongoDB** | 7 | 27017 | NoSQL database | mongosh ping |
 | **Forgejo** | 1.21 | 3000, 2222 | Self-hosted Git server | curl /api/healthz |
@@ -199,9 +199,9 @@ mysql -h 127.0.0.1 -u $MYSQL_USER -p
   - Auto-fetched at startup via `configs/redis/scripts/init.sh`
   - Field: `password`
 - 16,384 hash slots distributed across nodes
-  - Node 1 (172.20.0.13): slots 0-5460
-  - Node 2 (172.20.0.16): slots 5461-10922
-  - Node 3 (172.20.0.17): slots 10923-16383
+  - Node 1 (172.20.2.13): slots 0-5460
+  - Node 2 (172.20.2.16): slots 5461-10922
+  - Node 3 (172.20.2.17): slots 10923-16383
 - Total memory: 768MB (256MB per node)
 - Automatic slot allocation and data sharding
 - **Optional TLS:** Configurable via `REDIS_ENABLE_TLS=true`
@@ -228,17 +228,20 @@ maxmemory-policy allkeys-lru
 ```
 
 **Ports:**
-- **6379, 6380, 6381:** Redis data ports (mapped to host)
-- **16379, 16380, 16381:** Cluster bus ports (internal)
+- **6379 (non-TLS):** Standard Redis port on all nodes
+- **6390 (TLS):** TLS-encrypted port on all nodes (when TLS enabled)
+- **16379:** Cluster bus port (internal communication)
 
 **Connection:**
 ```bash
-# ALWAYS use -c flag for cluster mode!
+# Non-TLS connection (ALWAYS use -c flag for cluster mode!)
 redis-cli -c -a $REDIS_PASSWORD -p 6379
 
-# Connect to specific node
-redis-cli -c -a $REDIS_PASSWORD -p 6380
-redis-cli -c -a $REDIS_PASSWORD -p 6381
+# TLS-encrypted connection (requires certificates)
+redis-cli -c -a $REDIS_PASSWORD -p 6390 \
+  --tls --cert ~/.config/vault/certs/redis-1/redis.crt \
+  --key ~/.config/vault/certs/redis-1/redis.key \
+  --cacert ~/.config/vault/certs/redis-1/ca.crt
 ```
 
 **First-Time Cluster Initialization:**
@@ -248,7 +251,7 @@ redis-cli -c -a $REDIS_PASSWORD -p 6381
 
 # Or manually
 docker exec dev-redis-1 redis-cli --cluster create \
-  172.20.0.13:6379 172.20.0.16:6379 172.20.0.17:6379 \
+  172.20.2.13:6379 172.20.2.16:6379 172.20.2.17:6379 \
   --cluster-yes -a $REDIS_PASSWORD
 ```
 
@@ -267,7 +270,7 @@ docker exec dev-redis-1 redis-cli -a $REDIS_PASSWORD cluster slots
 docker exec dev-redis-1 redis-cli -a $REDIS_PASSWORD cluster keyslot <key-name>
 
 # Comprehensive cluster check
-docker exec dev-redis-1 redis-cli --cluster check 172.20.0.13:6379 -a $REDIS_PASSWORD
+docker exec dev-redis-1 redis-cli --cluster check 172.20.2.13:6379 -a $REDIS_PASSWORD
 ```
 
 **FastAPI Cluster Inspection APIs:**
