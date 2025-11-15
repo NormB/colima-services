@@ -300,9 +300,21 @@ main() {
     success "Initialization complete, starting Redis..."
     info ""
 
-    # Start Redis with password
-    # TLS configuration is handled via redis.conf file if enabled
-    exec redis-server "$@" --requirepass "$REDIS_PASSWORD"
+    # Start Redis with password and TLS if enabled
+    if [ "$ENABLE_TLS" = "true" ]; then
+        info "TLS enabled, starting Redis with TLS configuration..."
+        exec redis-server "$@" \
+            --requirepass "$REDIS_PASSWORD" \
+            --tls-port 6380 \
+            --port 6379 \
+            --tls-cert-file /etc/redis/certs/redis.crt \
+            --tls-key-file /etc/redis/certs/redis.key \
+            --tls-ca-cert-file /etc/redis/certs/ca.crt \
+            --tls-auth-clients no
+    else
+        info "TLS disabled, starting Redis without TLS..."
+        exec redis-server "$@" --requirepass "$REDIS_PASSWORD"
+    fi
 }
 
 # Run main function
