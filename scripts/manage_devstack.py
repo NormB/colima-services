@@ -1657,16 +1657,14 @@ def redis_cluster_init():
     Creates a 3-node Redis cluster with automatic slot distribution.
     Only needed once after first start with standard or full profile.
     """
-    console.print("\n[cyan]═══ Redis Cluster Initialization ═══[/cyan]\n")
-
     # Check if redis-1 is running
-    returncode, _, _ = run_command(
+    returncode, stdout, _ = run_command(
         ["docker", "ps", "--filter", "name=dev-redis-1", "--format", "{{.Names}}"],
         capture=True,
         check=False
     )
 
-    if returncode != 0:
+    if returncode != 0 or "dev-redis-1" not in stdout:
         console.print("[red]Error: Redis containers are not running[/red]")
         console.print("[yellow]Start with: ./manage-devstack start --profile standard[/yellow]\n")
         return
@@ -1674,72 +1672,37 @@ def redis_cluster_init():
     # Get Redis password from Vault
     if not check_vault_token():
         console.print("[yellow]Warning: Vault token not found[/yellow]")
-        console.print("[yellow]Proceeding without authentication (may fail)[/yellow]\n")
-        redis_password = ""
-    else:
-        # Try to get password from Vault
-        token = get_vault_token()
-        returncode, stdout, _ = run_command(
-            ["docker", "exec", "dev-vault", "vault", "kv", "get", "-field=password", "secret/redis-1"],
-            capture=True,
-            check=False,
-            env={"VAULT_TOKEN": token, "VAULT_ADDR": "http://localhost:8200"}
-        )
-        redis_password = stdout.strip() if returncode == 0 else ""
-
-    # Check if cluster is already initialized
-    check_cmd = ["docker", "exec", "dev-redis-1", "redis-cli", "cluster", "info"]
-    if redis_password:
-        check_cmd.extend(["-a", redis_password])
-
-    returncode, stdout, _ = run_command(check_cmd, capture=True, check=False)
-    if returncode == 0 and "cluster_state:ok" in stdout:
-        console.print("[green]✓ Redis cluster is already initialized and healthy[/green]\n")
-        console.print("[cyan]Cluster status:[/cyan]")
-
-        # Show cluster nodes
-        nodes_cmd = ["docker", "exec", "dev-redis-1", "redis-cli", "cluster", "nodes"]
-        if redis_password:
-            nodes_cmd.extend(["-a", redis_password])
-
-        _, nodes_output, _ = run_command(nodes_cmd, capture=True, check=False)
-        console.print(nodes_output)
+        console.print("[yellow]Cannot initialize cluster without Vault credentials[/yellow]\n")
         return
 
-    # Initialize cluster
-    console.print("[yellow]Initializing Redis cluster...[/yellow]\n")
+    # Retrieve password from Vault (using token from inside container)
+    returncode, redis_password, _ = run_command(
+        ["docker", "exec", "dev-vault", "sh", "-c",
+         "export VAULT_TOKEN=$(cat /vault-keys/root-token) && vault kv get -field=password secret/redis-1"],
+        capture=True,
+        check=False
+    )
 
-    cmd = [
-        "docker", "exec", "dev-redis-1",
-        "redis-cli", "--cluster", "create",
-        "172.20.2.13:6379", "172.20.2.16:6379", "172.20.2.17:6379",
-        "--cluster-yes"
-    ]
+    if returncode != 0:
+        console.print("[red]Error: Could not retrieve Redis password from Vault[/red]")
+        console.print("[yellow]Ensure Vault is running and bootstrapped[/yellow]\n")
+        return
 
-    if redis_password:
-        cmd.extend(["-a", redis_password])
+    redis_password = redis_password.strip()
 
-    returncode, stdout, stderr = run_command(cmd, capture=True, check=False)
+    # Call the bash script with the password
+    script_path = os.path.join(os.path.dirname(os.path.dirname(__file__)), "configs", "redis", "scripts", "redis-cluster-init.sh")
+    returncode, stdout, stderr = run_command(
+        ["bash", script_path],
+        capture=False,
+        check=False,
+        env={"REDIS_PASSWORD": redis_password}
+    )
 
-    if returncode == 0:
-        console.print("[green]✓ Redis cluster initialized successfully[/green]\n")
-        console.print("[cyan]Cluster status:[/cyan]")
-
-        # Show cluster nodes
-        verify_cmd = ["docker", "exec", "dev-redis-1", "redis-cli", "cluster", "nodes"]
-        if redis_password:
-            verify_cmd.extend(["-a", redis_password])
-
-        _, nodes_output, _ = run_command(verify_cmd, capture=True, check=False)
-        console.print(nodes_output)
+    if returncode != 0:
+        console.print(f"[red]Error: Redis cluster initialization failed (exit code {returncode})[/red]\n")
     else:
-        console.print("[red]Error initializing Redis cluster[/red]")
-        if "already" in stderr.lower() or "already" in stdout.lower():
-            console.print("[yellow]Cluster may already be initialized[/yellow]")
-        else:
-            console.print(f"[red]{stderr}[/red]")
-
-    console.print()
+        console.print()  # Extra newline for spacing
 
 
 # ==============================================================================
