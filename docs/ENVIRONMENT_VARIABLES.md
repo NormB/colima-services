@@ -49,7 +49,7 @@ This document provides a comprehensive reference for all environment variables u
 | **PostgreSQL** | `POSTGRES_USER`, `POSTGRES_DB` | `secret/postgres` | 5432 |
 | **MySQL** | `MYSQL_USER`, `MYSQL_DATABASE` | `secret/mysql` | 3306 |
 | **MongoDB** | `MONGO_INITDB_DATABASE` | `secret/mongodb` | 27017 |
-| **Redis** | N/A | `secret/redis-1` | 6379-6381 |
+| **Redis** | N/A | `secret/redis-1` | 6379-6381 (non-TLS), 6390-6392 (TLS) |
 | **RabbitMQ** | `RABBITMQ_DEFAULT_VHOST` | `secret/rabbitmq` | 5672, 15672 |
 | **Forgejo** | `FORGEJO_APP_NAME` | `secret/forgejo` | 3000, 222 |
 
@@ -250,26 +250,26 @@ mongosh "mongodb://dev_admin:$(vault kv get -field=password secret/mongodb)@loca
 **Node 1:**
 | Variable | Default | Description |
 |----------|---------|-------------|
-| `REDIS_1_IP` | `172.20.0.13` | Static IP address |
-| `REDIS_1_HOST_PORT` | `6379` | Non-TLS port |
-| `REDIS_1_TLS_PORT` | `6390` | TLS port (if enabled) |
-| `REDIS_1_CLUSTER_PORT` | `16379` | Cluster bus port |
+| `REDIS_1_IP` | `172.20.2.13` | Static IP address (data network) |
+| `REDIS_1_HOST_PORT` | `6379` | Host → container port 6379 (non-TLS) |
+| `REDIS_1_TLS_PORT` | `6390` | Host → container port 6380 (TLS) |
+| `REDIS_1_CLUSTER_PORT` | `16379` | Cluster bus port (internal) |
 
 **Node 2:**
 | Variable | Default | Description |
 |----------|---------|-------------|
-| `REDIS_2_IP` | `172.20.0.16` | Static IP address |
-| `REDIS_2_HOST_PORT` | `6380` | Non-TLS port |
-| `REDIS_2_TLS_PORT` | `6391` | TLS port (if enabled) |
-| `REDIS_2_CLUSTER_PORT` | `16380` | Cluster bus port |
+| `REDIS_2_IP` | `172.20.2.16` | Static IP address (data network) |
+| `REDIS_2_HOST_PORT` | `6380` | Host → container port 6379 (non-TLS) |
+| `REDIS_2_TLS_PORT` | `6391` | Host → container port 6380 (TLS) |
+| `REDIS_2_CLUSTER_PORT` | `16380` | Cluster bus port (internal) |
 
 **Node 3:**
 | Variable | Default | Description |
 |----------|---------|-------------|
-| `REDIS_3_IP` | `172.20.0.17` | Static IP address |
-| `REDIS_3_HOST_PORT` | `6381` | Non-TLS port |
-| `REDIS_3_TLS_PORT` | `6392` | TLS port (if enabled) |
-| `REDIS_3_CLUSTER_PORT` | `16381` | Cluster bus port |
+| `REDIS_3_IP` | `172.20.2.17` | Static IP address (data network) |
+| `REDIS_3_HOST_PORT` | `6381` | Host → container port 6379 (non-TLS) |
+| `REDIS_3_TLS_PORT` | `6392` | Host → container port 6380 (TLS) |
+| `REDIS_3_CLUSTER_PORT` | `16381` | Cluster bus port (internal) |
 
 **General:**
 | Variable | Default | Description |
